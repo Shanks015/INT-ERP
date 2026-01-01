@@ -94,7 +94,7 @@ const Register = () => {
                                     type={showPassword ? "text" : "password"}
                                     name="password"
                                     placeholder="Enter your password"
-                                    className="input input-bordered w-full pr-10"
+                                    className="input input-bordered w-full pr-12"
                                     value={formData.password}
                                     onChange={handleChange}
                                     required
@@ -102,8 +102,9 @@ const Register = () => {
                                 />
                                 <button
                                     type="button"
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/60 hover:text-base-content"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/60 hover:text-base-content transition-colors"
                                     onClick={() => setShowPassword(!showPassword)}
+                                    tabIndex={-1}
                                 >
                                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>

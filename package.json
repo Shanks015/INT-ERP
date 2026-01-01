@@ -1,13 +1,19 @@
+```json
 {
     "name": "int-erp",
     "version": "1.0.0",
     "description": "International Affairs ERP System",
     "scripts": {
         "install-all": "cd server && npm install && cd ../client && npm install",
+        "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
         "build": "cd client && npm install && npm run build",
         "start": "cd server && npm start",
-        "dev:server": "cd server && npm run dev",
-        "dev:client": "cd client && npm run dev"
+        "server": "cd server && npm run dev",
+        "client": "cd client && npm run dev",
+        "create-admin": "cd server && node scripts/createAdminAuto.js"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
     },
     "keywords": [
         "erp",
