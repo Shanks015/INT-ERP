@@ -53,6 +53,22 @@ app.use('/api/digital-media', digitalMediaRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/reports', reportsRoutes);
 
+// Serve static files from React build in production
+if (process.env.NODE_ENV === 'production') {
+    const clientBuildPath = path.join(__dirname, '../../client/dist');
+    app.use(express.static(clientBuildPath));
+
+    // Handle React routing - return index.html for all non-API routes
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(clientBuildPath, 'index.html'));
+    });
+}
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', message: 'Server is running' });
+});
+
 // Health check route
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Server is running' });
