@@ -1,0 +1,170 @@
+import { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../api';
+import toast from 'react-hot-toast';
+import { Users, Check, X, Clock, UserCheck, UserX } from 'lucide-react';
+
+const UserManagement = () => {
+    const { isAdmin } = useAuth();
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState('all');
+    const [rejectModal, setRejectModal] = useState({ isOpen: false, user: null });
+    const [rejectionReason, setRejectionReason] = useState('');
+
+    useEffect(() => {
+        fetchUsers();
+    }, [filter]);
+
+    const fetchUsers = async () => {
+        try {
+            const endpoint = filter === 'all' ? '/users' : `/users?status=${filter}`;
+            const response = await api.get(endpoint);
+            setUsers(response.data.users || []);
+        } catch (error) {
+            toast.error('Error fetching users');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleApprove = async (userId) => {
+        try {
+            await api.post(`/users/${userId}/approve`);
+            toast.success('User approved successfully');
+            fetchUsers();
+            window.dispatchEvent(new Event('pendingCountUpdated'));
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Error approving user');
+        }
+    };
+
+    const handleReject = async () => {
+        if (!rejectionReason.trim()) {
+            toast.error('Please provide a rejection reason');
+            return;
+        }
+
+        try {
+            await api.post(`/users/${rejectModal.user._id}/reject`, {
+                reason: rejectionReason
+            });
+            toast.success('User rejected');
+            setRejectModal({ isOpen: false, user: null });
+            setRejectionReason('');
+            fetchUsers();
+            window.dispatchEvent(new Event('pendingCountUpdated'));
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Error rejecting user');
+        }
+    };
+
+    const getStatusBadge = (status) => {
+        const badges = {
+            pending: <span className="badge badge-warning gap-2"><Clock size={14} />Pending</span>,
+            approved: <span className="badge badge-success gap-2"><UserCheck size={14} />Approved</span>,
+            rejected: <span className="badge badge-error gap-2"><UserX size={14} />Rejected</span>
+        };
+        return badges[status] || badges.pending;
+    };
+
+    if (loading) {
+        return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
+    }
+
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h1 className="text-3xl font-bold">User Management</h1>
+                    <p className="text-base-content/70 mt-2">Approve or reject user registrations</p>
+                </div>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="tabs tabs-boxed mb-6">
+                <a className={`tab ${filter === 'all' ? 'tab-active' : ''}`} onClick={() => setFilter('all')}>All Users</a>
+                <a className={`tab ${filter === 'pending' ? 'tab-active' : ''}`} onClick={() => setFilter('pending')}>Pending</a>
+                <a className={`tab ${filter === 'approved' ? 'tab-active' : ''}`} onClick={() => setFilter('approved')}>Approved</a>
+                <a className={`tab ${filter === 'rejected' ? 'tab-active' : ''}`} onClick={() => setFilter('rejected')}>Rejected</a>
+            </div>
+
+            <div className="card bg-base-100 shadow-xl">
+                <div className="card-body">
+                    <div className="overflow-x-auto">
+                        <table className="table table-zebra">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Registered</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {users.length === 0 ? (
+                                    <tr><td colSpan={6} className="text-center py-8">No users found</td></tr>
+                                ) : (
+                                    users.map((user) => (
+                                        <tr key={user._id}>
+                                            <td>{user.name}</td>
+                                            <td>{user.email}</td>
+                                            <td><span className="badge">{user.role}</span></td>
+                                            <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                                            <td>{getStatusBadge(user.approvalStatus)}</td>
+                                            <td>
+                                                {user.approvalStatus === 'pending' && (
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => handleApprove(user._id)} className="btn btn-success btn-sm">
+                                                            <Check size={16} />Approve
+                                                        </button>
+                                                        <button onClick={() => setRejectModal({ isOpen: true, user })} className="btn btn-error btn-sm">
+                                                            <X size={16} />Reject
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {user.approvalStatus === 'rejected' && user.rejectionReason && (
+                                                    <div className="tooltip" data-tip={user.rejectionReason}>
+                                                        <span className="text-sm text-error cursor-help">View Reason</span>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {/* Rejection Modal */}
+            {rejectModal.isOpen && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg mb-4">Reject User Registration</h3>
+                        <p className="mb-4">User: <strong>{rejectModal.user?.name}</strong> ({rejectModal.user?.email})</p>
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Rejection Reason</span></label>
+                            <textarea
+                                className="textarea textarea-bordered h-24"
+                                placeholder="Enter reason for rejection..."
+                                value={rejectionReason}
+                                onChange={(e) => setRejectionReason(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="modal-action">
+                            <button onClick={() => { setRejectModal({ isOpen: false, user: null }); setRejectionReason(''); }} className="btn">Cancel</button>
+                            <button onClick={handleReject} className="btn btn-error">Reject User</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default UserManagement;
