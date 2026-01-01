@@ -1,0 +1,17 @@
+// Quick reference for remaining modules to update:
+// 1. Conferences - conferences
+// 2. MoU Signing Ceremonies - mou-signing-ceremonies  
+// 3. Scholars - scholars-in-residence
+// 4. MoU Updates - mou-updates
+// 5. Immersion Programs - immersion-programs
+// 6. Student Exchange - student-exchange
+// 7. Masters Abroad - masters-abroad
+// 8. Memberships - memberships
+// 9. Digital Media - digital-media
+
+// Pattern for each:
+// 1. Add Upload to lucide imports
+// 2. Add ImportModal import
+// 3. Add importModal state
+// 4. Add import button before export button
+// 5. Add ImportModal component after DeleteConfirmModal
