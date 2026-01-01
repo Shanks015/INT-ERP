@@ -2,6 +2,12 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Import routes
 import authRoutes from './routes/auth.routes.js';
@@ -29,7 +35,9 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://192.168.17.26:5173'],
+    origin: process.env.NODE_ENV === 'production'
+        ? process.env.CLIENT_URL
+        : true, // Allow all origins in development
     credentials: true
 }));
 app.use(express.json());
@@ -69,11 +77,6 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Server is running' });
 });
 
-// Health check route
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', message: 'Server is running' });
-});
-
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
@@ -95,7 +98,7 @@ mongoose
         app.listen(PORT, HOST, () => {
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📡 Local: http://localhost:${PORT}/api`);
-            console.log(`🌐 Network: http://192.168.17.26:${PORT}/api`);
+            console.log(`🌐 Network: http://192.168.12.14:${PORT}/api`);
         });
     })
     .catch((error) => {
