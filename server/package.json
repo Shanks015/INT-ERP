@@ -16,6 +16,7 @@
     "mongoose": "^8.0.3",
     "multer": "^1.4.5-lts.1",
     "pdfkit": "^0.13.0",
+    "pdfkit-table": "^0.1.99",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
