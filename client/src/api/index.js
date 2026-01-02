@@ -3,8 +3,15 @@ import axios from 'axios';
 // Dynamically determine API URL based on current hostname
 const getApiUrl = () => {
     const hostname = window.location.hostname;
-    // If accessing from network, use network IP, otherwise use localhost
-    return `http://${hostname}:5000/api`;
+    const protocol = window.location.protocol; // http: or https:
+
+    // In production (Render), don't use port number
+    if (hostname.includes('onrender.com') || hostname.includes('railway.app')) {
+        return `${protocol}//${hostname}/api`;
+    }
+
+    // In development, use port 5000
+    return `${protocol}//${hostname}:5000/api`;
 };
 
 const api = axios.create({
