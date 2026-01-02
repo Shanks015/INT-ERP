@@ -12,7 +12,7 @@ const router = express.Router();
 
 // All routes require authentication and admin role
 router.use(authenticate);
-router.use(authorize('admin'));
+router.use(authorize(['admin']));
 
 // Get pending users count
 router.get('/pending/count', getPendingCount);
