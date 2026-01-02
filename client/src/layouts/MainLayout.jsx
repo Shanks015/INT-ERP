@@ -76,6 +76,7 @@ const MainLayout = () => {
             <li><Link to="/masters-abroad" className={location.pathname.includes('/masters-abroad') ? 'active' : ''}><BookOpen size={18} /> Masters Abroad</Link></li>
             <li><Link to="/memberships" className={location.pathname.includes('/memberships') ? 'active' : ''}><Users2 size={18} /> Memberships</Link></li>
             <li><Link to="/digital-media" className={location.pathname.includes('/digital-media') ? 'active' : ''}><Image size={18} /> Digital Media</Link></li>
+            <li><Link to="/outreach" className={location.pathname.includes('/outreach') ? 'active' : ''}><Users size={18} /> Outreach</Link></li>
 
             <li>
                 <Link to="/reports" className={location.pathname === '/reports' ? 'active' : ''}>

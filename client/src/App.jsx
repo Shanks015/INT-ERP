@@ -47,6 +47,9 @@ import MembershipForm from './pages/Memberships/MembershipForm';
 // Digital Media
 import DigitalMediaList from './pages/DigitalMedia/DigitalMediaList';
 import DigitalMediaForm from './pages/DigitalMedia/DigitalMediaForm';
+// Outreach
+import OutreachList from './pages/Outreach/OutreachList';
+import OutreachForm from './pages/Outreach/OutreachForm';
 
 function App() {
     const { user, loading } = useAuth();
@@ -113,9 +116,14 @@ function App() {
                     <Route path="digital-media/new" element={<DigitalMediaForm />} />
                     <Route path="digital-media/edit/:id" element={<DigitalMediaForm />} />
 
+                    <Route path="outreach" element={<OutreachList />} />
+                    <Route path="outreach/new" element={<OutreachForm />} />
+                    <Route path="outreach/edit/:id" element={<OutreachForm />} />
+
                     <Route path="pending-actions" element={<ProtectedRoute adminOnly><PendingActions /></ProtectedRoute>} />
                     <Route path="my-requests" element={<MyRequests />} />
                     <Route path="reports" element={<Reports />} />
+                    <Route path="user-management" element={<ProtectedRoute adminOnly><UserManagement /></ProtectedRoute>} />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/" replace />} />

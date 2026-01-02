@@ -23,6 +23,7 @@ import studentExchangeRoutes from './routes/studentExchange.routes.js';
 import mastersAbroadRoutes from './routes/mastersAbroad.routes.js';
 import membershipsRoutes from './routes/memberships.routes.js';
 import digitalMediaRoutes from './routes/digitalMedia.routes.js';
+import outreachRoutes from './routes/outreach.routes.js';
 import importRoutes from './routes/import.routes.js';
 import reportsRoutes from './routes/reports.routes.js';
 import usersRoutes from './routes/users.routes.js';
@@ -58,6 +59,7 @@ app.use('/api/student-exchange', studentExchangeRoutes);
 app.use('/api/masters-abroad', mastersAbroadRoutes);
 app.use('/api/memberships', membershipsRoutes);
 app.use('/api/digital-media', digitalMediaRoutes);
+app.use('/api/outreach', outreachRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/reports', reportsRoutes);
 
