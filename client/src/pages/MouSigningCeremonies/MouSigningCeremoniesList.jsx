@@ -3,106 +3,124 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Clock, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, FileText, TrendingUp, Clock } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
+import StatsCard from '../../components/StatsCard';
+import FilterBar from '../../components/FilterBar';
+import Pagination from '../../components/Pagination';
 
 const MouSigningCeremoniesList = () => {
     const { isAdmin } = useAuth();
-    const [items, setItems] = useState([]);
+    const [ceremonies, setCeremonies] = useState([]);
+    const [stats, setStats] = useState({ total: 0, thisMonth: 0, pending: 0 });
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [filters, setFilters] = useState({ search: '', status: '', startDate: '', endDate: '', country: '' });
 
-    useEffect(() => { fetchItems(); }, []);
+    useEffect(() => { fetchCeremonies(); fetchStats(); }, [currentPage, itemsPerPage, filters]);
 
-    const fetchItems = async () => {
+    const fetchStats = async () => {
         try {
-            const response = await api.get('/mou-signing-ceremonies');
-            setItems(response.data.data || []);
-        } catch (error) {
-            toast.error('Error fetching MoU signing ceremonies');
-        } finally {
-            setLoading(false);
-        }
+            const response = await api.get('/mou-signing-ceremonies/stats');
+            setStats(response.data.stats);
+        } catch (error) { console.error('Error fetching stats:', error); }
+    };
+
+    const fetchCeremonies = async () => {
+        try {
+            setLoading(true);
+            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const response = await api.get('/mou-signing-ceremonies', { params });
+            setCeremonies(response.data.data || []);
+            setTotalItems(response.data.pagination?.total || 0);
+            setTotalPages(response.data.pagination?.pages || 0);
+        } catch (error) { toast.error('Error fetching ceremonies'); }
+        finally { setLoading(false); }
     };
 
     const handleDelete = async (reason) => {
         try {
             await api.delete(`/mou-signing-ceremonies/${deleteModal.item._id}`, { data: { reason } });
-            toast.success(isAdmin ? 'MoU signing ceremony deleted successfully' : 'Delete request submitted for approval');
-            fetchItems();
+            toast.success(isAdmin ? 'Ceremony deleted successfully' : 'Delete request submitted');
+            fetchCeremonies(); fetchStats();
             window.dispatchEvent(new Event('pendingCountUpdated'));
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Error deleting record');
-        }
+        } catch (error) { toast.error(error.response?.data?.message || 'Error deleting ceremony'); }
     };
 
     const handleExportCSV = async () => {
         try {
-            const response = await api.post('/mou-signing-ceremonies/export-csv', {}, { responseType: 'blob' });
+            const response = await api.get('/mou-signing-ceremonies/export', { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', 'mou-signing-ceremonies-export.csv');
+            link.setAttribute('download', 'mou-ceremonies-export.csv');
             document.body.appendChild(link);
             link.click();
             link.remove();
             toast.success('CSV exported successfully');
-        } catch (error) {
-            toast.error('Error exporting CSV');
-        }
+        } catch (error) { toast.error('Error exporting CSV'); }
     };
 
-    if (loading) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
+    const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', status: '', startDate: '', endDate: '', country: '' }); setCurrentPage(1); };
+
+    if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <div><h1 className="text-3xl font-bold">MoU Signing Ceremonies</h1><p className="text-base-content/70 mt-2">Manage MoU signing ceremony records</p></div>
+                <div><h1 className="text-3xl font-bold">MoU Signing Ceremonies</h1><p className="text-base-content/70 mt-2">Manage MoU signing events</p></div>
                 <div className="flex gap-2">
+                    <button onClick={() => setImportModal(true)} className="btn btn-outline"><Upload size={18} />Import</button>
                     <button onClick={handleExportCSV} className="btn btn-outline"><Download size={18} />Export CSV</button>
                     <Link to="/mou-signing-ceremonies/new" className="btn btn-primary"><Plus size={18} />Add Ceremony</Link>
                 </div>
             </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <StatsCard title="Total Ceremonies" value={stats.total} icon={FileText} color="primary" />
+                <StatsCard title="This Month" value={stats.thisMonth} icon={TrendingUp} color="secondary" trend={`+${stats.thisMonth} new`} />
+                <StatsCard title="Pending" value={stats.pending} icon={Clock} color="warning" />
+            </div>
+            <FilterBar filters={filters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} showCountryFilter={true} />
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Date</th><th>Visitor Name</th><th>University</th><th>Type</th><th>Department</th><th>Status</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>Title</th><th>Date</th><th>Partner</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead>
                             <tbody>
-                                {items.length === 0 ? (
-                                    <tr><td colSpan={7} className="text-center py-8">No records found.</td></tr>
-                                ) : (
-                                    items.map((item) => (
-                                        <tr key={item._id}>
-                                            <td>{new Date(item.date).toLocaleDateString()}</td>
-                                            <td>{item.visitorName}</td>
-                                            <td>{item.universityName}</td>
-                                            <td>{item.type || '-'}</td>
-                                            <td>{item.department || '-'}</td>
-                                            <td>
-                                                {item.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
-                                                {item.status === 'pending_delete' && <span className="badge badge-error gap-2"><Clock size={14} />Delete Pending</span>}
-                                                {item.status === 'active' && <span className="badge badge-success">Active</span>}
-                                            </td>
-                                            <td>
-                                                <div className="flex gap-2">
-                                                    <Link to={`/mou-signing-ceremonies/edit/${item._id}`} className={`btn btn-warning btn-sm ${item.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
-                                                    <button onClick={() => setDeleteModal({ isOpen: true, item })} className={`btn btn-error btn-sm ${item.status !== 'active' ? 'btn-disabled' : ''}`} disabled={item.status !== 'active'}><Trash2 size={16} /></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
+                                {ceremonies.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No ceremonies found</td></tr> : ceremonies.map((ceremony) => (
+                                    <tr key={ceremony._id}>
+                                        <td>{ceremony.title}</td>
+                                        <td>{new Date(ceremony.ceremonyDate).toLocaleDateString()}</td>
+                                        <td>{ceremony.partnerName || '-'}</td>
+                                        <td>{ceremony.location}</td>
+                                        <td>
+                                            {ceremony.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
+                                            {ceremony.status === 'pending_delete' && <span className="badge badge-error gap-2"><Clock size={14} />Delete Pending</span>}
+                                            {ceremony.status === 'active' && <span className="badge badge-success">Active</span>}
+                                        </td>
+                                        <td>
+                                            <div className="flex gap-2">
+                                                <Link to={`/mou-signing-ceremonies/edit/${ceremony._id}`} className={`btn btn-warning btn-sm ${ceremony.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
+                                                <button onClick={() => setDeleteModal({ isOpen: true, item: ceremony })} className={`btn btn-error btn-sm ${ceremony.status !== 'active' ? 'btn-disabled' : ''}`} disabled={ceremony.status !== 'active'}><Trash2 size={16} /></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
+                    {totalItems > 0 && <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} onItemsPerPageChange={(newLimit) => { setItemsPerPage(newLimit); setCurrentPage(1); }} />}
                 </div>
             </div>
-
-            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.visitorName} requireReason={!isAdmin} />
+            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.title} requireReason={!isAdmin} />
+            <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchCeremonies(); fetchStats(); }} moduleName="mou-signing-ceremonies" />
         </div>
     );
 };
