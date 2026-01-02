@@ -11,7 +11,7 @@ const MouSigningCeremonyForm = () => {
     const { isAdmin } = useAuth();
     const isEdit = Boolean(id);
 
-    const [formData, setFormData] = useState({ date: '', type: '', visitorName: '', universityName: '', department: '', eventSummary: '', campus: '' });
+    const [formData, setFormData] = useState({ date: '', type: '', visitorName: '', university: '', department: '', eventSummary: '', campus: '', driveLink: '' });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
 
@@ -21,7 +21,16 @@ const MouSigningCeremonyForm = () => {
         try {
             const response = await api.get(`/mou-signing-ceremonies/${id}`);
             const item = response.data.data;
-            setFormData({ date: item.date ? new Date(item.date).toISOString().split('T')[0] : '', type: item.type || '', visitorName: item.visitorName || '', universityName: item.universityName || '', department: item.department || '', eventSummary: item.eventSummary || '', campus: item.campus || '' });
+            setFormData({
+                date: item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+                type: item.type || '',
+                visitorName: item.visitorName || '',
+                university: item.university || '',
+                department: item.department || '',
+                eventSummary: item.eventSummary || '',
+                campus: item.campus || '',
+                driveLink: item.driveLink || ''
+            });
         } catch (error) {
             toast.error('Error fetching record');
             navigate('/mou-signing-ceremonies');
@@ -68,10 +77,11 @@ const MouSigningCeremonyForm = () => {
                             <div className="form-control w-full"><label className="label"><span className="label-text">Date *</span></label><input type="date" name="date" className="input input-bordered w-full" value={formData.date} onChange={handleChange} required /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Type</span></label><input type="text" name="type" placeholder="Type" className="input input-bordered w-full" value={formData.type} onChange={handleChange} /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Visitor Name *</span></label><input type="text" name="visitorName" placeholder="Visitor name" className="input input-bordered w-full" value={formData.visitorName} onChange={handleChange} required /></div>
-                            <div className="form-control w-full"><label className="label"><span className="label-text">University Name *</span></label><input type="text" name="universityName" placeholder="University" className="input input-bordered w-full" value={formData.universityName} onChange={handleChange} required /></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">University *</span></label><input type="text" name="university" placeholder="University" className="input input-bordered w-full" value={formData.university} onChange={handleChange} required /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Department</span></label><input type="text" name="department" placeholder="Department" className="input input-bordered w-full" value={formData.department} onChange={handleChange} /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Campus</span></label><input type="text" name="campus" placeholder="Campus" className="input input-bordered w-full" value={formData.campus} onChange={handleChange} /></div>
                             <div className="form-control w-full md:col-span-2"><label className="label"><span className="label-text">Event Summary</span></label><textarea name="eventSummary" placeholder="Event summary" className="textarea textarea-bordered w-full" rows={3} value={formData.eventSummary} onChange={handleChange} /></div>
+                            <div className="form-control w-full md:col-span-2"><label className="label"><span className="label-text">Drive Link</span></label><input type="url" name="driveLink" placeholder="https://drive.google.com/..." className="input input-bordered w-full" value={formData.driveLink} onChange={handleChange} /></div>
                         </div>
                         <div className="form-control mt-6">
                             <button type="submit" className={`btn btn-primary ${loading ? 'loading' : ''}`} disabled={loading}>{!loading && <Save size={18} className="mr-2" />}{loading ? 'Saving...' : (isEdit ? 'Update' : 'Create')}</button>

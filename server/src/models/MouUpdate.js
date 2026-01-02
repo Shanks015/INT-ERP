@@ -15,6 +15,13 @@ const mouUpdateSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    department: {
+        type: String,
+        trim: true
+    },
+    completedDate: {
+        type: Date
+    },
     contactPerson: {
         type: String,
         trim: true
@@ -27,7 +34,19 @@ const mouUpdateSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    agreementType: {
+        type: String,
+        trim: true
+    },
+    term: {
+        type: String,
+        trim: true
+    },
     validityStatus: {
+        type: String,
+        trim: true
+    },
+    driveLink: {
         type: String,
         trim: true
     },

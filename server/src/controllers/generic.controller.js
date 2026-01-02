@@ -20,12 +20,17 @@ export const getAll = (Model) => async (req, res) => {
         // Build query
         let query = {};
 
-        // Search filter (searches in name, title, university fields)
+        // Search filter (searches in multiple fields, case-insensitive)
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
                 { title: { $regex: search, $options: 'i' } },
-                { university: { $regex: search, $options: 'i' } }
+                { university: { $regex: search, $options: 'i' } },
+                { universityName: { $regex: search, $options: 'i' } },
+                { visitorName: { $regex: search, $options: 'i' } },
+                { department: { $regex: search, $options: 'i' } },
+                { country: { $regex: search, $options: 'i' } },
+                { summary: { $regex: search, $options: 'i' } }
             ];
         }
 
@@ -406,13 +411,28 @@ export const getStats = (Model) => async (req, res) => {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-        const [total, thisMonth, thisYear, pending, approved] = await Promise.all([
+        // Basic stats that all models have
+        const [total, thisMonth, thisYear] = await Promise.all([
             Model.countDocuments(),
             Model.countDocuments({ createdAt: { $gte: startOfMonth } }),
-            Model.countDocuments({ createdAt: { $gte: startOfYear } }),
-            Model.countDocuments({ approvalStatus: 'pending' }),
-            Model.countDocuments({ approvalStatus: 'approved' })
+            Model.countDocuments({ createdAt: { $gte: startOfYear } })
         ]);
+
+        // Try to get approval stats if the model has approvalStatus field
+        let pending = 0;
+        let approved = 0;
+
+        try {
+            const sampleDoc = await Model.findOne();
+            if (sampleDoc && 'approvalStatus' in sampleDoc.toObject()) {
+                [pending, approved] = await Promise.all([
+                    Model.countDocuments({ approvalStatus: 'pending' }),
+                    Model.countDocuments({ approvalStatus: 'approved' })
+                ]);
+            }
+        } catch (err) {
+            // Model doesn't have approvalStatus, that's okay
+        }
 
         res.json({
             success: true,
@@ -427,7 +447,7 @@ export const getStats = (Model) => async (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error fetching stats',
+            message: 'Error fetching statistics',
             error: error.message
         });
     }

@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const immersionProgramSchema = new mongoose.Schema({
     direction: {
         type: String,
-        enum: ['inbound', 'outbound'],
+        enum: ['Incoming', 'Outgoing'],
         required: true
     },
     programStatus: {
@@ -33,6 +33,17 @@ const immersionProgramSchema = new mongoose.Schema({
     },
     departureDate: {
         type: Date
+    },
+    summary: {
+        type: String,
+        trim: true
+    },
+    feesPerPax: {
+        type: Number
+    },
+    driveLink: {
+        type: String,
+        trim: true
     },
     // Approval workflow fields
     status: {

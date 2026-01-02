@@ -11,7 +11,19 @@ const ImmersionProgramForm = () => {
     const { isAdmin } = useAuth();
     const isEdit = Boolean(id);
 
-    const [formData, setFormData] = useState({ direction: '', programStatus: '', university: '', country: '', numberOfPax: '', department: '', arrivalDate: '', departureDate: '' });
+    const [formData, setFormData] = useState({
+        direction: '',
+        programStatus: '',
+        university: '',
+        country: '',
+        numberOfPax: '',
+        department: '',
+        arrivalDate: '',
+        departureDate: '',
+        summary: '',
+        feesPerPax: '',
+        driveLink: ''
+    });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
 
@@ -21,7 +33,19 @@ const ImmersionProgramForm = () => {
         try {
             const response = await api.get(`/immersion-programs/${id}`);
             const item = response.data.data;
-            setFormData({ direction: item.direction || '', programStatus: item.programStatus || '', university: item.university || '', country: item.country || '', numberOfPax: item.numberOfPax || '', department: item.department || '', arrivalDate: item.arrivalDate ? new Date(item.arrivalDate).toISOString().split('T')[0] : '', departureDate: item.departureDate ? new Date(item.departureDate).toISOString().split('T')[0] : '' });
+            setFormData({
+                direction: item.direction || '',
+                programStatus: item.programStatus || '',
+                university: item.university || '',
+                country: item.country || '',
+                numberOfPax: item.numberOfPax || '',
+                department: item.department || '',
+                arrivalDate: item.arrivalDate ? new Date(item.arrivalDate).toISOString().split('T')[0] : '',
+                departureDate: item.departureDate ? new Date(item.departureDate).toISOString().split('T')[0] : '',
+                summary: item.summary || '',
+                feesPerPax: item.feesPerPax || '',
+                driveLink: item.driveLink || ''
+            });
         } catch (error) {
             toast.error('Error fetching program');
             navigate('/immersion-programs');
@@ -65,14 +89,17 @@ const ImmersionProgramForm = () => {
                 <div className="card-body">
                     <form onSubmit={handleSubmit}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="form-control w-full"><label className="label"><span className="label-text">Direction *</span></label><select name="direction" className="select select-bordered w-full" value={formData.direction} onChange={handleChange} required><option value="">Select</option><option value="Inbound">Inbound</option><option value="Outbound">Outbound</option></select></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">Direction *</span></label><select name="direction" className="select select-bordered w-full" value={formData.direction} onChange={handleChange} required><option value="">Select</option><option value="Incoming">Incoming</option><option value="Outgoing">Outgoing</option></select></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">University *</span></label><input type="text" name="university" placeholder="University" className="input input-bordered w-full" value={formData.university} onChange={handleChange} required /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Country *</span></label><input type="text" name="country" placeholder="Country" className="input input-bordered w-full" value={formData.country} onChange={handleChange} required /></div>
-                            <div className="form-control w-full"><label className="label"><span className="label-text">Number of Pax</span></label><input type="number" name="numberOfPax" placeholder="Number" className="input input-bordered w-full" value={formData.numberOfPax} onChange={handleChange} /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Department</span></label><input type="text" name="department" placeholder="Department" className="input input-bordered w-full" value={formData.department} onChange={handleChange} /></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">Number of Pax</span></label><input type="number" name="numberOfPax" placeholder="Number" className="input input-bordered w-full" value={formData.numberOfPax} onChange={handleChange} /></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">Fees Per Pax</span></label><input type="number" name="feesPerPax" placeholder="Fees" className="input input-bordered w-full" value={formData.feesPerPax} onChange={handleChange} /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Program Status</span></label><input type="text" name="programStatus" placeholder="Status" className="input input-bordered w-full" value={formData.programStatus} onChange={handleChange} /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Arrival Date</span></label><input type="date" name="arrivalDate" className="input input-bordered w-full" value={formData.arrivalDate} onChange={handleChange} /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Departure Date</span></label><input type="date" name="departureDate" className="input input-bordered w-full" value={formData.departureDate} onChange={handleChange} /></div>
+                            <div className="form-control w-full md:col-span-2"><label className="label"><span className="label-text">Summary</span></label><textarea name="summary" placeholder="Summary" className="textarea textarea-bordered w-full" rows="3" value={formData.summary} onChange={handleChange} /></div>
+                            <div className="form-control w-full md:col-span-2"><label className="label"><span className="label-text">Drive Link</span></label><input type="url" name="driveLink" placeholder="https://drive.google.com/..." className="input input-bordered w-full" value={formData.driveLink} onChange={handleChange} /></div>
                         </div>
                         <div className="form-control mt-6">
                             <button type="submit" className={`btn btn-primary ${loading ? 'loading' : ''}`} disabled={loading}>{!loading && <Save size={18} className="mr-2" />}{loading ? 'Saving...' : (isEdit ? 'Update' : 'Create')}</button>

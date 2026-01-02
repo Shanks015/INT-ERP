@@ -11,7 +11,7 @@ const MembershipForm = () => {
     const { isAdmin } = useAuth();
     const isEdit = Boolean(id);
 
-    const [formData, setFormData] = useState({ date: '', name: '', membershipStatus: '', country: '', membershipDuration: '' });
+    const [formData, setFormData] = useState({ date: '', name: '', membershipStatus: '', country: '', membershipDuration: '', summary: '', startDate: '', endDate: '', driveLink: '' });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
 
@@ -21,7 +21,17 @@ const MembershipForm = () => {
         try {
             const response = await api.get(`/memberships/${id}`);
             const item = response.data.data;
-            setFormData({ date: item.date ? new Date(item.date).toISOString().split('T')[0] : '', name: item.name || '', membershipStatus: item.membershipStatus || '', country: item.country || '', membershipDuration: item.membershipDuration || '' });
+            setFormData({
+                date: item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+                name: item.name || '',
+                membershipStatus: item.membershipStatus || '',
+                country: item.country || '',
+                membershipDuration: item.membershipDuration || '',
+                summary: item.summary || '',
+                startDate: item.startDate ? new Date(item.startDate).toISOString().split('T')[0] : '',
+                endDate: item.endDate ? new Date(item.endDate).toISOString().split('T')[0] : '',
+                driveLink: item.driveLink || ''
+            });
         } catch (error) {
             toast.error('Error fetching membership');
             navigate('/memberships');
@@ -70,14 +80,18 @@ const MembershipForm = () => {
                             <div className="form-control w-full"><label className="label"><span className="label-text">Country</span></label><input type="text" name="country" placeholder="Country" className="input input-bordered w-full" value={formData.country} onChange={handleChange} /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Membership Status</span></label><input type="text" name="membershipStatus" placeholder="Status" className="input input-bordered w-full" value={formData.membershipStatus} onChange={handleChange} /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Membership Duration</span></label><input type="text" name="membershipDuration" placeholder="Duration" className="input input-bordered w-full" value={formData.membershipDuration} onChange={handleChange} /></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">Start Date</span></label><input type="date" name="startDate" className="input input-bordered w-full" value={formData.startDate} onChange={handleChange} /></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">End Date</span></label><input type="date" name="endDate" className="input input-bordered w-full" value={formData.endDate} onChange={handleChange} /></div>
+                            <div className="form-control w-full md:col-span-2"><label className="label"><span className="label-text">Summary</span></label><textarea name="summary" placeholder="Summary" className="textarea textarea-bordered w-full" rows="3" value={formData.summary} onChange={handleChange} /></div>
+                            <div className="form-control w-full md:col-span-2"><label className="label"><span className="label-text">Drive Link</span></label><input type="url" name="driveLink" placeholder="https://drive.google.com/..." className="input input-bordered w-full" value={formData.driveLink} onChange={handleChange} /></div>
                         </div>
                         <div className="form-control mt-6">
                             <button type="submit" className={`btn btn-primary ${loading ? 'loading' : ''}`} disabled={loading}>{!loading && <Save size={18} className="mr-2" />}{loading ? 'Saving...' : (isEdit ? 'Update' : 'Create')}</button>
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

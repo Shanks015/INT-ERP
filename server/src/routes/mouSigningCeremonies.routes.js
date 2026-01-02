@@ -6,6 +6,7 @@ import MouSigningCeremony from '../models/MouSigningCeremony.js';
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(MouSigningCeremony));
+router.get('/stats', authenticate, ctrl.getStats(MouSigningCeremony));
 router.get('/:id', authenticate, ctrl.getById(MouSigningCeremony));
 router.post('/', authenticate, ctrl.create(MouSigningCeremony));
 router.put('/:id', authenticate, ctrl.update(MouSigningCeremony));

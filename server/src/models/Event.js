@@ -30,6 +30,14 @@ const eventSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    universityCountry: {
+        type: String,
+        trim: true
+    },
+    driveLink: {
+        type: String,
+        trim: true
+    },
     // Approval workflow fields
     status: {
         type: String,

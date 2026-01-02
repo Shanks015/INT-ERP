@@ -6,6 +6,7 @@ import MouUpdate from '../models/MouUpdate.js';
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(MouUpdate));
+router.get('/stats', authenticate, ctrl.getStats(MouUpdate));
 router.get('/:id', authenticate, ctrl.getById(MouUpdate));
 router.post('/', authenticate, ctrl.create(MouUpdate));
 router.put('/:id', authenticate, ctrl.update(MouUpdate));

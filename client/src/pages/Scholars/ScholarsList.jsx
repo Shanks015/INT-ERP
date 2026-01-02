@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, GraduationCap, TrendingUp, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, GraduationCap, TrendingUp, Clock, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import StatsCard from '../../components/StatsCard';
@@ -46,7 +46,7 @@ const ScholarsList = () => {
 
     const handleDelete = async (reason) => {
         try {
-            await api.delete(`/scholars-in-residence/${deleteModal.item._id}`, { data: { reason } });
+            await api.delete(`/ scholars -in -residence / ${deleteModal.item._id} `, { data: { reason } });
             toast.success(isAdmin ? 'Scholar deleted successfully' : 'Delete request submitted');
             fetchScholars(); fetchStats();
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -84,7 +84,7 @@ const ScholarsList = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <StatsCard title="Total Scholars" value={stats.total} icon={GraduationCap} color="primary" />
-                <StatsCard title="This Month" value={stats.thisMonth} icon={TrendingUp} color="secondary" trend={`+${stats.thisMonth} new`} />
+                <StatsCard title="This Month" value={stats.thisMonth} icon={TrendingUp} color="secondary" trend={`+ ${stats.thisMonth} new `} />
                 <StatsCard title="Pending" value={stats.pending} icon={Clock} color="warning" />
             </div>
             <FilterBar filters={filters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} showCountryFilter={true} />
@@ -92,21 +92,27 @@ const ScholarsList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Name</th><th>Institution</th><th>Country</th><th>Period</th><th>Status</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>Visitor Name</th><th>Institution</th><th>Country</th><th>Period</th><th>Campus</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {scholars.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No scholars found</td></tr> : scholars.map((scholar) => (
+                                {scholars.length === 0 ? <tr><td colSpan={7} className="text-center py-8">No scholars found</td></tr> : scholars.map((scholar) => (
                                     <tr key={scholar._id}>
-                                        <td>{scholar.scholarName}</td>
+                                        <td className="font-medium">{scholar.scholarName}</td>
                                         <td>{scholar.institution}</td>
                                         <td>{scholar.country}</td>
                                         <td>{scholar.residencePeriod || '-'}</td>
+                                        <td>{scholar.campus || '-'}</td>
                                         <td>
                                             {scholar.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
                                             {scholar.status === 'pending_delete' && <span className="badge badge-error gap-2"><Clock size={14} />Delete Pending</span>}
                                             {scholar.status === 'active' && <span className="badge badge-success">Active</span>}
                                         </td>
                                         <td>
-                                            <div className="flex gap-2">
+                                            <div className="flex gap-2 justify-end">
+                                                {scholar.driveLink && (
+                                                    <a href={scholar.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="View Documents">
+                                                        <FileText size={16} />
+                                                    </a>
+                                                )}
                                                 <Link to={`/scholars-in-residence/edit/${scholar._id}`} className={`btn btn-warning btn-sm ${scholar.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
                                                 <button onClick={() => setDeleteModal({ isOpen: true, item: scholar })} className={`btn btn-error btn-sm ${scholar.status !== 'active' ? 'btn-disabled' : ''}`} disabled={scholar.status !== 'active'}><Trash2 size={16} /></button>
                                             </div>

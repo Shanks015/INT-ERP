@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const studentExchangeSchema = new mongoose.Schema({
     direction: {
         type: String,
-        enum: ['inbound', 'outbound'],
+        enum: ['Incoming', 'Outgoing'],
         required: true
     },
     studentName: {
@@ -24,7 +24,21 @@ const studentExchangeSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    usnNo: {
+        type: String,
+        trim: true
+    },
+    fromDate: {
+        type: Date
+    },
+    toDate: {
+        type: Date
+    },
     exchangeStatus: {
+        type: String,
+        trim: true
+    },
+    driveLink: {
         type: String,
         trim: true
     },

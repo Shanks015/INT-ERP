@@ -6,6 +6,7 @@ import DigitalMedia from '../models/DigitalMedia.js';
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(DigitalMedia));
+router.get('/stats', authenticate, ctrl.getStats(DigitalMedia));
 router.get('/:id', authenticate, ctrl.getById(DigitalMedia));
 router.post('/', authenticate, ctrl.create(DigitalMedia));
 router.put('/:id', authenticate, ctrl.update(DigitalMedia));

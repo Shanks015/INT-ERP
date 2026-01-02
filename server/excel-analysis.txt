@@ -1,0 +1,747 @@
+Reading file from: D:\new-hope-erp\Internationalisation (Responses) (1).xlsx
+Sheet Names: [
+  'Dashboard',
+  'Form Responses 1',
+  'Campus Visit',
+  'MoU Signing Ceremony',
+  'Events',
+  'Conference',
+  'Scholars in Residence',
+  'MoU Update',
+  'Immersion program',
+  'Student Exchange',
+  'Masters Abroad',
+  'Memberships',
+  'Digital Media'
+]
+
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+=
+
+
+### Sheet 1: Dashboard
+================================================================================
+Total Rows: 3
+
+Column Headers:
+  1. __EMPTY
+  2. __EMPTY_3
+  3. __EMPTY_6
+  4. __EMPTY_9
+
+First 3 Sample Rows:
+[
+  {
+    "__EMPTY": "Campus Visit",
+    "__EMPTY_3": "MoU Signing Ceremony",
+    "__EMPTY_6": "Events",
+    "__EMPTY_9": "Conference"
+  },
+  {
+    "__EMPTY": "Scholar In Residence",
+    "__EMPTY_3": "MoU Update",
+    "__EMPTY_6": "Immersion Programs",
+    "__EMPTY_9": "Student Exchange"
+  },
+  {
+    "__EMPTY": "Master's Abroad",
+    "__EMPTY_3": "Memberships",
+    "__EMPTY_6": "Digital Media"
+  }
+]
+
+
+### Sheet 2: Form Responses 1
+================================================================================
+Total Rows: 292
+
+Column Headers:
+  1. Timestamp
+  2. Email Address
+  3. Particulars
+  4. Status 
+  5.   Category  
+  6. Scholars Name
+  7. University  2
+  8. Country 3
+  9. From Date 2
+  10. To Date 2
+  11. Department  2
+  12. Summary 4
+  13. Campus
+  14. Scholars in Residence -  Upload Zip FIle
+
+First 3 Sample Rows:
+[
+  {
+    "Timestamp": 45981.65802949074,
+    "Email Address": "vicepresident-internationaloffice@dsu.edu.in",
+    "Particulars": "Scholars in Residence",
+    "Status ": "Completed",
+    "  Category  ": "Visiting Scholar",
+    "Scholars Name": "Prof. Al -Khoury, Professor",
+    "University  2": "Lebanon University",
+    "Country 3": "Lebanon ",
+    "From Date 2": 45145,
+    "To Date 2": 45152,
+    "Department  2": "SCMS-PG",
+    "Summary 4": "Prof. Al-Khoury, Professor, visited Dayananda Sagar University for introductory discussions and academic engagement. During the visit, he interacted with university leadership and faculty to explore potential areas of collaboration, including joint academic activities, research opportunities, and future partnerships. The meeting provided a valuable opportunity to understand mutual interests and identify possible pathways for academic cooperation.",
+    "Campus": "Kudlu Gate",
+    "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/19Q3RZIoCw-1ehQpQ8xLaS8tTDP7w2pRp?usp=sharing"
+  },
+  {
+    "Timestamp": 45982.565258877316,
+    "Email Address": "vicepresident-internationaloffice@dsu.edu.in",
+    "Particulars": "Immersion program",
+    "Status 3": "Completed",
+    "Incoming/Outgoing": "Outgoing",
+    "Country ": "Malaysia ",
+    "University ": "Limkokwing University",
+    "No of Pax": 14,
+    "Summary 3": "Introduction to Limkokwing University of Creative Technology(LUCT): Limkokwing University of Creative Technology, located in Cyberjaya, Malaysia, is a global leader in innovative education, fostering creativity, entrepreneurship, and cultural diversity. Through dynamic programs and state-of-the-art facilities, we empower students to thrive in today's interconnected world. Our collaborations with esteemed institutions like Partner Institute provide unique opportunities for students to engage in cross-cultural exchanges and immersive learning experiences, enhancing their global perspective and academic journey.",
+    "Arrival Date": 45488,
+    "Departure Date": 45494,
+    "Fees Per Pax": 520,
+    "Department ": "SCMS-UG",
+    "Immersion Program -  Upload Zip FIle": "https://drive.google.com/open?id=1mnW-DP6jHacAuptkkVU6y7vzZ-qVP9xF"
+  },
+  {
+    "Timestamp": 45982.56666564815,
+    "Email Address": "vicepresident-internationaloffice@dsu.edu.in",
+    "Particulars": "Immersion program",
+    "Status 3": "Completed",
+    "Incoming/Outgoing": "Outgoing",
+    "Country ": "Malaysia ",
+    "University ": "University of Wollongong, Malaysia",
+    "No of Pax": 2,
+    "Summary 3": "Dear Ms. Supriya,  Greetings from UnTechEd!  I am pleased to inform you that we have received the enrollments of two students from Dayananda Sagar University for the Law Immersion Student Mobility Program at the University of Wollongong, Malaysia, scheduled from November 10ΓÇô19, 2024.  Below are the details of the enrolled students:  Dhanush K Program: BBA LLB HonΓÇÖs Email: silverdhanush800@gmail.com Contact: +91 9513871084  Keerthik L Program: BBA LLB HonΓÇÖs Email: keerthik1601@gmail.com Contact: +91 9597825149  Thank you for your invaluable support in promoting this program within the Law department. We look forward to this being the start of a meaningful collaboration between UnTechEd and Dayananda Sagar University.",
+    "Arrival Date": 45606,
+    "Departure Date": 45615,
+    "Fees Per Pax": 1000,
+    "Department ": "School of Law",
+    "Immersion Program -  Upload Zip FIle": "https://drive.google.com/open?id=1FnxH9AXY9zsGu883xGIAsBrfj-tYd_SB"
+  }
+]
+
+
+### Sheet 3: Campus Visit
+================================================================================
+Total Rows: 100
+
+Column Headers:
+  1. Date
+  2. Type
+  3. Visitor's Name & Details
+  4. Country 
+  5. University Name
+  6. Summary
+  7. Department 
+  8. Campus
+  9. Campus Visit-  Upload Zip FIle
+
+First 3 Sample Rows:
+[
+  {
+    "Date": 45982,
+    "Type": "University Visit",
+    "Visitor's Name & Details": "Prof Dr. Alex Wilson, Prof Dr. Julie McCandless",
+    "Country ": "UK",
+    "University Name": "Queen's University Belfast",
+    "Summary": "On 21st November 2025, we had the pleasure of hosting Prof. Dr. Alex Wilson and Prof. Dr. Julie McCandless from QueenΓÇÖs University Belfast, UK (#199 Qs Ranking) for a guest lecture at the School of Management Studies. The session focused on Global Careers for Business Graduates and offered valuable guidance on developing international career pathways. The professors also introduced their MBA program, sharing details on admission requirements, curriculum structure, career prospects, and student life at QueenΓÇÖs University Belfast, which was highly informative for our students.\n\nFollowing the lecture, the professors met with the Dean of the School of Management Studies for a focused discussion on strengthening academic ties between our institutions. The conversation covered several potential areas of collaboration, including student exchange programs, scholar-in-residence opportunities, and short-term immersion programs.",
+    "Department ": "School of Management Studies",
+    "Campus": "Kudlu gate",
+    "Campus Visit-  Upload Zip FIle": "https://drive.google.com/open?id=1fuzo5ZPatD3ZplYzKuQ0fevjg_BOK2i4"
+  },
+  {
+    "Date": 45566,
+    "Type": "University Visit",
+    "Visitor's Name & Details": "Dr. Manohar Singh, President, westernConnecticut state University, US\n",
+    "Country ": "USA",
+    "University Name": "Western Connecticut State University, US",
+    "Summary": "Collaboration discussion with Dr. Premachandra Sagar, Dr. Amit Bhatt, Ms. Supriya Mathew\n",
+    "Department ": "DSU",
+    "Campus": "Harohalli",
+    "Campus Visit-  Upload Zip FIle": "https://drive.google.com/open?id=18m0WXCwVkhNWUnHs_eqUMxNhpln-Qirl"
+  },
+  {
+    "Date": 45306,
+    "Type": "University Visit",
+    "Visitor's Name & Details": "Mr. Anuj Bhasin, Canadian Embassy\n",
+    "Country ": "Canada",
+    "University Name": "Canadian Embassy",
+    "Summary": "Meeting with Ms. Supriya Mathew, Vice President, International Affairs",
+    "Department ": "DSU",
+    "Campus": "Harohalli",
+    "Campus Visit-  Upload Zip FIle": "https://drive.google.com/open?id=1K0gP0N9Z6FrUdyBzuYowEwQXEk6UFrrm"
+  }
+]
+
+
+### Sheet 4: MoU Signing Ceremony
+================================================================================
+Total Rows: 7
+
+Column Headers:
+  1. Date
+  2. Type
+  3. Visitor's Name & Details
+  4. University Name
+  5. Department 
+  6. Event Summary
+  7. Campus
+  8. MoU Signing Ceremony    Upload Zip FIle
+
+First 3 Sample Rows:
+[
+  {
+    "Date": 45008,
+    "Type": "University",
+    "Visitor's Name & Details": "Dr. Dan Heimmermann,Chancellor",
+    "University Name": "University of South Carolina Aiken, USA",
+    "Department ": "SCMS-PG",
+    "Event Summary": "Dayananda Sagar University, International Affairs Department organized an event ΓÇ£Welcome - Meet and Greet and Partnership ProgramΓÇ¥ on March 23, 2023. The program started with a welcome dance organised by Ms. Shyamantha Surya Prakash and Team, followed by Meet and Greet.\n \n \nWelcome with Dr. Dan Heimmermann and Mr. Ani Agnihotri\n\nThe program then followed with a welcome address by Dr. Amit Bhatt, Pro Vice Chancellor, DSU. The dignitaries on the Dias were Dr. Dan Heimmermann, Chancellor, University of South Carolina Aiken, USA, Mr. Ani Agnihotri, Co-Founder and CEO at Marshall Automation America, Inc, Dr. K N Balasubrmanya Murthy, Vice Chancellor, DSU, Dr. Puttamadappa C, Registrar, DSU, Ms. Supriya Mathew, Vice president of International affairs & Admissions DSU, Dr. Uday Kumar Reddy, Dean SoE, CSE, Dr.Girisha G S, Chairperson, CSE, Dr. Pramod Naik, Associate Prof, CSE, Dr. M K Banga, Dean, CSE, Dr. Basavaraj N Hiremath, Prof, DSU, Dr. Niranjan Appaswamy, Associate Prof, DSU, Dr. Shaila S.G, Chairperson, DS, DSU , Dr. M Shahina Parveen, Chairperson, CST, DSU.\n",
+    "Campus": "Kudlu Gate",
+    "MoU Signing Ceremony    Upload Zip FIle": "https://drive.google.com/open?id=1Tku65075BPt66QbeZjYqPRyK1YbveU22"
+  },
+  {
+    "Date": 45035,
+    "Type": "University",
+    "Visitor's Name & Details": "Dr. Aleksandr Balashov, Attache & Dr. Natalya Kartushina, professor",
+    "University Name": "MIET , RUSSIA",
+    "Department ": "SCMS UG",
+    "Event Summary": "Dayananda Sagar University, International Affairs Department organized a Meeting on April 19th, 2023 in Board room with National Research University of Electronic Technology.\n \n \nMeeting with Dr. Aleksandr Balashov and Dr. Natalya Kartushina\n\n\nThe meeting started with a welcome address by Ms. Supriya Mathew, Vice president of International affairs & Admissions DSU. The dignitaries on the Dias were Dr. K N Balasubrmanya Murthy, Vice Chancellor, DSU, Dr. Amit Bhatt, Pro Vice Chancellor, DSU Dr. Uday Kumar Reddy, Dean SoE, CSE, Dr.Kiran B Malagi, Chairman, Data Science AI & Image, Dr. M. K. Banga, Dean, Research and Dr. Sampatrao L Pinjare , Prof, NMIT.\n\nIntroduction on MIET by Dr. Aleksandr Balashov and Dr. Natalya Kartushina, wonderfully explained International Study Opportunities at Russia, all the programs available, the importance of Collaboration between Universities, scholarships for DSU students.\n",
+    "Campus": "Kudlu Gate",
+    "MoU Signing Ceremony    Upload Zip FIle": "https://drive.google.com/open?id=1lYDtn8FWZVvAaWq_7CT-OOumCCGmVbvI"
+  },
+  {
+    "Date": 45204,
+    "Type": "University",
+    "Visitor's Name & Details": "Dr.Samantha , Law head",
+    "University Name": "Staffordshire University",
+    "Department ": "LAW",
+    "Event Summary": "Continuation of discussions regarding collaboration in the field of law, building on a previous visit by Dr. Agnieszka.",
+    "Campus": "Kudlu Gate",
+    "MoU Signing Ceremony    Upload Zip FIle": "https://drive.google.com/open?id=1YuwXaYv_NFxCk5at6GnIXDtDURHswDBU"
+  }
+]
+
+
+### Sheet 5: Events
+================================================================================
+Total Rows: 52
+
+Column Headers:
+  1. Date
+  2. Type 
+  3. Name & Details 
+  4. Department 
+  5. University, Country
+  6. Dignitaries 
+  7. Event Summary
+  8. Campus
+  9. Events -   Upload Zip FIle
+
+First 3 Sample Rows:
+[
+  {
+    "Date": 44957,
+    "Type ": "Seminar",
+    "Name & Details ": "Dr. Deena Gibbons, Professor KingΓÇÖs College London. Dr. Sanjukta Deb, Associate Dean of PGT Education Faculty of Life Sciences and Medicine,",
+    "Department ": "1st year School of Basic & Applied Sciences",
+    "University, Country": "Kings college, London",
+    "Dignitaries ": "Dr. Sunil Moore,Ms. Supriya Mathew,Ms. Jessica Moule,Ms. Andreea Mihaila",
+    "Event Summary": "https://drive.google.com/file/d/1uWkBeslpRL2XJ8yIRV63fMBm1wPwibKU/view?usp=sharing",
+    "Campus": "Dayananda Sagar Institution, Campus 1,MCA Seminar Hall",
+    "Events -   Upload Zip FIle": "31-1-2023 Kings college London"
+  },
+  {
+    "Date": 44965,
+    "Type ": "Seminar",
+    "Name & Details ": "Dr. Steve McKenna, Associate Professor",
+    "Department ": "1st year MBA students",
+    "University, Country": "Curtin Business School Curtin University",
+    "Dignitaries ": "Prof Nagaraj Subbarao,Ms. Supriya Mathew,Dr. Lakshmi Jagannathan",
+    "Event Summary": "Dr. Steve McKenna seminar report.pdf",
+    "Campus": "Dayananda Sagar University, Campus 3,MBA room 18-19",
+    "Events -   Upload Zip FIle": "https://drive.google.com/drive/folders/1fiblNUxoh2afzypM0vo52pNtrfkO0I9J?usp=drive_link"
+  },
+  {
+    "Date": 44968,
+    "Type ": "PhotoShoot",
+    "Name & Details ": "Department of International Affairs",
+    "Department ": "DSU",
+    "Dignitaries ": "DSU",
+    "Campus": "Dayananda Sagar University , Campus -4"
+  }
+]
+
+
+### Sheet 6: Conference
+================================================================================
+Total Rows: 4
+
+Column Headers:
+  1. Date
+  2. Conference Name
+  3. Country
+  4. Department 
+  5. Event Summary
+  6. Campus
+  7. Conference -   Upload Zip FIle
+
+First 3 Sample Rows:
+[
+  {
+    "Date": 45098,
+    "Conference Name": "Srilanka Education Minister and delegates from Sri Lanka",
+    "Country": "Sri Lanka",
+    "Department ": "International Affairs ",
+    "Event Summary": "International Delegates from Srilanka,Bangladesh, Bhutan",
+    "Campus": "Harohalli",
+    "Conference -   Upload Zip FIle": "https://drive.google.com/open?id=1TjJ8wzPR-92w96a56yMNc5eaSsddtucf"
+  },
+  {
+    "Date": 45524,
+    "Conference Name": "Srilanka Education Minister from Sri Lanka",
+    "Country": "Sri Lanka",
+    "Department ": "International Affairs ",
+    "Event Summary": "Srilankan delegates",
+    "Campus": "Harohalli",
+    "Conference -   Upload Zip FIle": "https://drive.google.com/open?id=1P9bqDxi0oOtdtx2ApCLS94v5LHrcp8rc"
+  },
+  {
+    "Date": 45735,
+    "Conference Name": "International Conference (Cormack)/Campus visit",
+    "Country": "UK",
+    "Department ": "International Affairs ",
+    "Event Summary": "Dr. Nick Slade, PVC, University of Worcester",
+    "Campus": "Harohalli",
+    "Conference -   Upload Zip FIle": "https://drive.google.com/open?id=1iyDl8Bdq53S_L_rfqLR3XSrS3fbjxLjI"
+  }
+]
+
+
+### Sheet 7: Scholars in Residence
+================================================================================
+Total Rows: 18
+
+Column Headers:
+  1. Status 
+  2.   Category  
+  3. Scholars Name
+  4. University 
+  5. Country
+  6. From Date
+  7. To Date
+  8. Department 
+  9. Summary
+  10. Campus
+  11. Scholars in Residence -  Upload Zip FIle
+
+First 3 Sample Rows:
+[
+  {
+    "Status ": "Completed",
+    "  Category  ": "Visiting Scholar",
+    "Scholars Name": "Prof. Al -Khoury, Professor",
+    "University ": "Lebanon University",
+    "Country": "Lebanon ",
+    "From Date": 45145,
+    "To Date": "8/14/2023",
+    "Department ": "SCMS-PG",
+    "Summary": "Prof. Al-Khoury, Professor, visited Dayananda Sagar University for introductory discussions and academic engagement. During the visit, he interacted with university leadership and faculty to explore potential areas of collaboration, including joint academic activities, research opportunities, and future partnerships. The meeting provided a valuable opportunity to understand mutual interests and identify possible pathways for academic cooperation.",
+    "Campus": "Kudlu Gate",
+    "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/19Q3RZIoCw-1ehQpQ8xLaS8tTDP7w2pRp?usp=sharing"
+  },
+  {
+    "Status ": "Completed",
+    "  Category  ": "Visiting Scholar",
+    "Scholars Name": "Mr. Steve Mckenna, Associate Professor",
+    "University ": "Curtin University",
+    "Country": "Australia",
+    "From Date": 45178,
+    "To Date": "25-09-2023",
+    "Department ": "SCMS",
+    "Summary": "NA",
+    "Campus": "Kudlu Gate",
+    "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/1qS3xjREw7yP6sNEKwt1_ICL1kLh7Au7q?usp=drive_link"
+  },
+  {
+    "Status ": "Completed",
+    "  Category  ": "Visiting Scholar",
+    "Scholars Name": "Dr. Stefano Rinaldi, Professor",
+    "University ": "University of Brescia",
+    "Country": "Italy",
+    "From Date": 45294,
+    "To Date": "15-03-2024",
+    "Department ": "SOE",
+    "Summary": "NA",
+    "Campus": "Harohalli",
+    "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/10u2Jk17HNMvYAp01gilR_2BkZSizqGrI?usp=drive_link"
+  }
+]
+
+
+### Sheet 8: MoU Update
+================================================================================
+Total Rows: 70
+
+Column Headers:
+  1. Date
+  2. Country 
+  3. University
+  4. Department
+  5. Completed Date
+  6. MoU Status 
+  7. Contact Person 
+  8. Contact Email
+  9. Agreement Type
+  10. Term
+  11. Validity Status 
+  12. MoU Update  Upload Zip FIle
+
+First 3 Sample Rows:
+[
+  {
+    "Date": 45685,
+    "Country ": "USA",
+    "University": "Illinois Tech",
+    "Department": "Enginerring",
+    "Completed Date": 46414,
+    "MoU Status ": "Completed",
+    "Contact Person ": "Dr. Mariamma",
+    "Contact Email": "mthomas29@iit.edu",
+    "Agreement Type": "MoU",
+    "Term": "2 years ",
+    "Validity Status ": "Active",
+    "MoU Update  Upload Zip FIle": "https://drive.google.com/open?id=1C5C3EQ-6pumrBp_q66BiZWwSoUFS2lAL"
+  },
+  {
+    "Date": 45778,
+    "Country ": "USA",
+    "University": "University of Evansville",
+    "Department": "Engineering",
+    "Completed Date": 45769,
+    "MoU Status ": "Completed",
+    "Contact Person ": "Suresh Immanuel",
+    "Contact Email": "ss476@evansville.edu",
+    "Agreement Type": "MoU",
+    "Term": "3 years ",
+    "Validity Status ": "Active",
+    "MoU Update  Upload Zip FIle": "https://drive.google.com/open?id=1wdej1MOJt0_HvwOElyLAwLBW9dopLl8G"
+  },
+  {
+    "Date": 45756,
+    "Country ": "USA",
+    "University": "University at Buffalo",
+    "Department": "Engineering",
+    "Completed Date": 45904,
+    "MoU Status ": "In Process",
+    "Contact Person ": " Abhyuday Pai ",
+    "Contact Email": "apai3@buffalo.edu",
+    "Agreement Type": "MoU",
+    "Term": "Not specified ",
+    "Validity Status ": "Expiring Soon",
+    "MoU Update  Upload Zip FIle": "https://drive.google.com/open?id=1nMO3Vv6tYZTCaYnj_EgHsc1RAhBtrVlq"
+  }
+]
+
+
+### Sheet 9: Immersion program
+================================================================================
+Total Rows: 5
+
+Column Headers:
+  1. Status
+  2. Incoming/Outgoing
+  3. Country 
+  4. University 
+  5. No of Pax
+  6. Summary
+  7. Arrival Date
+  8. Departure Date
+  9. Fees Per Pax
+  10. Department 
+  11. Immersion Program -  Upload Zip FIle
+
+First 3 Sample Rows:
+[
+  {
+    "Status": "Completed",
+    "Incoming/Outgoing": "Outgoing",
+    "Country ": "Malaysia ",
+    "University ": "Limkokwing University",
+    "No of Pax": 14,
+    "Summary": "Introduction to Limkokwing University of Creative Technology(LUCT): Limkokwing University of Creative Technology, located in Cyberjaya, Malaysia, is a global leader in innovative education, fostering creativity, entrepreneurship, and cultural diversity. Through dynamic programs and state-of-the-art facilities, we empower students to thrive in today's interconnected world. Our collaborations with esteemed institutions like Partner Institute provide unique opportunities for students to engage in cross-cultural exchanges and immersive learning experiences, enhancing their global perspective and academic journey.",
+    "Arrival Date": 45488,
+    "Departure Date": 45494,
+    "Fees Per Pax": 520,
+    "Department ": "SCMS-UG",
+    "Immersion Program -  Upload Zip FIle": "https://drive.google.com/open?id=1mnW-DP6jHacAuptkkVU6y7vzZ-qVP9xF"
+  },
+  {
+    "Status": "Completed",
+    "Incoming/Outgoing": "Outgoing",
+    "Country ": "Malaysia ",
+    "University ": "University of Wollongong, Malaysia",
+    "No of Pax": 2,
+    "Summary": "Dear Ms. Supriya,  Greetings from UnTechEd!  I am pleased to inform you that we have received the enrollments of two students from Dayananda Sagar University for the Law Immersion Student Mobility Program at the University of Wollongong, Malaysia, scheduled from November 10ΓÇô19, 2024.  Below are the details of the enrolled students:  Dhanush K Program: BBA LLB HonΓÇÖs Email: silverdhanush800@gmail.com Contact: +91 9513871084  Keerthik L Program: BBA LLB HonΓÇÖs Email: keerthik1601@gmail.com Contact: +91 9597825149  Thank you for your invaluable support in promoting this program within the Law department. We look forward to this being the start of a meaningful collaboration between UnTechEd and Dayananda Sagar University.",
+    "Arrival Date": 45606,
+    "Departure Date": 45615,
+    "Fees Per Pax": 1000,
+    "Department ": "School of Law",
+    "Immersion Program -  Upload Zip FIle": "https://drive.google.com/open?id=1FnxH9AXY9zsGu883xGIAsBrfj-tYd_SB"
+  },
+  {
+    "Status": "Completed",
+    "Incoming/Outgoing": "Incoming",
+    "Country ": "Australia ",
+    "University ": "Curtin Immersion",
+    "No of Pax": 14,
+    "Arrival Date": 45613,
+    "Departure Date": 45633,
+    "Fees Per Pax": 2800,
+    "Department ": "SCMS UG",
+    "Immersion Program -  Upload Zip FIle": "https://drive.google.com/open?id=1pSqcL3GNUop6omX7UeEcnqrQk1pWkNU8"
+  }
+]
+
+
+### Sheet 10: Student Exchange
+================================================================================
+Total Rows: 12
+
+Column Headers:
+  1. Incoming / Outgoing
+  2. Students Name
+  3. Course 
+  4. Semester /Year
+  5. USN NO
+  6. Exchange University
+  7. From Date
+  8. To Date
+  9. Status
+  10. Student Exchange -  Upload Zip FIle
+
+First 3 Sample Rows:
+[
+  {
+    "Incoming / Outgoing": "Incoming",
+    "Students Name": "Mr. Maxim Skobelev",
+    "Course ": "Engineering - ECE",
+    "Semester /Year": 2024,
+    "USN NO": "-",
+    "Exchange University": "MIET - Russia",
+    "From Date": 45301,
+    "To Date": 45443,
+    "Status": "Completed",
+    "Student Exchange -  Upload Zip FIle": "https://drive.google.com/open?id=1bMPfWG4mDFNCSFkmMHpoinJVr3_NkF86"
+  },
+  {
+    "Incoming / Outgoing": "Incoming",
+    "Students Name": "Mr. Vladimir Markov",
+    "Course ": "Engineering - ECE",
+    "Semester /Year": 2024,
+    "USN NO": "-",
+    "Exchange University": "MIET - Russia",
+    "From Date": 45312,
+    "To Date": 45443,
+    "Status": "Completed",
+    "Student Exchange -  Upload Zip FIle": "https://drive.google.com/open?id=1QwfzFnzB_33UpB8Ya92aUUvSgxpZCPzP"
+  },
+  {
+    "Incoming / Outgoing": "Incoming",
+    "Students Name": "Akimov Sergei ",
+    "Course ": "Engineering - CSE Mtech",
+    "Semester /Year": 2024,
+    "USN NO": "-",
+    "Exchange University": "MIET - Russia",
+    "From Date": 45556,
+    "To Date": 45689,
+    "Status": "Completed",
+    "Student Exchange -  Upload Zip FIle": "https://drive.google.com/open?id=1z-V3Ia_4vmBtXBQlpaKMNN5uxsBx1C2_"
+  }
+]
+
+
+### Sheet 11: Masters Abroad
+================================================================================
+Total Rows: 0
+
+
+### Sheet 12: Memberships
+================================================================================
+Total Rows: 4
+
+Column Headers:
+  1. Date
+  2. Status
+  3. Name
+  4. Summary
+  5. Country
+  6. Start Date
+  7. End Date
+  8. Memberships -   Upload Zip FIle
+
+First 3 Sample Rows:
+[
+  {
+    "Date": 45117,
+    "Status": "Completed",
+    "Name": "ACU- The Association of Commonwealth Universities",
+    "Summary": "https://www.acu.ac.uk/about-us/work-with-us/",
+    "Country": "UK",
+    "Start Date": 45117,
+    "End Date": 45482,
+    "Memberships -   Upload Zip FIle": "https://drive.google.com/open?id=1wwk5OStg4wgWB_KwJJZon3ojWgG6QoWt"
+  },
+  {
+    "Date": 45353,
+    "Status": "Completed",
+    "Name": "Karnataka State Higher Education Council",
+    "Summary": "https://kshec.karnataka.gov.in/2/contact-us/en",
+    "Country": "India",
+    "Membership Duration ": 5,
+    "Start Date": 45353,
+    "End Date": 47178,
+    "Memberships -   Upload Zip FIle": "https://drive.google.com/open?id=1VWArJYN9Co9RSZZ9AOw6UhlB245f04Fh"
+  },
+  {
+    "Date": 45356,
+    "Status": "Completed",
+    "Name": "Study in India",
+    "Summary": "The Study in India Membership is a national initiative designed to promote India as a preferred global education destination and to strengthen partnerships with higher education institutions worldwide. Through this membership, universities gain access to a wide network of international students, streamlined admission support, and enhanced global visibility.\n\nThe program facilitates collaboration, student recruitment, and academic exchange by showcasing the strengths of Indian higher educationΓÇöranging from diverse academic offerings and world-class faculty to an affordable and quality-driven learning environment. Member institutions benefit from centralized promotional activities, participation in international education fairs, digital campaigns, and inclusion on the official Study in India platform.",
+    "Country": "India",
+    "Membership Duration ": 10,
+    "Start Date": 45356,
+    "End Date": 49008,
+    "Memberships -   Upload Zip FIle": "https://drive.google.com/open?id=1LEfwhxGz_coycwET540_qvHhT9p-xYpk"
+  }
+]
+
+
+### Sheet 13: Digital Media
+================================================================================
+Total Rows: 20
+
+Column Headers:
+  1. Date
+  2. Channel
+  3. Link of the Article
+  4. Article Topic
+  5. Amount Paid
+  6. Summary
+  7. Digital Media -  Upload Zip FIle
+
+First 3 Sample Rows:
+[
+  {
+    "Date": 45967,
+    "Channel": "Telegraph India(Edugraph)",
+    "Link of the Article": "https://www.telegraphindia.com/edugraph/campus/dayananda-sagar-university-celebrates-academic-excellence-at-convocation-with-over-2500-graduates/cid/2131581#goog_rewarded",
+    "Article Topic": "DSUΓÇÖs 9th Convocation Highlights Innovation, Global Vision and Student Success",
+    "Amount Paid": "Zero",
+    "Summary": "Dayananda Sagar University (DSU) celebrated a landmark moment as it hosted its 9th Annual Convocation Ceremony.\nThe event was a vibrant reflection of DSUΓÇÖs mission to foster academic excellence, innovation, and holistic growth.",
+    "Digital Media -  Upload Zip FIle": "https://drive.google.com/open?id=16MYaO138Gk-BlmX6q611Aa8McImWXZYp"
+  },
+  {
+    "Date": 45873,
+    "Channel": "The Print",
+    "Link of the Article": "https://theprint.in/ani-press-releases/palace-of-vision-step-inside-dayananda-sagar-university-open-house-2025/2712638/",
+    "Article Topic": "Open House 2025",
+    "Amount Paid": "40000",
+    "Summary": "Article says: \"The DSU Open House showcased the universityΓÇÖs legacy, innovation, and global outlook. Leaders highlighted AIΓÇÖs growing role in education, while panelists emphasized community empowerment and future-ready learning. Students explored smart classrooms and labs, experiencing a vibrant, inclusive campus. The event reflected DSUΓÇÖs commitment to meaningful education and inspiring futures.\"",
+    "Digital Media -  Upload Zip FIle": "https://drive.google.com/open?id=1pdi9mN2RiF5GaU8t4yif34BCViovTaqt"
+  },
+  {
+    "Date": 45873,
+    "Channel": "ED Times",
+    "Link of the Article": "https://edtimes.in/dream-big-travel-far-dayananda-sagar-university-opens-doors-to-the-world-for-every-student/",
+    "Article Topic": "Student Semester Echange",
+    "Amount Paid": "40000",
+    "Summary": "DSUΓÇÖs Student Exchange Program enables students to study abroad for a semester with 100% tuition waiver through global university partnerships. It makes international learning accessible, builds cultural exposure, transfers full academic credits, and expands student horizons. Supported by the International Affairs Office, it also helps guide postgraduate opportunities through the MasterΓÇÖs Desk initiative.",
+    "Digital Media -  Upload Zip FIle": "https://drive.google.com/open?id=1qbL8pInXNBnCAxBDV_mwrK0feRAFEj8y"
+  }
+]
+
+
+================================================================================
+Analysis complete!

@@ -6,6 +6,7 @@ import Membership from '../models/Membership.js';
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(Membership));
+router.get('/stats', authenticate, ctrl.getStats(Membership));
 router.get('/:id', authenticate, ctrl.getById(Membership));
 router.post('/', authenticate, ctrl.create(Membership));
 router.put('/:id', authenticate, ctrl.update(Membership));

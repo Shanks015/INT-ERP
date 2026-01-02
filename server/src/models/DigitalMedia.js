@@ -5,20 +5,28 @@ const digitalMediaSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
-    type: {
+    channel: {
         type: String,
         trim: true
     },
-    title: {
+    articleTopic: {
         type: String,
         required: true,
         trim: true
     },
-    link: {
+    articleLink: {
         type: String,
         trim: true
     },
-    reach: {
+    amountPaid: {
+        type: String,
+        trim: true
+    },
+    summary: {
+        type: String,
+        trim: true
+    },
+    driveLink: {
         type: String,
         trim: true
     },

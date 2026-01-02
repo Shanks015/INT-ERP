@@ -7,6 +7,7 @@ const router = express.Router();
 
 // Standard CRUD routes
 router.get('/', authenticate, ctrl.getAll(Partner));
+router.get('/stats', authenticate, ctrl.getStats(Partner));
 router.get('/:id', authenticate, ctrl.getById(Partner));
 router.post('/', authenticate, ctrl.create(Partner));
 router.put('/:id', authenticate, ctrl.update(Partner));

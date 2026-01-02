@@ -6,6 +6,7 @@ import ScholarInResidence from '../models/ScholarInResidence.js';
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(ScholarInResidence));
+router.get('/stats', authenticate, ctrl.getStats(ScholarInResidence));
 router.get('/:id', authenticate, ctrl.getById(ScholarInResidence));
 router.post('/', authenticate, ctrl.create(ScholarInResidence));
 router.put('/:id', authenticate, ctrl.update(ScholarInResidence));

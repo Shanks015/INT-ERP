@@ -14,7 +14,7 @@ const mouSigningCeremonySchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    universityName: {
+    university: {
         type: String,
         required: true,
         trim: true
@@ -28,6 +28,10 @@ const mouSigningCeremonySchema = new mongoose.Schema({
         trim: true
     },
     campus: {
+        type: String,
+        trim: true
+    },
+    driveLink: {
         type: String,
         trim: true
     },
