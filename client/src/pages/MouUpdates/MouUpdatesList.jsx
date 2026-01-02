@@ -3,44 +3,59 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Clock, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, FileEdit, TrendingUp, Clock } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
+import StatsCard from '../../components/StatsCard';
+import FilterBar from '../../components/FilterBar';
+import Pagination from '../../components/Pagination';
 
 const MouUpdatesList = () => {
     const { isAdmin } = useAuth();
-    const [items, setItems] = useState([]);
+    const [updates, setUpdates] = useState([]);
+    const [stats, setStats] = useState({ total: 0, thisMonth: 0, pending: 0 });
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [filters, setFilters] = useState({ search: '', status: '', startDate: '', endDate: '', country: '' });
 
-    useEffect(() => { fetchItems(); }, []);
+    useEffect(() => { fetchUpdates(); fetchStats(); }, [currentPage, itemsPerPage, filters]);
 
-    const fetchItems = async () => {
+    const fetchStats = async () => {
         try {
-            const response = await api.get('/mou-updates');
-            setItems(response.data.data || []);
-        } catch (error) {
-            toast.error('Error fetching MoU updates');
-        } finally {
-            setLoading(false);
-        }
+            const response = await api.get('/mou-updates/stats');
+            setStats(response.data.stats);
+        } catch (error) { console.error('Error fetching stats:', error); }
+    };
+
+    const fetchUpdates = async () => {
+        try {
+            setLoading(true);
+            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const response = await api.get('/mou-updates', { params });
+            setUpdates(response.data.data || []);
+            setTotalItems(response.data.pagination?.total || 0);
+            setTotalPages(response.data.pagination?.pages || 0);
+        } catch (error) { toast.error('Error fetching MoU updates'); }
+        finally { setLoading(false); }
     };
 
     const handleDelete = async (reason) => {
         try {
             await api.delete(`/mou-updates/${deleteModal.item._id}`, { data: { reason } });
-            toast.success(isAdmin ? 'MoU update deleted successfully' : 'Delete request submitted for approval');
-            fetchItems();
+            toast.success(isAdmin ? 'Update deleted successfully' : 'Delete request submitted');
+            fetchUpdates(); fetchStats();
             window.dispatchEvent(new Event('pendingCountUpdated'));
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Error deleting MoU update');
-        }
+        } catch (error) { toast.error(error.response?.data?.message || 'Error deleting update'); }
     };
 
     const handleExportCSV = async () => {
         try {
-            const response = await api.post('/mou-updates/export-csv', {}, { responseType: 'blob' });
+            const response = await api.get('/mou-updates/export', { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
@@ -49,60 +64,63 @@ const MouUpdatesList = () => {
             link.click();
             link.remove();
             toast.success('CSV exported successfully');
-        } catch (error) {
-            toast.error('Error exporting CSV');
-        }
+        } catch (error) { toast.error('Error exporting CSV'); }
     };
 
-    if (loading) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
+    const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', status: '', startDate: '', endDate: '', country: '' }); setCurrentPage(1); };
+
+    if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <div><h1 className="text-3xl font-bold">MoU Updates</h1><p className="text-base-content/70 mt-2">Manage MoU status updates</p></div>
+                <div><h1 className="text-3xl font-bold">MoU Updates</h1><p className="text-base-content/70 mt-2">Manage MoU updates and renewals</p></div>
                 <div className="flex gap-2">
+                    <button onClick={() => setImportModal(true)} className="btn btn-outline"><Upload size={18} />Import</button>
                     <button onClick={handleExportCSV} className="btn btn-outline"><Download size={18} />Export CSV</button>
                     <Link to="/mou-updates/new" className="btn btn-primary"><Plus size={18} />Add Update</Link>
                 </div>
             </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <StatsCard title="Total Updates" value={stats.total} icon={FileEdit} color="primary" />
+                <StatsCard title="This Month" value={stats.thisMonth} icon={TrendingUp} color="secondary" trend={`+${stats.thisMonth} new`} />
+                <StatsCard title="Pending" value={stats.pending} icon={Clock} color="warning" />
+            </div>
+            <FilterBar filters={filters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} showCountryFilter={false} />
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Date</th><th>University</th><th>Country</th><th>MoU Status</th><th>Validity Status</th><th>Status</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>Title</th><th>Partner</th><th>Update Date</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
                             <tbody>
-                                {items.length === 0 ? (
-                                    <tr><td colSpan={7} className="text-center py-8">No MoU updates found.</td></tr>
-                                ) : (
-                                    items.map((item) => (
-                                        <tr key={item._id}>
-                                            <td>{new Date(item.date).toLocaleDateString()}</td>
-                                            <td>{item.university}</td>
-                                            <td>{item.country}</td>
-                                            <td><span className="badge">{item.mouStatus || '-'}</span></td>
-                                            <td><span className="badge">{item.validityStatus || '-'}</span></td>
-                                            <td>
-                                                {item.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
-                                                {item.status === 'pending_delete' && <span className="badge badge-error gap-2"><Clock size={14} />Delete Pending</span>}
-                                                {item.status === 'active' && <span className="badge badge-success">Active</span>}
-                                            </td>
-                                            <td>
-                                                <div className="flex gap-2">
-                                                    <Link to={`/mou-updates/edit/${item._id}`} className={`btn btn-warning btn-sm ${item.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
-                                                    <button onClick={() => setDeleteModal({ isOpen: true, item })} className={`btn btn-error btn-sm ${item.status !== 'active' ? 'btn-disabled' : ''}`} disabled={item.status !== 'active'}><Trash2 size={16} /></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
+                                {updates.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No updates found</td></tr> : updates.map((update) => (
+                                    <tr key={update._id}>
+                                        <td>{update.title}</td>
+                                        <td>{update.partnerName || '-'}</td>
+                                        <td>{new Date(update.updateDate).toLocaleDateString()}</td>
+                                        <td>{update.updateType || '-'}</td>
+                                        <td>
+                                            {update.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
+                                            {update.status === 'pending_delete' && <span className="badge badge-error gap-2"><Clock size={14} />Delete Pending</span>}
+                                            {update.status === 'active' && <span className="badge badge-success">Active</span>}
+                                        </td>
+                                        <td>
+                                            <div className="flex gap-2">
+                                                <Link to={`/mou-updates/edit/${update._id}`} className={`btn btn-warning btn-sm ${update.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
+                                                <button onClick={() => setDeleteModal({ isOpen: true, item: update })} className={`btn btn-error btn-sm ${update.status !== 'active' ? 'btn-disabled' : ''}`} disabled={update.status !== 'active'}><Trash2 size={16} /></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
+                    {totalItems > 0 && <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} onItemsPerPageChange={(newLimit) => { setItemsPerPage(newLimit); setCurrentPage(1); }} />}
                 </div>
             </div>
-
-            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.university} requireReason={!isAdmin} />
+            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.title} requireReason={!isAdmin} />
+            <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchUpdates(); fetchStats(); }} moduleName="mou-updates" />
         </div>
     );
 };
