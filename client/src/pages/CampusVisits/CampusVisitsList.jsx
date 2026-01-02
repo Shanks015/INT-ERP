@@ -24,7 +24,7 @@ const CampusVisitsList = () => {
     const [totalPages, setTotalPages] = useState(0);
 
     const [filters, setFilters] = useState({
-        search: '', status: '', startDate: '', endDate: '', country: ''
+        search: '', startDate: '', endDate: '', country: ''
     });
 
     useEffect(() => {
@@ -125,27 +125,26 @@ const CampusVisitsList = () => {
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
                             <thead>
-                                <tr><th>Institution</th><th>Country</th><th>Date</th><th>Purpose</th><th>Status</th><th>Actions</th></tr>
+                                <tr><th>University</th><th>Country</th><th>Visitor</th><th>Date</th><th>Type</th><th>Department</th><th>Actions</th></tr>
                             </thead>
                             <tbody>
                                 {campusVisits.length === 0 ? (
-                                    <tr><td colSpan={6} className="text-center py-8">No campus visits found</td></tr>
+                                    <tr><td colSpan={7} className="text-center py-8">No campus visits found</td></tr>
                                 ) : (
                                     campusVisits.map((visit) => (
                                         <tr key={visit._id}>
-                                            <td>{visit.institutionName}</td>
+                                            <td>{visit.universityName}</td>
                                             <td>{visit.country}</td>
-                                            <td>{new Date(visit.visitDate).toLocaleDateString()}</td>
-                                            <td>{visit.purpose || '-'}</td>
-                                            <td>
-                                                {visit.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
-                                                {visit.status === 'pending_delete' && <span className="badge badge-error gap-2"><Clock size={14} />Delete Pending</span>}
-                                                {visit.status === 'active' && <span className="badge badge-success">Active</span>}
-                                            </td>
+                                            <td className="max-w-xs truncate" title={visit.visitorName}>{visit.visitorName || '-'}</td>
+                                            <td>{new Date(visit.date).toLocaleDateString()}</td>
+                                            <td><span className="badge badge-info badge-sm">{visit.type || '-'}</span></td>
+                                            <td>{visit.department || '-'}</td>
                                             <td>
                                                 <div className="flex gap-2">
-                                                    <Link to={`/campus-visits/edit/${visit._id}`} className={`btn btn-warning btn-sm ${visit.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
-                                                    <button onClick={() => setDeleteModal({ isOpen: true, item: visit })} className={`btn btn-error btn-sm ${visit.status !== 'active' ? 'btn-disabled' : ''}`} disabled={visit.status !== 'active'}><Trash2 size={16} /></button>
+                                                    <Link to={`/campus-visits/edit/${visit._id}`} className="btn btn-warning btn-sm"><Edit size={16} /></Link>
+                                                    {isAdmin && (
+                                                        <button onClick={() => setDeleteModal({ isOpen: true, item: visit })} className="btn btn-error btn-sm"><Trash2 size={16} /></button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
@@ -160,10 +159,11 @@ const CampusVisitsList = () => {
                 </div>
             </div>
 
-            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.institutionName} requireReason={!isAdmin} />
+            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.universityName} requireReason={!isAdmin} />
             <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchCampusVisits(); fetchStats(); }} moduleName="campus-visits" />
         </div>
     );
 };
 
 export default CampusVisitsList;
+```
