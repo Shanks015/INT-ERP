@@ -19,22 +19,28 @@ export const getPendingUsers = async (req, res) => {
     }
 };
 
-// Get all users with optional filter
+// Get all users with optional status filter
 export const getAllUsers = async (req, res) => {
     try {
         const { status } = req.query;
-        const filter = status ? { approvalStatus: status } : {};
 
-        const users = await User.find(filter)
+        let query = {};
+        if (status && status !== 'all') {
+            query.approvalStatus = status;
+        }
+
+        const users = await User.find(query)
             .select('-password')
             .sort({ createdAt: -1 });
 
         res.json({
+            success: true,
             count: users.length,
             users
         });
     } catch (error) {
         res.status(500).json({
+            success: false,
             message: 'Error fetching users',
             error: error.message
         });
