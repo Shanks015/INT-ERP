@@ -3,25 +3,63 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Clock, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
+import StatsCard from '../../components/StatsCard';
+import FilterBar from '../../components/FilterBar';
+import Pagination from '../../components/Pagination';
 
 const PartnersList = () => {
     const { user, isAdmin } = useAuth();
     const [partners, setPartners] = useState([]);
+    const [stats, setStats] = useState({ total: 0, thisMonth: 0, pending: 0 });
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, partner: null });
     const [importModal, setImportModal] = useState(false);
 
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+
+    // Filter state
+    const [filters, setFilters] = useState({
+        search: '',
+        status: '',
+        startDate: '',
+        endDate: '',
+        country: ''
+    });
+
     useEffect(() => {
         fetchPartners();
-    }, []);
+        fetchStats();
+    }, [currentPage, itemsPerPage, filters]);
+
+    const fetchStats = async () => {
+        try {
+            const response = await api.get('/partners/stats');
+            setStats(response.data.stats);
+        } catch (error) {
+            console.error('Error fetching stats:', error);
+        }
+    };
 
     const fetchPartners = async () => {
         try {
-            const response = await api.get('/partners');
+            setLoading(true);
+            const params = {
+                page: currentPage,
+                limit: itemsPerPage,
+                ...filters
+            };
+
+            const response = await api.get('/partners', { params });
             setPartners(response.data.data || []);
+            setTotalItems(response.data.pagination?.total || 0);
+            setTotalPages(response.data.pagination?.pages || 0);
         } catch (error) {
             toast.error('Error fetching partners');
         } finally {
@@ -37,13 +75,12 @@ const PartnersList = () => {
 
             if (isAdmin) {
                 toast.success('Partner deleted successfully');
-                fetchPartners();
             } else {
                 toast.success('Delete request submitted for approval');
-                fetchPartners();
             }
 
-            // Trigger pending count update
+            fetchPartners();
+            fetchStats();
             window.dispatchEvent(new Event('pendingCountUpdated'));
         } catch (error) {
             toast.error(error.response?.data?.message || 'Error deleting partner');
@@ -52,7 +89,7 @@ const PartnersList = () => {
 
     const handleExportCSV = async () => {
         try {
-            const response = await api.post('/partners/export-csv', {}, {
+            const response = await api.get('/partners/export', {
                 responseType: 'blob'
             });
 
@@ -70,7 +107,23 @@ const PartnersList = () => {
         }
     };
 
-    if (loading) {
+    const handleFilterChange = (newFilters) => {
+        setFilters(prev => ({ ...prev, ...newFilters }));
+        setCurrentPage(1);
+    };
+
+    const handleClearFilters = () => {
+        setFilters({
+            search: '',
+            status: '',
+            startDate: '',
+            endDate: '',
+            country: ''
+        });
+        setCurrentPage(1);
+    };
+
+    if (loading && currentPage === 1) {
         return (
             <div className="flex justify-center items-center h-64">
                 <span className="loading loading-spinner loading-lg"></span>
@@ -80,6 +133,7 @@ const PartnersList = () => {
 
     return (
         <div>
+            {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-3xl font-bold">Partners</h1>
@@ -103,6 +157,38 @@ const PartnersList = () => {
                 </div>
             </div>
 
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <StatsCard
+                    title="Total Partners"
+                    value={stats.total}
+                    icon={Users}
+                    color="primary"
+                />
+                <StatsCard
+                    title="This Month"
+                    value={stats.thisMonth}
+                    icon={TrendingUp}
+                    color="secondary"
+                    trend={`+${stats.thisMonth} new entries`}
+                />
+                <StatsCard
+                    title="Pending Approval"
+                    value={stats.pending}
+                    icon={Clock}
+                    color="warning"
+                />
+            </div>
+
+            {/* Filters */}
+            <FilterBar
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={handleClearFilters}
+                showCountryFilter={true}
+            />
+
+            {/* Table */}
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">
@@ -173,6 +259,21 @@ const PartnersList = () => {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination */}
+                    {totalItems > 0 && (
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={totalItems}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setCurrentPage}
+                            onItemsPerPageChange={(newLimit) => {
+                                setItemsPerPage(newLimit);
+                                setCurrentPage(1);
+                            }}
+                        />
+                    )}
                 </div>
             </div>
 
@@ -186,7 +287,10 @@ const PartnersList = () => {
             <ImportModal
                 isOpen={importModal}
                 onClose={() => setImportModal(false)}
-                onSuccess={fetchPartners}
+                onSuccess={() => {
+                    fetchPartners();
+                    fetchStats();
+                }}
                 moduleName="partners"
             />
         </div>
