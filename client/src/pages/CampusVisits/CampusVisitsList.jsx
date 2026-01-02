@@ -162,6 +162,7 @@ const CampusVisitsList = () => {
             <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.universityName} requireReason={!isAdmin} />
             <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchCampusVisits(); fetchStats(); }} moduleName="campus-visits" />
         </div>
+    );
 };
 
 export default CampusVisitsList;
