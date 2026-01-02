@@ -2,15 +2,79 @@ import { Parser } from 'json2csv';
 
 // Generic CRUD controller factory for all modules with approval workflow
 
-// Get all records
+// Get all records with filters, search, sorting, and pagination
 export const getAll = (Model) => async (req, res) => {
     try {
-        const records = await Model.find()
-            .populate('createdBy', 'name email')
-            .populate('updatedBy', 'name email')
-            .sort({ createdAt: -1 });
+        const {
+            page = 1,
+            limit = 10,
+            search,
+            status,
+            startDate,
+            endDate,
+            country,
+            sortBy = 'createdAt',
+            sortOrder = 'desc'
+        } = req.query;
 
-        res.json({ success: true, data: records });
+        // Build query
+        let query = {};
+
+        // Search filter (searches in name, title, university fields)
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { title: { $regex: search, $options: 'i' } },
+                { university: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Status filter
+        if (status && status !== 'all') {
+            query.approvalStatus = status;
+        }
+
+        // Country filter
+        if (country) {
+            query.country = { $regex: country, $options: 'i' };
+        }
+
+        // Date range filter
+        if (startDate || endDate) {
+            query.createdAt = {};
+            if (startDate) query.createdAt.$gte = new Date(startDate);
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                query.createdAt.$lte = end;
+            }
+        }
+
+        // Calculate pagination
+        const skip = (page - 1) * parseInt(limit);
+        const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
+
+        // Execute query with pagination
+        const [data, total] = await Promise.all([
+            Model.find(query)
+                .populate('createdBy', 'name email')
+                .populate('updatedBy', 'name email')
+                .sort(sort)
+                .skip(skip)
+                .limit(parseInt(limit)),
+            Model.countDocuments(query)
+        ]);
+
+        res.json({
+            success: true,
+            data,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / parseInt(limit))
+            }
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -330,6 +394,40 @@ export const getAllPending = (Model) => async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error fetching pending records',
+            error: error.message
+        });
+    }
+};
+
+// Get statistics for a module
+export const getStats = (Model) => async (req, res) => {
+    try {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+        const [total, thisMonth, thisYear, pending, approved] = await Promise.all([
+            Model.countDocuments(),
+            Model.countDocuments({ createdAt: { $gte: startOfMonth } }),
+            Model.countDocuments({ createdAt: { $gte: startOfYear } }),
+            Model.countDocuments({ approvalStatus: 'pending' }),
+            Model.countDocuments({ approvalStatus: 'approved' })
+        ]);
+
+        res.json({
+            success: true,
+            stats: {
+                total,
+                thisMonth,
+                thisYear,
+                pending,
+                approved
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching stats',
             error: error.message
         });
     }
