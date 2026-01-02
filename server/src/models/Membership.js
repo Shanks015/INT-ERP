@@ -18,7 +18,21 @@ const membershipSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    summary: {
+        type: String,
+        trim: true
+    },
+    startDate: {
+        type: Date
+    },
+    endDate: {
+        type: Date
+    },
     membershipDuration: {
+        type: String,
+        trim: true
+    },
+    driveLink: {
         type: String,
         trim: true
     },

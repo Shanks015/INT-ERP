@@ -11,7 +11,7 @@ const ConferenceForm = () => {
     const { isAdmin } = useAuth();
     const isEdit = Boolean(id);
 
-    const [formData, setFormData] = useState({ date: '', conferenceName: '', country: '', department: '', campus: '' });
+    const [formData, setFormData] = useState({ date: '', conferenceName: '', country: '', department: '', campus: '', eventSummary: '', driveLink: '' });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
 
@@ -21,7 +21,7 @@ const ConferenceForm = () => {
         try {
             const response = await api.get(`/conferences/${id}`);
             const conf = response.data.data;
-            setFormData({ date: conf.date ? new Date(conf.date).toISOString().split('T')[0] : '', conferenceName: conf.conferenceName || '', country: conf.country || '', department: conf.department || '', campus: conf.campus || '' });
+            setFormData({ date: conf.date ? new Date(conf.date).toISOString().split('T')[0] : '', conferenceName: conf.conferenceName || '', country: conf.country || '', department: conf.department || '', campus: conf.campus || '', eventSummary: conf.eventSummary || '', driveLink: conf.driveLink || '' });
         } catch (error) {
             toast.error('Error fetching conference');
             navigate('/conferences');
@@ -66,14 +66,16 @@ const ConferenceForm = () => {
                     <form onSubmit={handleSubmit}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="form-control w-full"><label className="label"><span className="label-text">Date *</span></label><input type="date" name="date" className="input input-bordered w-full" value={formData.date} onChange={handleChange} required /></div>
-                            <div className="form-control w-full"><label className="label"><span className="label-text">Conference Name *</span></label><input type="text" name="conferenceName" placeholder="Conference name" className="input input-bordered w-full" value={formData.conferenceName} onChange={handleChange} required />< /div>
-                                <div className="form-control w-full"><label className="label"><span className="label-text">Country *</span></label><input type="text" name="country" placeholder="Country" className="input input-bordered w-full" value={formData.country} onChange={handleChange} required /></div>
-                                <div className="form-control w-full"><label className="label"><span className="label-text">Department</span></label><input type="text" name="department" placeholder="Department" className="input input-bordered w-full" value={formData.department} onChange={handleChange} /></div>
-                                <div className="form-control w-full"><label className="label"><span className="label-text">Campus</span></label><input type="text" name="campus" placeholder="Campus" className="input input-bordered w-full" value={formData.campus} onChange={handleChange} /></div>
-                            </div>
-                            <div className="form-control mt-6">
-                                <button type="submit" className={`btn btn-primary ${loading ? 'loading' : ''}`} disabled={loading}>{!loading && <Save size={18} className="mr-2" />}{loading ? 'Saving...' : (isEdit ? 'Update Conference' : 'Create Conference')}</button>
-                            </div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">Conference Name *</span></label><input type="text" name="conferenceName" placeholder="Conference name" className="input input-bordered w-full" value={formData.conferenceName} onChange={handleChange} required /></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">Country *</span></label><input type="text" name="country" placeholder="Country" className="input input-bordered w-full" value={formData.country} onChange={handleChange} required /></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">Department</span></label><input type="text" name="department" placeholder="Department" className="input input-bordered w-full" value={formData.department} onChange={handleChange} /></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">Campus</span></label><input type="text" name="campus" placeholder="Campus" className="input input-bordered w-full" value={formData.campus} onChange={handleChange} /></div>
+                            <div className="form-control w-full md:col-span-2"><label className="label"><span className="label-text">Event Summary</span></label><textarea name="eventSummary" placeholder="Event summary" className="textarea textarea-bordered w-full" rows="3" value={formData.eventSummary} onChange={handleChange} /></div>
+                            <div className="form-control w-full md:col-span-2"><label className="label"><span className="label-text">Drive Link</span></label><input type="url" name="driveLink" placeholder="https://drive.google.com/..." className="input input-bordered w-full" value={formData.driveLink} onChange={handleChange} /></div>
+                        </div>
+                        <div className="form-control mt-6">
+                            <button type="submit" className={`btn btn-primary ${loading ? 'loading' : ''}`} disabled={loading}>{!loading && <Save size={18} className="mr-2" />}{loading ? 'Saving...' : (isEdit ? 'Update Conference' : 'Create Conference')}</button>
+                        </div>
                     </form>
                 </div>
             </div>

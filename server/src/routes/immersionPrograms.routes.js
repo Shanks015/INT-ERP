@@ -6,6 +6,7 @@ import ImmersionProgram from '../models/ImmersionProgram.js';
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(ImmersionProgram));
+router.get('/stats', authenticate, ctrl.getStats(ImmersionProgram));
 router.get('/:id', authenticate, ctrl.getById(ImmersionProgram));
 router.post('/', authenticate, ctrl.create(ImmersionProgram));
 router.put('/:id', authenticate, ctrl.update(ImmersionProgram));

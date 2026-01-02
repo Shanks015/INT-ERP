@@ -5,7 +5,9 @@ import Event from '../models/Event.js';
 
 const router = express.Router();
 
+router.get('/stats', authenticate, ctrl.getStats(Event));
 router.get('/', authenticate, ctrl.getAll(Event));
+router.get('/stats', authenticate, ctrl.getStats(Event));
 router.get('/:id', authenticate, ctrl.getById(Event));
 router.post('/', authenticate, ctrl.create(Event));
 router.put('/:id', authenticate, ctrl.update(Event));

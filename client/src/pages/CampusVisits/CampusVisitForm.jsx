@@ -18,7 +18,10 @@ const CampusVisitForm = () => {
         country: '',
         type: '',
         department: '',
-        campus: ''
+        campus: '',
+        purpose: '',
+        summary: '',
+        driveLink: ''
     });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
@@ -40,7 +43,10 @@ const CampusVisitForm = () => {
                 country: visit.country || '',
                 type: visit.type || '',
                 department: visit.department || '',
-                campus: visit.campus || ''
+                campus: visit.campus || '',
+                purpose: visit.purpose || '',
+                summary: visit.summary || '',
+                driveLink: visit.driveLink || ''
             });
         } catch (error) {
             toast.error('Error fetching campus visit');
@@ -200,6 +206,48 @@ const CampusVisitForm = () => {
                                     placeholder="Enter campus"
                                     className="input input-bordered w-full"
                                     value={formData.campus}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            <div className="form-control w-full md:col-span-2">
+                                <label className="label">
+                                    <span className="label-text">Purpose</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="purpose"
+                                    placeholder="Purpose of visit"
+                                    className="input input-bordered w-full"
+                                    value={formData.purpose}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            <div className="form-control w-full md:col-span-2">
+                                <label className="label">
+                                    <span className="label-text">Summary</span>
+                                </label>
+                                <textarea
+                                    name="summary"
+                                    placeholder="Visit summary"
+                                    className="textarea textarea-bordered w-full"
+                                    rows="4"
+                                    value={formData.summary}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            <div className="form-control w-full md:col-span-2">
+                                <label className="label">
+                                    <span className="label-text">Drive Link</span>
+                                </label>
+                                <input
+                                    type="url"
+                                    name="driveLink"
+                                    placeholder="https://drive.google.com/..."
+                                    className="input input-bordered w-full"
+                                    value={formData.driveLink}
                                     onChange={handleChange}
                                 />
                             </div>

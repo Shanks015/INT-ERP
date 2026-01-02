@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, UserCheck, TrendingUp, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, UserCheck, TrendingUp, Clock, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import StatsCard from '../../components/StatsCard';
@@ -92,12 +92,12 @@ const StudentExchangeList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Student Name</th><th>Partner University</th><th>Country</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>Student Name</th><th>Exchange University</th><th>Country</th><th>Duration</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
                                 {exchanges.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No exchanges found</td></tr> : exchanges.map((exchange) => (
                                     <tr key={exchange._id}>
                                         <td>{exchange.studentName}</td>
-                                        <td>{exchange.partnerUniversity}</td>
+                                        <td>{exchange.exchangeUniversity}</td>
                                         <td>{exchange.country}</td>
                                         <td>{exchange.duration || '-'}</td>
                                         <td>
@@ -106,7 +106,12 @@ const StudentExchangeList = () => {
                                             {exchange.status === 'active' && <span className="badge badge-success">Active</span>}
                                         </td>
                                         <td>
-                                            <div className="flex gap-2">
+                                            <div className="flex gap-2 justify-end">
+                                                {exchange.driveLink && (
+                                                    <a href={exchange.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="View Documents">
+                                                        <FileText size={16} />
+                                                    </a>
+                                                )}
                                                 <Link to={`/student-exchange/edit/${exchange._id}`} className={`btn btn-warning btn-sm ${exchange.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
                                                 <button onClick={() => setDeleteModal({ isOpen: true, item: exchange })} className={`btn btn-error btn-sm ${exchange.status !== 'active' ? 'btn-disabled' : ''}`} disabled={exchange.status !== 'active'}><Trash2 size={16} /></button>
                                             </div>

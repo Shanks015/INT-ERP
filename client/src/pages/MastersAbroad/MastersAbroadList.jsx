@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, BookOpen, TrendingUp, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, BookOpen, TrendingUp, Clock, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import StatsCard from '../../components/StatsCard';
@@ -92,11 +92,10 @@ const MastersAbroadList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Program Name</th><th>University</th><th>Country</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>University</th><th>Country</th><th>Duration</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {programs.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No programs found</td></tr> : programs.map((program) => (
+                                {programs.length === 0 ? <tr><td colSpan={5} className="text-center py-8">No programs found</td></tr> : programs.map((program) => (
                                     <tr key={program._id}>
-                                        <td>{program.programName}</td>
                                         <td>{program.university}</td>
                                         <td>{program.country}</td>
                                         <td>{program.duration || '-'}</td>
@@ -106,7 +105,12 @@ const MastersAbroadList = () => {
                                             {program.status === 'active' && <span className="badge badge-success">Active</span>}
                                         </td>
                                         <td>
-                                            <div className="flex gap-2">
+                                            <div className="flex gap-2 justify-end">
+                                                {program.driveLink && (
+                                                    <a href={program.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="View Documents">
+                                                        <FileText size={16} />
+                                                    </a>
+                                                )}
                                                 <Link to={`/masters-abroad/edit/${program._id}`} className={`btn btn-warning btn-sm ${program.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
                                                 <button onClick={() => setDeleteModal({ isOpen: true, item: program })} className={`btn btn-error btn-sm ${program.status !== 'active' ? 'btn-disabled' : ''}`} disabled={program.status !== 'active'}><Trash2 size={16} /></button>
                                             </div>

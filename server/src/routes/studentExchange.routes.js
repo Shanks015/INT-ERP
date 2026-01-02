@@ -6,6 +6,7 @@ import StudentExchange from '../models/StudentExchange.js';
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(StudentExchange));
+router.get('/stats', authenticate, ctrl.getStats(StudentExchange));
 router.get('/:id', authenticate, ctrl.getById(StudentExchange));
 router.post('/', authenticate, ctrl.create(StudentExchange));
 router.put('/:id', authenticate, ctrl.update(StudentExchange));

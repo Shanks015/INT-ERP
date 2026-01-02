@@ -11,6 +11,14 @@ const scholarInResidenceSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    university: {
+        type: String,
+        trim: true
+    },
+    category: {
+        type: String,
+        trim: true
+    },
     department: {
         type: String,
         trim: true
@@ -22,6 +30,18 @@ const scholarInResidenceSchema = new mongoose.Schema({
     toDate: {
         type: Date,
         required: true
+    },
+    summary: {
+        type: String,
+        trim: true
+    },
+    campus: {
+        type: String,
+        trim: true
+    },
+    driveLink: {
+        type: String,
+        trim: true
     },
     // Approval workflow fields
     status: {

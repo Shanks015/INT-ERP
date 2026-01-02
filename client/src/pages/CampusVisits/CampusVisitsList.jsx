@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Building2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Search, X, Eye, Building2, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
+import DetailModal from '../../components/Modal/DetailModal';
 import StatsCard from '../../components/StatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
@@ -17,20 +18,37 @@ const CampusVisitsList = () => {
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
-
+    const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
     const [filters, setFilters] = useState({
-        search: '', startDate: '', endDate: '', country: ''
+        search: '', type: '', startDate: '', endDate: '', country: ''
     });
+
+    // Debounced search to prevent refresh on every keystroke
+    const [searchInput, setSearchInput] = useState('');
+
+    // Dynamic countries list from database
+    const [countries, setCountries] = useState([]);
 
     useEffect(() => {
         fetchCampusVisits();
         fetchStats();
+        fetchCountries();
     }, [currentPage, itemsPerPage, filters]);
+
+    // Debounce search input - only update filters after user stops typing for 500ms
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setFilters(prev => ({ ...prev, search: searchInput }));
+            setCurrentPage(1);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchInput]);
 
     const fetchStats = async () => {
         try {
@@ -38,6 +56,20 @@ const CampusVisitsList = () => {
             setStats(response.data.stats);
         } catch (error) {
             console.error('Error fetching stats:', error);
+        }
+    };
+
+    const fetchCountries = async () => {
+        try {
+            // Fetch all campus visits to extract unique countries
+            const response = await api.get('/campus-visits', { params: { limit: 1000 } });
+            const visits = response.data.data || [];
+
+            // Extract unique countries and sort alphabetically
+            const uniqueCountries = [...new Set(visits.map(visit => visit.country).filter(Boolean))].sort();
+            setCountries(uniqueCountries);
+        } catch (error) {
+            console.error('Error fetching countries:', error);
         }
     };
 
@@ -58,7 +90,7 @@ const CampusVisitsList = () => {
 
     const handleDelete = async (reason) => {
         try {
-            await api.delete(`/campus-visits/${deleteModal.item._id}`, { data: { reason } });
+            await api.delete(`/ campus - visits / ${deleteModal.item._id} `, { data: { reason } });
             toast.success(isAdmin ? 'Campus visit deleted successfully' : 'Delete request submitted for approval');
             fetchCampusVisits();
             fetchStats();
@@ -90,7 +122,8 @@ const CampusVisitsList = () => {
     };
 
     const handleClearFilters = () => {
-        setFilters({ search: '', status: '', startDate: '', endDate: '', country: '' });
+        setSearchInput('');
+        setFilters({ search: '', type: '', startDate: '', endDate: '', country: '' });
         setCurrentPage(1);
     };
 
@@ -114,33 +147,123 @@ const CampusVisitsList = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <StatsCard title="Total Visits" value={stats.total} icon={Building2} color="primary" />
-                <StatsCard title="This Month" value={stats.thisMonth} icon={TrendingUp} color="secondary" trend={`+${stats.thisMonth} new`} />
+                <StatsCard title="This Month" value={stats.thisMonth} icon={TrendingUp} color="secondary" trend={`+ ${stats.thisMonth} new `} />
                 <StatsCard title="Pending" value={stats.pending} icon={Clock} color="warning" />
             </div>
 
-            <FilterBar filters={filters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} showCountryFilter={true} />
+            {/* Custom Filters for Campus Visits */}
+            <div className="card bg-base-100 shadow-xl mb-6">
+                <div className="card-body">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold">Filters</h3>
+                        <button onClick={handleClearFilters} className="btn btn-ghost btn-sm gap-2">
+                            <X size={16} /> Clear All
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        {/* Search */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Search</span></label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Search university, visitor..."
+                                    className="input input-bordered w-full pr-10"
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                />
+                                <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
+                            </div>
+                        </div>
+
+                        {/* Type Filter */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Visit Type</span></label>
+                            <select
+                                className="select select-bordered w-full"
+                                value={filters.type || ''}
+                                onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
+                            >
+                                <option value="">All Types</option>
+                                <option value="University Visit">University Visit</option>
+                                <option value="Seminar">Seminar</option>
+                                <option value="Consultant Visit">Consultant Visit</option>
+                            </select>
+                        </div>
+
+                        {/* Country Filter - Dynamic Dropdown */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Country</span></label>
+                            <select
+                                className="select select-bordered w-full"
+                                value={filters.country || ''}
+                                onChange={(e) => setFilters(prev => ({ ...prev, country: e.target.value }))}
+                            >
+                                <option value="">All Countries</option>
+                                {countries.map(country => (
+                                    <option key={country} value={country}>{country}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Date Range */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">From Date</span></label>
+                            <input
+                                type="date"
+                                className="input input-bordered w-full"
+                                value={filters.startDate || ''}
+                                onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                            />
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">To Date</span></label>
+                            <input
+                                type="date"
+                                className="input input-bordered w-full"
+                                value={filters.endDate || ''}
+                                onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
                             <thead>
-                                <tr><th>University</th><th>Country</th><th>Visitor</th><th>Date</th><th>Type</th><th>Department</th><th>Actions</th></tr>
+                                <tr><th>University</th><th>Country</th><th>Visitor</th><th>Date</th><th>Type</th><th>Department</th><th>Campus</th><th className="text-right">Actions</th></tr>
                             </thead>
                             <tbody>
                                 {campusVisits.length === 0 ? (
-                                    <tr><td colSpan={7} className="text-center py-8">No campus visits found</td></tr>
+                                    <tr><td colSpan={8} className="text-center py-8">No campus visits found</td></tr>
                                 ) : (
                                     campusVisits.map((visit) => (
                                         <tr key={visit._id}>
-                                            <td>{visit.universityName}</td>
+                                            <td className="font-medium">{visit.universityName}</td>
                                             <td>{visit.country}</td>
                                             <td className="max-w-xs truncate" title={visit.visitorName}>{visit.visitorName || '-'}</td>
                                             <td>{new Date(visit.date).toLocaleDateString()}</td>
-                                            <td><span className="badge badge-info badge-sm">{visit.type || '-'}</span></td>
-                                            <td>{visit.department || '-'}</td>
                                             <td>
-                                                <div className="flex gap-2">
+                                                <span className="badge badge-info badge-sm whitespace-nowrap">
+                                                    {visit.type || '-'}
+                                                </span>
+                                            </td>
+                                            <td>{visit.department || '-'}</td>
+                                            <td>{visit.campus || '-'}</td>
+                                            <td>
+                                                <div className="flex gap-2 justify-end">
+                                                    {visit.driveLink && (
+                                                        <a href={visit.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="View Documents">
+                                                            <FileText size={16} />
+                                                        </a>
+                                                    )}
+                                                    <button onClick={() => setDetailModal({ isOpen: true, item: visit })} className="btn btn-info btn-sm" title="View Details">
+                                                        <Eye size={16} />
+                                                    </button>
                                                     <Link to={`/campus-visits/edit/${visit._id}`} className="btn btn-warning btn-sm"><Edit size={16} /></Link>
                                                     {isAdmin && (
                                                         <button onClick={() => setDeleteModal({ isOpen: true, item: visit })} className="btn btn-error btn-sm"><Trash2 size={16} /></button>
@@ -161,6 +284,24 @@ const CampusVisitsList = () => {
 
             <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.universityName} requireReason={!isAdmin} />
             <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchCampusVisits(); fetchStats(); }} moduleName="campus-visits" />
+            <DetailModal
+                isOpen={detailModal.isOpen}
+                onClose={() => setDetailModal({ isOpen: false, item: null })}
+                data={detailModal.item}
+                title="Campus Visit Details"
+                fields={[
+                    { key: 'universityName', label: 'University Name' },
+                    { key: 'country', label: 'Country' },
+                    { key: 'visitorName', label: 'Visitor Name' },
+                    { key: 'date', label: 'Date', type: 'date' },
+                    { key: 'type', label: 'Visit Type' },
+                    { key: 'department', label: 'Department' },
+                    { key: 'campus', label: 'Campus' },
+                    { key: 'purpose', label: 'Purpose' },
+                    { key: 'summary', label: 'Summary' },
+                    { key: 'driveLink', label: 'Drive Link', type: 'link' }
+                ]}
+            />
         </div>
     );
 };

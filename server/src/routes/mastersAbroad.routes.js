@@ -6,6 +6,7 @@ import MastersAbroad from '../models/MastersAbroad.js';
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(MastersAbroad));
+router.get('/stats', authenticate, ctrl.getStats(MastersAbroad));
 router.get('/:id', authenticate, ctrl.getById(MastersAbroad));
 router.post('/', authenticate, ctrl.create(MastersAbroad));
 router.put('/:id', authenticate, ctrl.update(MastersAbroad));

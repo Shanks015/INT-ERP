@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Users2, TrendingUp, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Users2, TrendingUp, Clock, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import StatsCard from '../../components/StatsCard';
@@ -92,13 +92,14 @@ const MembershipsList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Organization</th><th>Type</th><th>Start Date</th><th>Expiry Date</th><th>Status</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>Name</th><th>Country</th><th>Type</th><th>Start Date</th><th>Expiry Date</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {memberships.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No memberships found</td></tr> : memberships.map((membership) => (
+                                {memberships.length === 0 ? <tr><td colSpan={7} className="text-center py-8">No memberships found</td></tr> : memberships.map((membership) => (
                                     <tr key={membership._id}>
-                                        <td>{membership.organizationName}</td>
+                                        <td>{membership.name}</td>
+                                        <td>{membership.country || '-'}</td>
                                         <td>{membership.membershipType || '-'}</td>
-                                        <td>{new Date(membership.startDate).toLocaleDateString()}</td>
+                                        <td>{membership.startDate ? new Date(membership.startDate).toLocaleDateString() : '-'}</td>
                                         <td>{membership.expiryDate ? new Date(membership.expiryDate).toLocaleDateString() : '-'}</td>
                                         <td>
                                             {membership.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
@@ -106,7 +107,12 @@ const MembershipsList = () => {
                                             {membership.status === 'active' && <span className="badge badge-success">Active</span>}
                                         </td>
                                         <td>
-                                            <div className="flex gap-2">
+                                            <div className="flex gap-2 justify-end">
+                                                {membership.driveLink && (
+                                                    <a href={membership.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="View Documents">
+                                                        <FileText size={16} />
+                                                    </a>
+                                                )}
                                                 <Link to={`/memberships/edit/${membership._id}`} className={`btn btn-warning btn-sm ${membership.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
                                                 <button onClick={() => setDeleteModal({ isOpen: true, item: membership })} className={`btn btn-error btn-sm ${membership.status !== 'active' ? 'btn-disabled' : ''}`} disabled={membership.status !== 'active'}><Trash2 size={16} /></button>
                                             </div>

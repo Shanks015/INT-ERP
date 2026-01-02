@@ -32,6 +32,18 @@ const campusVisitSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    summary: {
+        type: String,
+        trim: true
+    },
+    purpose: {
+        type: String,
+        trim: true
+    },
+    driveLink: {
+        type: String,
+        trim: true
+    },
     // Approval workflow fields
     status: {
         type: String,

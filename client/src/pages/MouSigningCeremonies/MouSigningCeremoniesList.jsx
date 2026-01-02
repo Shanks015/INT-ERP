@@ -92,21 +92,27 @@ const MouSigningCeremoniesList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Title</th><th>Date</th><th>Partner</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>Title</th><th>Date</th><th>University</th><th>Department</th><th>Location</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {ceremonies.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No ceremonies found</td></tr> : ceremonies.map((ceremony) => (
+                                {ceremonies.length === 0 ? <tr><td colSpan={7} className="text-center py-8">No ceremonies found</td></tr> : ceremonies.map((ceremony) => (
                                     <tr key={ceremony._id}>
-                                        <td>{ceremony.title}</td>
-                                        <td>{new Date(ceremony.ceremonyDate).toLocaleDateString()}</td>
-                                        <td>{ceremony.partnerName || '-'}</td>
-                                        <td>{ceremony.location}</td>
+                                        <td>{ceremony.title || ceremony.university}</td>
+                                        <td>{new Date(ceremony.date).toLocaleDateString()}</td>
+                                        <td>{ceremony.university || '-'}</td>
+                                        <td>{ceremony.department || '-'}</td>
+                                        <td>{ceremony.location || '-'}</td>
                                         <td>
                                             {ceremony.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
                                             {ceremony.status === 'pending_delete' && <span className="badge badge-error gap-2"><Clock size={14} />Delete Pending</span>}
                                             {ceremony.status === 'active' && <span className="badge badge-success">Active</span>}
                                         </td>
                                         <td>
-                                            <div className="flex gap-2">
+                                            <div className="flex gap-2 justify-end">
+                                                {ceremony.driveLink && (
+                                                    <a href={ceremony.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="View Documents">
+                                                        <FileText size={16} />
+                                                    </a>
+                                                )}
                                                 <Link to={`/mou-signing-ceremonies/edit/${ceremony._id}`} className={`btn btn-warning btn-sm ${ceremony.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
                                                 <button onClick={() => setDeleteModal({ isOpen: true, item: ceremony })} className={`btn btn-error btn-sm ${ceremony.status !== 'active' ? 'btn-disabled' : ''}`} disabled={ceremony.status !== 'active'}><Trash2 size={16} /></button>
                                             </div>

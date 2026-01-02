@@ -6,6 +6,7 @@ import Conference from '../models/Conference.js';
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(Conference));
+router.get('/stats', authenticate, ctrl.getStats(Conference));
 router.get('/:id', authenticate, ctrl.getById(Conference));
 router.post('/', authenticate, ctrl.create(Conference));
 router.put('/:id', authenticate, ctrl.update(Conference));

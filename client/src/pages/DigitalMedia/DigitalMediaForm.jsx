@@ -11,7 +11,15 @@ const DigitalMediaForm = () => {
     const { isAdmin } = useAuth();
     const isEdit = Boolean(id);
 
-    const [formData, setFormData] = useState({ date: '', type: '', title: '', link: '', reach: '' });
+    const [formData, setFormData] = useState({
+        date: '',
+        channel: '',
+        articleTopic: '',
+        articleLink: '',
+        amountPaid: '',
+        summary: '',
+        driveLink: ''
+    });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
 
@@ -21,7 +29,15 @@ const DigitalMediaForm = () => {
         try {
             const response = await api.get(`/digital-media/${id}`);
             const item = response.data.data;
-            setFormData({ date: item.date ? new Date(item.date).toISOString().split('T')[0] : '', type: item.type || '', title: item.title || '', link: item.link || '', reach: item.reach || '' });
+            setFormData({
+                date: item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+                channel: item.channel || '',
+                articleTopic: item.articleTopic || '',
+                articleLink: item.articleLink || '',
+                amountPaid: item.amountPaid || '',
+                summary: item.summary || '',
+                driveLink: item.driveLink || ''
+            });
         } catch (error) {
             toast.error('Error fetching media');
             navigate('/digital-media');
@@ -66,18 +82,20 @@ const DigitalMediaForm = () => {
                     <form onSubmit={handleSubmit}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="form-control w-full"><label className="label"><span className="label-text">Date *</span></label><input type="date" name="date" className="input input-bordered w-full" value={formData.date} onChange={handleChange} required /></div>
-                            <div className="form-control w-full"><label className="label"><span className="label-text">Title *</span></label><input type="text" name="title" placeholder="Title" className="input input-bordered w-full" value={formData.title} onChange={handleChange} required /></div>
-                            <div className="form-control w-full"><label className="label"><span className="label-text">Type</span></label><input type="text" name="type" placeholder="e.g. Social Media, News" className="input input-bordered w-full" value={formData.type} onChange={handleChange} /></div>
-                            <div className="form-control w-full"><label className="label"><span className="label-text">Link</span></label><input type="url" name="link" placeholder="https://..." className="input input-bordered w-full" value={formData.link} onChange={handleChange} /></div>
-                            <div className="form-control w-full"><label className="label"><span className="label-text">Reach</span></label><input type="text" name="reach" placeholder="e.g. 10K views" className="input input-bordered w-full" value={formData.reach} onChange={handleChange} /></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">Article Topic *</span></label><input type="text" name="articleTopic" placeholder="Article Topic" className="input input-bordered w-full" value={formData.articleTopic} onChange={handleChange} required /></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">Channel</span></label><input type="text" name="channel" placeholder="Channel Name" className="input input-bordered w-full" value={formData.channel} onChange={handleChange} /></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">Article Link</span></label><input type="url" name="articleLink" placeholder="https://..." className="input input-bordered w-full" value={formData.articleLink} onChange={handleChange} /></div>
+                            <div className="form-control w-full"><label className="label"><span className="label-text">Amount Paid</span></label><input type="text" name="amountPaid" placeholder="e.g. 5000" className="input input-bordered w-full" value={formData.amountPaid} onChange={handleChange} /></div>
+                            <div className="form-control w-full md:col-span-2"><label className="label"><span className="label-text">Summary</span></label><textarea name="summary" placeholder="Summary" className="textarea textarea-bordered w-full" rows="3" value={formData.summary} onChange={handleChange} /></div>
+                            <div className="form-control w-full md:col-span-2"><label className="label"><span className="label-text">Drive Link</span></label><input type="url" name="driveLink" placeholder="https://drive.google.com/..." className="input input-bordered w-full" value={formData.driveLink} onChange={handleChange} /></div>
                         </div>
                         <div className="form-control mt-6">
                             <button type="submit" className={`btn btn-primary ${loading ? 'loading' : ''}`} disabled={loading}>{!loading && <Save size={18} className="mr-2" />}{loading ? 'Saving...' : (isEdit ? 'Update' : 'Create')}</button>
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

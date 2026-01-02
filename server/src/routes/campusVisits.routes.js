@@ -6,6 +6,7 @@ import CampusVisit from '../models/CampusVisit.js';
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(CampusVisit));
+router.get('/stats', authenticate, ctrl.getStats(CampusVisit));
 router.get('/:id', authenticate, ctrl.getById(CampusVisit));
 router.post('/', authenticate, ctrl.create(CampusVisit));
 router.put('/:id', authenticate, ctrl.update(CampusVisit));

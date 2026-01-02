@@ -23,6 +23,14 @@ const conferenceSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    eventSummary: {
+        type: String,
+        trim: true
+    },
+    driveLink: {
+        type: String,
+        trim: true
+    },
     // Approval workflow fields
     status: {
         type: String,

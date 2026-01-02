@@ -3,11 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Globe, TrendingUp, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Globe, TrendingUp, Clock, Search, X, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import StatsCard from '../../components/StatsCard';
-import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
 const ConferencesList = () => {
@@ -21,15 +20,36 @@ const ConferencesList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', status: '', startDate: '', endDate: '', country: '' });
 
-    useEffect(() => { fetchConferences(); fetchStats(); }, [currentPage, itemsPerPage, filters]);
+    const [filters, setFilters] = useState({ search: '', startDate: '', endDate: '', country: '' });
+    const [searchInput, setSearchInput] = useState('');
+    const [countries, setCountries] = useState([]);
+
+    useEffect(() => { fetchConferences(); fetchStats(); fetchCountries(); }, [currentPage, itemsPerPage, filters]);
+
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setFilters(prev => ({ ...prev, search: searchInput }));
+            setCurrentPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchInput]);
 
     const fetchStats = async () => {
         try {
             const response = await api.get('/conferences/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+    };
+
+    const fetchCountries = async () => {
+        try {
+            const response = await api.get('/conferences', { params: { limit: 1000 } });
+            const confs = response.data.data || [];
+            const uniqueCountries = [...new Set(confs.map(c => c.country).filter(Boolean))].sort();
+            setCountries(uniqueCountries);
+        } catch (error) { console.error('Error fetching countries:', error); }
     };
 
     const fetchConferences = async () => {
@@ -67,48 +87,94 @@ const ConferencesList = () => {
         } catch (error) { toast.error('Error exporting CSV'); }
     };
 
-    const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', status: '', startDate: '', endDate: '', country: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => {
+        setSearchInput('');
+        setFilters({ search: '', startDate: '', endDate: '', country: '' });
+        setCurrentPage(1);
+    };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <div><h1 className="text-3xl font-bold">Conferences</h1><p className="text-base-content/70 mt-2">Manage conference participation</p></div>
+                <div><h1 className="text-3xl font-bold">Conferences</h1><p className="text-base-content/70 mt-2">Manage conference records</p></div>
                 <div className="flex gap-2">
                     <button onClick={() => setImportModal(true)} className="btn btn-outline"><Upload size={18} />Import</button>
                     <button onClick={handleExportCSV} className="btn btn-outline"><Download size={18} />Export CSV</button>
                     <Link to="/conferences/new" className="btn btn-primary"><Plus size={18} />Add Conference</Link>
                 </div>
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <StatsCard title="Total Conferences" value={stats.total} icon={Globe} color="primary" />
                 <StatsCard title="This Month" value={stats.thisMonth} icon={TrendingUp} color="secondary" trend={`+${stats.thisMonth} new`} />
                 <StatsCard title="Pending" value={stats.pending} icon={Clock} color="warning" />
             </div>
-            <FilterBar filters={filters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} showCountryFilter={true} />
+
+            {/* Custom Filters */}
+            <div className="card bg-base-100 shadow-xl mb-6">
+                <div className="card-body">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold">Filters</h3>
+                        <button onClick={handleClearFilters} className="btn btn-ghost btn-sm gap-2"><X size={16} /> Clear All</button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        {/* Search */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Search</span></label>
+                            <div className="relative">
+                                <input type="text" placeholder="Search conference, country..." className="input input-bordered w-full pr-10" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
+                                <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
+                            </div>
+                        </div>
+
+                        {/* Country Filter */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Country</span></label>
+                            <select className="select select-bordered w-full" value={filters.country || ''} onChange={(e) => setFilters(prev => ({ ...prev, country: e.target.value }))}>
+                                <option value="">All Countries</option>
+                                {countries.map(country => <option key={country} value={country}>{country}</option>)}
+                            </select>
+                        </div>
+
+                        {/* From Date */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">From Date</span></label>
+                            <input type="date" className="input input-bordered w-full" value={filters.startDate || ''} onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))} />
+                        </div>
+
+                        {/* To Date */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">To Date</span></label>
+                            <input type="date" className="input input-bordered w-full" value={filters.endDate || ''} onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))} />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Organizer</th><th>Status</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>Conference Name</th><th>Country</th><th>Date</th><th>Department</th><th>Campus</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
                                 {conferences.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No conferences found</td></tr> : conferences.map((conf) => (
                                     <tr key={conf._id}>
-                                        <td>{conf.title}</td>
-                                        <td>{new Date(conf.conferenceDate).toLocaleDateString()}</td>
-                                        <td>{conf.location}</td>
-                                        <td>{conf.organizer || '-'}</td>
+                                        <td className="max-w-xs" title={conf.conferenceName}>{conf.conferenceName}</td>
+                                        <td>{conf.country}</td>
+                                        <td>{new Date(conf.date).toLocaleDateString()}</td>
+                                        <td>{conf.department || '-'}</td>
+                                        <td>{conf.campus || '-'}</td>
                                         <td>
-                                            {conf.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
-                                            {conf.status === 'pending_delete' && <span className="badge badge-error gap-2"><Clock size={14} />Delete Pending</span>}
-                                            {conf.status === 'active' && <span className="badge badge-success">Active</span>}
-                                        </td>
-                                        <td>
-                                            <div className="flex gap-2">
-                                                <Link to={`/conferences/edit/${conf._id}`} className={`btn btn-warning btn-sm ${conf.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
-                                                <button onClick={() => setDeleteModal({ isOpen: true, item: conf })} className={`btn btn-error btn-sm ${conf.status !== 'active' ? 'btn-disabled' : ''}`} disabled={conf.status !== 'active'}><Trash2 size={16} /></button>
+                                            <div className="flex gap-2 justify-end">
+                                                {conf.driveLink && (
+                                                    <a href={conf.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="View Documents">
+                                                        <FileText size={16} />
+                                                    </a>
+                                                )}
+                                                <Link to={`/conferences/edit/${conf._id}`} className="btn btn-warning btn-sm"><Edit size={16} /></Link>
+                                                {isAdmin && <button onClick={() => setDeleteModal({ isOpen: true, item: conf })} className="btn btn-error btn-sm"><Trash2 size={16} /></button>}
                                             </div>
                                         </td>
                                     </tr>
@@ -119,7 +185,8 @@ const ConferencesList = () => {
                     {totalItems > 0 && <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} onItemsPerPageChange={(newLimit) => { setItemsPerPage(newLimit); setCurrentPage(1); }} />}
                 </div>
             </div>
-            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.title} requireReason={!isAdmin} />
+
+            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.conferenceName} requireReason={!isAdmin} />
             <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchConferences(); fetchStats(); }} moduleName="conferences" />
         </div>
     );
