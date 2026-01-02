@@ -28,6 +28,8 @@ import importRoutes from './routes/import.routes.js';
 import reportsRoutes from './routes/reports.routes.js';
 import usersRoutes from './routes/users.routes.js';
 
+import googleFormsRoutes from './routes/googleForms.routes.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -62,6 +64,7 @@ app.use('/api/digital-media', digitalMediaRoutes);
 app.use('/api/outreach', outreachRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/google-forms', googleFormsRoutes);
 
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {
