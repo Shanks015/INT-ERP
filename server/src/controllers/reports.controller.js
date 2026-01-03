@@ -43,16 +43,52 @@ const getDisplayFields = (moduleName) => {
     }
 };
 
-const fetchData = async (module, startDate, endDate, status) => {
+const fetchData = async (module, filters) => {
     const query = {};
-    if (startDate && endDate) {
-        // Determine date field name (mostly 'date', but sometimes 'arrivalDate' etc)
+
+    // Date range filtering
+    if (filters.startDate && filters.endDate) {
+        // Determine date field name (mostly 'date', but sometimes 'arrivalDate', 'fromDate' etc)
         const dateField = ['scholars-in-residence', 'student-exchange'].includes(module) ? 'fromDate' :
             ['immersion-programs'].includes(module) ? 'arrivalDate' : 'date';
-        query[dateField] = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        query[dateField] = { $gte: new Date(filters.startDate), $lte: new Date(filters.endDate) };
     }
-    if (status && status !== 'all') {
-        query.status = status;
+
+    // Status filtering
+    if (filters.status && filters.status !== 'all') {
+        query.status = filters.status;
+    }
+
+    // Module-specific filters
+    if (filters.country && filters.country.trim()) {
+        query.country = { $regex: filters.country, $options: 'i' }; // Case-insensitive search
+    }
+    if (filters.department && filters.department.trim()) {
+        query.department = { $regex: filters.department, $options: 'i' };
+    }
+    if (filters.type && filters.type.trim()) {
+        query.type = filters.type;
+    }
+    if (filters.category && filters.category.trim()) {
+        query.category = filters.category;
+    }
+    if (filters.direction && filters.direction.trim()) {
+        query.direction = filters.direction;
+    }
+    if (filters.campus && filters.campus.trim()) {
+        query.campus = filters.campus;
+    }
+    if (filters.channel && filters.channel.trim()) {
+        query.channel = filters.channel;
+    }
+    if (filters.agreementType && filters.agreementType.trim()) {
+        query.agreementType = filters.agreementType;
+    }
+    if (filters.membershipStatus && filters.membershipStatus.trim()) {
+        query.membershipStatus = filters.membershipStatus;
+    }
+    if (filters.partnershipType && filters.partnershipType.trim()) {
+        query.partnershipType = filters.partnershipType;
     }
 
     const Model = getModel(module);
@@ -64,14 +100,16 @@ const fetchData = async (module, startDate, endDate, status) => {
 
 export const generateReport = async (req, res) => {
     try {
-        const { format, modules, startDate, endDate, status } = req.body;
+        const filters = req.body; // Get all filters from request body
+        const { format, modules } = filters;
+
         const modulesToFetch = modules === 'all'
-            ? ['partners', 'campus-visits', 'events', 'conferences', 'mou-signing-ceremonies', 'scholars-in-residence', 'mou-updates', 'immersion-programs', 'student-exchange', 'masters-abroad', 'memberships', 'digital-media']
-            : modules;
+            ? ['partners', 'campus-visits', 'events', 'conferences', 'mou-signing-ceremonies', 'scholars-in-residence', 'mou-updates', 'immersion-programs', 'student-exchange', 'masters-abroad', 'memberships', 'digital-media', 'outreach']
+            : [modules]; // Single module as array
 
         let allData = [];
         for (const mod of modulesToFetch) {
-            const data = await fetchData(mod, startDate, endDate, status);
+            const data = await fetchData(mod, filters);
             allData = [...allData, ...data];
         }
 
@@ -155,5 +193,64 @@ export const generateReport = async (req, res) => {
     } catch (error) {
         console.error('Report generation error:', error);
         res.status(500).json({ message: 'Error generating report' });
+    }
+};
+
+export const getDashboardStats = async (req, res) => {
+    try {
+        const [
+            partnersCount,
+            eventsRes,
+            scholarsRes,
+            conferencesRes,
+            visitsRes
+        ] = await Promise.all([
+            Partner.countDocuments(),
+            Event.aggregate([
+                { $group: { _id: "$type", count: { $sum: 1 } } }
+            ]),
+            Scholar.aggregate([
+                { $group: { _id: "$country", count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: 5 }
+            ]),
+            Conference.countDocuments(),
+            CampusVisit.aggregate([
+                { $group: { _id: { $month: "$date" }, count: { $sum: 1 } } },
+                { $sort: { _id: 1 } }
+            ])
+        ]);
+
+        // Process aggregations
+        const eventTypes = eventsRes.map(e => ({ name: e._id || 'Unspecified', value: e.count }));
+        const scholarCountries = scholarsRes.map(s => ({ name: s._id || 'Unknown', value: s.count }));
+
+        // Month map
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const visitsByMonth = visitsRes.map(v => ({
+            name: months[v._id - 1],
+            visits: v.count
+        }));
+
+        res.json({
+            success: true,
+            stats: {
+                counts: {
+                    partners: partnersCount,
+                    conferences: conferencesRes,
+                    events: eventsRes.reduce((acc, curr) => acc + curr.count, 0),
+                    scholars: scholarsRes.reduce((acc, curr) => acc + curr.count, 0)
+                },
+                charts: {
+                    eventTypes,
+                    scholarCountries,
+                    visitsByMonth
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Dashboard stats error:', error);
+        res.status(500).json({ success: false, message: 'Error fetching dashboard stats' });
     }
 };

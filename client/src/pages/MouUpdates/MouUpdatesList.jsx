@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, FileEdit, TrendingUp, Clock, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, FileEdit, TrendingUp, Clock, Eye, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
+import DetailModal from '../../components/Modal/DetailModal';
 import StatsCard from '../../components/StatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
@@ -17,6 +18,7 @@ const MouUpdatesList = () => {
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
+    const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
@@ -113,6 +115,9 @@ const MouUpdatesList = () => {
                                                         <FileText size={16} />
                                                     </a>
                                                 )}
+                                                <button onClick={() => setDetailModal({ isOpen: true, item: update })} className="btn btn-info btn-sm" title="View Details">
+                                                    <Eye size={16} />
+                                                </button>
                                                 <Link to={`/mou-updates/edit/${update._id}`} className={`btn btn-warning btn-sm ${update.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
                                                 <button onClick={() => setDeleteModal({ isOpen: true, item: update })} className={`btn btn-error btn-sm ${update.status !== 'active' ? 'btn-disabled' : ''}`} disabled={update.status !== 'active'}><Trash2 size={16} /></button>
                                             </div>
@@ -127,6 +132,29 @@ const MouUpdatesList = () => {
             </div>
             <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.university} requireReason={!isAdmin} />
             <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchUpdates(); fetchStats(); }} moduleName="mou-updates" />
+            <DetailModal
+                isOpen={detailModal.isOpen}
+                onClose={() => setDetailModal({ isOpen: false, item: null })}
+                data={detailModal.item}
+                title="MoU Update Details"
+                fields={[
+                    { key: 'university', label: 'University' },
+                    { key: 'country', label: 'Country' },
+                    { key: 'date', label: 'Date', type: 'date' },
+                    { key: 'completedDate', label: 'Completed Date', type: 'date' },
+                    { key: 'mouStatus', label: 'MoU Status' },
+                    { key: 'contactPerson', label: 'Contact Person' },
+                    { key: 'contactEmail', label: 'Contact Email' },
+                    { key: 'agreementType', label: 'Agreement Type' },
+                    { key: 'term', label: 'Term' },
+                    { key: 'validityStatus', label: 'Validity Status' },
+                    { key: 'department', label: 'Department' },
+                    { key: 'driveLink', label: 'Drive Link', type: 'link' },
+                    { key: 'status', label: 'Status' },
+                    { key: 'createdAt', label: 'Created At', type: 'date' },
+                    { key: 'updatedAt', label: 'Updated At', type: 'date' }
+                ]}
+            />
         </div>
     );
 };

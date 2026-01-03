@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "verify user login and registration with admin approval",
+    "description": "Test the authentication system to ensure users can register and login successfully, and that admin approval is required before access is granted. Verify JWT token issuance and role-based access control."
+  },
+  {
+    "id": "TC002",
+    "title": "validate dashboard statistics and visualizations loading",
+    "description": "Test the dashboard API endpoints to ensure real-time statistics and charts for all modules load correctly within 3 seconds and display accurate data."
+  },
+  {
+    "id": "TC003",
+    "title": "test partners management crud operations",
+    "description": "Verify the CRUD operations for partners management including creating, reading, updating, and deleting partner records with proper validations and UI feedback."
+  },
+  {
+    "id": "TC004",
+    "title": "test events management create and filter functionality",
+    "description": "Test the events management endpoints to create events, categorize them, and apply filters to retrieve correct event data."
+  },
+  {
+    "id": "TC005",
+    "title": "validate mou management with approval workflow",
+    "description": "Test the MoU signing ceremonies and updates management including creation, updates, and approval workflows for edit and delete requests."
+  },
+  {
+    "id": "TC006",
+    "title": "verify report generation with dynamic filters and export formats",
+    "description": "Test the report generation API to ensure reports can be generated with dynamic filters, date ranges, and exported correctly in PDF and DOCX formats."
+  },
+  {
+    "id": "TC007",
+    "title": "test bulk data import and export functionality",
+    "description": "Verify the bulk import of data from Excel files and export to CSV format, including validation of file formats and error handling."
+  },
+  {
+    "id": "TC008",
+    "title": "validate admin user management interface",
+    "description": "Test the admin user management endpoints to approve or reject user registrations, manage user roles, and validate uniqueness and password strength."
+  },
+  {
+    "id": "TC009",
+    "title": "test approval workflow for edit and delete requests",
+    "description": "Verify that non-admin users can submit edit and delete requests which require admin approval before final action is taken, and that pending requests are visible to admins."
+  },
+  {
+    "id": "TC010",
+    "title": "verify responsive ui and theme switcher functionality",
+    "description": "Test the UI responsiveness across devices and the theme switcher component supporting 32 DaisyUI themes with user preference persistence."
+  }
+]

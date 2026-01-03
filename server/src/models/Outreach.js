@@ -11,10 +11,12 @@ const outreachSchema = new mongoose.Schema({
     },
     university: String,
     contactPerson: String,
+    contactName: String,
     email: String,
     phone: String,
     website: String,
     partnershipType: String,
+    reply: String,
     notes: String,
     approvalStatus: {
         type: String,

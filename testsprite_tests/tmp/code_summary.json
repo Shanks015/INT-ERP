@@ -1,0 +1,209 @@
+{
+  "tech_stack": [
+    "React 18",
+    "Vite",
+    "TailwindCSS",
+    "DaisyUI",
+    "React Router",
+    "Axios",
+    "Node.js",
+    "Express",
+    "MongoDB",
+    "Mongoose",
+    "JWT Authentication",
+    "PDFKit",
+    "DOCX",
+    "XLSX"
+  ],
+  "features": [
+    {
+      "name": "Authentication System",
+      "description": "User login, registration with admin approval workflow and JWT token-based authentication",
+      "files": [
+        "client/src/pages/Auth/Login.jsx",
+        "client/src/pages/Auth/Register.jsx",
+        "client/src/context/AuthContext.jsx",
+        "server/src/controllers/auth.controller.js",
+        "server/src/routes/auth.routes.js",
+        "server/src/middleware/auth.js"
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "description": "Analytics dashboard showing statistics and charts for all modules with quick links",
+      "files": [
+        "client/src/pages/Dashboard/Dashboard.jsx",
+        "server/src/controllers/reports.controller.js"
+      ]
+    },
+    {
+      "name": "Partners Management",
+      "description": "CRUD operations for international partners with create, read, update, delete functionality",
+      "files": [
+        "client/src/pages/Partners/PartnersList.jsx",
+        "client/src/pages/Partners/PartnerForm.jsx",
+        "server/src/models/Partner.js"
+      ]
+    },
+    {
+      "name": "Campus Visits",
+      "description": "Track and manage campus visits with statistics and filtering capabilities",
+      "files": [
+        "client/src/pages/CampusVisits/CampusVisitsList.jsx",
+        "client/src/pages/CampusVisits/CampusVisitForm.jsx",
+        "server/src/models/CampusVisit.js"
+      ]
+    },
+    {
+      "name": "Events Management",
+      "description": "Create and manage events with categorization and filtering",
+      "files": [
+        "client/src/pages/Events/EventsList.jsx",
+        "client/src/pages/Events/EventForm.jsx",
+        "server/src/models/Event.js"
+      ]
+    },
+    {
+      "name": "Conferences",
+      "description": "Manage conference records with detailed information storage",
+      "files": [
+        "client/src/pages/Conferences/ConferencesList.jsx",
+        "client/src/pages/Conferences/ConferenceForm.jsx",
+        "server/src/models/Conference.js"
+      ]
+    },
+    {
+      "name": "MoU Management",
+      "description": "Track MoU signing ceremonies and updates with approval workflow",
+      "files": [
+        "client/src/pages/MouSigningCeremonies/MouSigningCeremoniesList.jsx",
+        "client/src/pages/MouUpdates/MouUpdatesList.jsx",
+        "server/src/models/MouSigningCeremony.js",
+        "server/src/models/MouUpdate.js"
+      ]
+    },
+    {
+      "name": "Scholars Management",
+      "description": "Manage scholar records with statistics and filtering",
+      "files": [
+        "client/src/pages/Scholars/ScholarsList.jsx",
+        "server/src/models/ScholarInResidence.js"
+      ]
+    },
+    {
+      "name": "Student Exchange",
+      "description": "Track student exchange programs with statistics",
+      "files": [
+        "client/src/pages/StudentExchange/StudentExchangeList.jsx",
+        "server/src/models/StudentExchange.js"
+      ]
+    },
+    {
+      "name": "Immersion Programs",
+      "description": "Manage immersion program records",
+      "files": [
+        "client/src/pages/ImmersionPrograms/ImmersionProgramsList.jsx",
+        "server/src/models/ImmersionProgram.js"
+      ]
+    },
+    {
+      "name": "Masters Abroad",
+      "description": "Track masters abroad opportunities and applications",
+      "files": [
+        "client/src/pages/MastersAbroad/MastersAbroadList.jsx",
+        "server/src/models/MastersAbroad.js"
+      ]
+    },
+    {
+      "name": "Memberships",
+      "description": "Manage organizational memberships",
+      "files": [
+        "client/src/pages/Memberships/MembershipsList.jsx",
+        "server/src/models/Membership.js"
+      ]
+    },
+    {
+      "name": "Digital Media",
+      "description": "Store and manage digital media assets",
+      "files": [
+        "client/src/pages/DigitalMedia/DigitalMediaList.jsx",
+        "server/src/models/DigitalMedia.js"
+      ]
+    },
+    {
+      "name": "Outreach Programs",
+      "description": "Track outreach activities and programs",
+      "files": [
+        "client/src/pages/Outreach/OutreachList.jsx",
+        "server/src/models/Outreach.js"
+      ]
+    },
+    {
+      "name": "Pending Actions",
+      "description": "Admin-only page for reviewing and approving pending changes from all modules",
+      "files": [
+        "client/src/pages/PendingActions/PendingActions.jsx"
+      ]
+    },
+    {
+      "name": "My Requests",
+      "description": "View user's own submitted requests and their approval status",
+      "files": [
+        "client/src/pages/MyRequests/MyRequests.jsx"
+      ]
+    },
+    {
+      "name": "Reports Generation",
+      "description": "Generate PDF and DOCX reports with advanced filtering capabilities",
+      "files": [
+        "client/src/pages/Reports/Reports.jsx",
+        "server/src/controllers/reports.controller.js",
+        "server/src/routes/reports.routes.js"
+      ]
+    },
+    {
+      "name": "User Management",
+      "description": "Admin interface for approving/rejecting user registrations and managing roles",
+      "files": [
+        "client/src/pages/UserManagement/UserManagement.jsx",
+        "server/src/controllers/users.controller.js"
+      ]
+    },
+    {
+      "name": "Data Import/Export",
+      "description": "Bulk import from Excel files and export data to CSV format",
+      "files": [
+        "server/src/controllers/import.controller.js",
+        "server/src/routes/import.routes.js"
+      ]
+    },
+    {
+      "name": "Theme Switcher",
+      "description": "Support for 32 DaisyUI themes with user preference persistence",
+      "files": [
+        "client/src/components/ThemeSwitcher.jsx"
+      ]
+    },
+    {
+      "name": "Layout & Navigation",
+      "description": "Main layout with responsive sidebar navigation and mobile drawer",
+      "files": [
+        "client/src/layouts/MainLayout.jsx"
+      ]
+    },
+    {
+      "name": "Reusable Components",
+      "description": "FilterBar, Pagination, LoadingSpinner, StatsCard, Modal components",
+      "files": [
+        "client/src/components/FilterBar.jsx",
+        "client/src/components/Pagination.jsx",
+        "client/src/components/LoadingSpinner.jsx",
+        "client/src/components/StatsCard.jsx",
+        "client/src/components/Modal/DetailModal.jsx",
+        "client/src/components/Modal/DeleteConfirmModal.jsx",
+        "client/src/components/Modal/ImportModal.jsx",
+        "client/src/components/ProtectedRoute.jsx"
+      ]
+    }
+  ]
+}
