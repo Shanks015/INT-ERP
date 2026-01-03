@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, GraduationCap, TrendingUp, Clock, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, GraduationCap, TrendingUp, Clock, Eye, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
+import DetailModal from '../../components/Modal/DetailModal';
 import StatsCard from '../../components/StatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
@@ -17,6 +18,7 @@ const ScholarsList = () => {
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
+    const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
@@ -46,7 +48,7 @@ const ScholarsList = () => {
 
     const handleDelete = async (reason) => {
         try {
-            await api.delete(`/ scholars -in -residence / ${deleteModal.item._id} `, { data: { reason } });
+            await api.delete(`/scholars-in-residence/${deleteModal.item._id}`, { data: { reason } });
             toast.success(isAdmin ? 'Scholar deleted successfully' : 'Delete request submitted');
             fetchScholars(); fetchStats();
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -92,14 +94,21 @@ const ScholarsList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Visitor Name</th><th>Institution</th><th>Country</th><th>Period</th><th>Campus</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Visitor Name</th><th>University</th><th>Country</th><th>Department</th><th>Duration</th><th>Campus</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {scholars.length === 0 ? <tr><td colSpan={7} className="text-center py-8">No scholars found</td></tr> : scholars.map((scholar) => (
+                                {scholars.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No scholars found</td></tr> : scholars.map((scholar) => (
                                     <tr key={scholar._id}>
                                         <td className="font-medium">{scholar.scholarName}</td>
-                                        <td>{scholar.institution}</td>
+                                        <td>{scholar.university || '-'}</td>
                                         <td>{scholar.country}</td>
-                                        <td>{scholar.residencePeriod || '-'}</td>
+                                        <td>{scholar.department || '-'}</td>
+                                        <td>
+                                            {scholar.fromDate ? (
+                                                <span className="text-xs">
+                                                    {new Date(scholar.fromDate).toLocaleDateString()} - {scholar.toDate ? new Date(scholar.toDate).toLocaleDateString() : 'Present'}
+                                                </span>
+                                            ) : '-'}
+                                        </td>
                                         <td>{scholar.campus || '-'}</td>
                                         <td>
                                             {scholar.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
@@ -113,6 +122,9 @@ const ScholarsList = () => {
                                                         <FileText size={16} />
                                                     </a>
                                                 )}
+                                                <button onClick={() => setDetailModal({ isOpen: true, item: scholar })} className="btn btn-info btn-sm" title="View Details">
+                                                    <Eye size={16} />
+                                                </button>
                                                 <Link to={`/scholars-in-residence/edit/${scholar._id}`} className={`btn btn-warning btn-sm ${scholar.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
                                                 <button onClick={() => setDeleteModal({ isOpen: true, item: scholar })} className={`btn btn-error btn-sm ${scholar.status !== 'active' ? 'btn-disabled' : ''}`} disabled={scholar.status !== 'active'}><Trash2 size={16} /></button>
                                             </div>
@@ -127,6 +139,27 @@ const ScholarsList = () => {
             </div>
             <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.scholarName} requireReason={!isAdmin} />
             <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchScholars(); fetchStats(); }} moduleName="scholars-in-residence" />
+            <DetailModal
+                isOpen={detailModal.isOpen}
+                onClose={() => setDetailModal({ isOpen: false, item: null })}
+                data={detailModal.item}
+                title="Scholar Details"
+                fields={[
+                    { key: 'scholarName', label: 'Scholar Name' },
+                    { key: 'university', label: 'University' },
+                    { key: 'country', label: 'Country' },
+                    { key: 'department', label: 'Department' },
+                    { key: 'category', label: 'Category' },
+                    { key: 'fromDate', label: 'From Date', type: 'date' },
+                    { key: 'toDate', label: 'To Date', type: 'date' },
+                    { key: 'campus', label: 'Campus' },
+                    { key: 'summary', label: 'Summary' },
+                    { key: 'driveLink', label: 'Drive Link', type: 'link' },
+                    { key: 'status', label: 'Status' },
+                    { key: 'createdAt', label: 'Created At', type: 'date' },
+                    { key: 'updatedAt', label: 'Updated At', type: 'date' }
+                ]}
+            />
         </div>
     );
 };

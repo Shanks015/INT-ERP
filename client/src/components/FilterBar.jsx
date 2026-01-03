@@ -2,7 +2,7 @@ import { Search, X } from 'lucide-react';
 
 const FilterBar = ({ filters, onFilterChange, onClearFilters, showCountryFilter = false }) => {
     const handleChange = (field, value) => {
-        onFilterChange({ ...filters, [field]: value });
+        onFilterChange({ [field]: value });
     };
 
     return (

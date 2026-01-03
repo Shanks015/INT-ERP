@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Eye } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
+import DetailModal from '../../components/Modal/DetailModal';
 import StatsCard from '../../components/StatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
@@ -17,6 +18,7 @@ const PartnersList = () => {
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, partner: null });
     const [importModal, setImportModal] = useState(false);
+    const [detailModal, setDetailModal] = useState({ isOpen: false, partner: null });
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -238,6 +240,13 @@ const PartnersList = () => {
                                             </td>
                                             <td>
                                                 <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => setDetailModal({ isOpen: true, partner })}
+                                                        className="btn btn-info btn-sm"
+                                                        title="View Details"
+                                                    >
+                                                        <Eye size={16} />
+                                                    </button>
                                                     <Link
                                                         to={`/partners/edit/${partner._id}`}
                                                         className={`btn btn-warning btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
@@ -292,6 +301,24 @@ const PartnersList = () => {
                     fetchStats();
                 }}
                 moduleName="partners"
+            />
+            <DetailModal
+                isOpen={detailModal.isOpen}
+                onClose={() => setDetailModal({ isOpen: false, partner: null })}
+                data={detailModal.partner}
+                title="Partner Details"
+                fields={[
+                    { key: 'country', label: 'Country' },
+                    { key: 'university', label: 'University' },
+                    { key: 'contactName', label: 'Contact Name' },
+                    { key: 'email', label: 'Email' },
+                    { key: 'reply', label: 'Reply' },
+                    { key: 'phoneNumber', label: 'Phone Number' },
+                    { key: 'contactPerson', label: 'Contact Person' },
+                    { key: 'status', label: 'Status' },
+                    { key: 'createdAt', label: 'Created At', type: 'date' },
+                    { key: 'updatedAt', label: 'Updated At', type: 'date' }
+                ]}
             />
         </div>
     );

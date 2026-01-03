@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, FileText, TrendingUp, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, FileText, TrendingUp, Clock, Eye } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
+import DetailModal from '../../components/Modal/DetailModal';
 import StatsCard from '../../components/StatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
@@ -17,6 +18,7 @@ const MouSigningCeremoniesList = () => {
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
+    const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
@@ -113,6 +115,9 @@ const MouSigningCeremoniesList = () => {
                                                         <FileText size={16} />
                                                     </a>
                                                 )}
+                                                <button onClick={() => setDetailModal({ isOpen: true, item: ceremony })} className="btn btn-info btn-sm" title="View Details">
+                                                    <Eye size={16} />
+                                                </button>
                                                 <Link to={`/mou-signing-ceremonies/edit/${ceremony._id}`} className={`btn btn-warning btn-sm ${ceremony.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
                                                 <button onClick={() => setDeleteModal({ isOpen: true, item: ceremony })} className={`btn btn-error btn-sm ${ceremony.status !== 'active' ? 'btn-disabled' : ''}`} disabled={ceremony.status !== 'active'}><Trash2 size={16} /></button>
                                             </div>
@@ -127,6 +132,24 @@ const MouSigningCeremoniesList = () => {
             </div>
             <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.title} requireReason={!isAdmin} />
             <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchCeremonies(); fetchStats(); }} moduleName="mou-signing-ceremonies" />
+            <DetailModal
+                isOpen={detailModal.isOpen}
+                onClose={() => setDetailModal({ isOpen: false, item: null })}
+                data={detailModal.item}
+                title="MoU Signing Ceremony Details"
+                fields={[
+                    { key: 'title', label: 'Title' },
+                    { key: 'date', label: 'Date', type: 'date' },
+                    { key: 'university', label: 'University' },
+                    { key: 'department', label: 'Department' },
+                    { key: 'location', label: 'Location' },
+                    { key: 'dignitaries', label: 'Dignitaries' },
+                    { key: 'driveLink', label: 'Drive Link', type: 'link' },
+                    { key: 'status', label: 'Status' },
+                    { key: 'createdAt', label: 'Created At', type: 'date' },
+                    { key: 'updatedAt', label: 'Updated At', type: 'date' }
+                ]}
+            />
         </div>
     );
 };

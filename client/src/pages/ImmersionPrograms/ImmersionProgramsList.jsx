@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Plane, TrendingUp, Clock, Search, X, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Plane, TrendingUp, Clock, Search, X, Eye, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
+import DetailModal from '../../components/Modal/DetailModal';
 import StatsCard from '../../components/StatsCard';
 import Pagination from '../../components/Pagination';
 
@@ -16,6 +17,7 @@ const ImmersionProgramsList = () => {
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
+    const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
@@ -186,6 +188,9 @@ const ImmersionProgramsList = () => {
                                                         <FileText size={16} />
                                                     </a>
                                                 )}
+                                                <button onClick={() => setDetailModal({ isOpen: true, item: program })} className="btn btn-info btn-sm" title="View Details">
+                                                    <Eye size={16} />
+                                                </button>
                                                 <Link to={`/immersion-programs/edit/${program._id}`} className="btn btn-warning btn-sm"><Edit size={16} /></Link>
                                                 {isAdmin && <button onClick={() => setDeleteModal({ isOpen: true, item: program })} className="btn btn-error btn-sm"><Trash2 size={16} /></button>}
                                             </div>
@@ -201,6 +206,28 @@ const ImmersionProgramsList = () => {
 
             <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.university} requireReason={!isAdmin} />
             <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchPrograms(); fetchStats(); }} moduleName="immersion-programs" />
+            <DetailModal
+                isOpen={detailModal.isOpen}
+                onClose={() => setDetailModal({ isOpen: false, item: null })}
+                data={detailModal.item}
+                title="Immersion Program Details"
+                fields={[
+                    { key: 'programStatus', label: 'Program Status' },
+                    { key: 'direction', label: 'Direction' },
+                    { key: 'university', label: 'University' },
+                    { key: 'country', label: 'Country' },
+                    { key: 'numberOfPax', label: 'Number of Participants' },
+                    { key: 'summary', label: 'Summary' },
+                    { key: 'arrivalDate', label: 'Arrival Date', type: 'date' },
+                    { key: 'departureDate', label: 'Departure Date', type: 'date' },
+                    { key: 'feesPerPax', label: 'Fees Per Participant' },
+                    { key: 'department', label: 'Department' },
+                    { key: 'driveLink', label: 'Drive Link', type: 'link' },
+                    { key: 'status', label: 'Status' },
+                    { key: 'createdAt', label: 'Created At', type: 'date' },
+                    { key: 'updatedAt', label: 'Updated At', type: 'date' }
+                ]}
+            />
         </div>
     );
 };

@@ -14,35 +14,58 @@ export const getAll = (Model) => async (req, res) => {
             endDate,
             country,
             sortBy = 'createdAt',
-            sortOrder = 'desc'
+            sortOrder = 'desc',
+            ...otherFilters  // Capture all other query parameters
         } = req.query;
 
         // Build query
         let query = {};
 
-        // Search filter (searches in multiple fields, case-insensitive)
-        if (search) {
+        // Search filter: Use regex for flexible partial matching across common fields
+        // This works with all models without requiring text indexes
+        if (search && search.trim()) {
+            const searchRegex = { $regex: search.trim(), $options: 'i' };
+
+            // Search across common fields that might exist in any model
             query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { title: { $regex: search, $options: 'i' } },
-                { university: { $regex: search, $options: 'i' } },
-                { universityName: { $regex: search, $options: 'i' } },
-                { visitorName: { $regex: search, $options: 'i' } },
-                { department: { $regex: search, $options: 'i' } },
-                { country: { $regex: search, $options: 'i' } },
-                { summary: { $regex: search, $options: 'i' } }
+                { name: searchRegex },
+                { title: searchRegex },
+                { university: searchRegex },
+                { universityName: searchRegex },  // Added for Campus Visits
+                { visitorName: searchRegex },
+                { scholarName: searchRegex },
+                { studentName: searchRegex },
+                { conferenceName: searchRegex },
+                { contactName: searchRegex },
+                { country: searchRegex },
+                { department: searchRegex },
+                { partnerName: searchRegex },
+                { programName: searchRegex },
+                { organizationName: searchRegex },
+                { channel: searchRegex },
+                { email: searchRegex }
             ];
         }
 
-        // Status filter
+        // Status filter - check both 'status' and 'approvalStatus' fields
         if (status && status !== 'all') {
-            query.approvalStatus = status;
+            query.status = status;
         }
 
         // Country filter
-        if (country) {
+        if (country && country !== 'all') {
             query.country = { $regex: country, $options: 'i' };
         }
+
+        // Apply all other filters dynamically (type, category, visitType, etc.)
+        // This allows module-specific dropdown filters to work automatically
+        Object.keys(otherFilters).forEach(key => {
+            const value = otherFilters[key];
+            if (value && value !== 'all' && value.trim() !== '') {
+                // Use exact match for dropdown filters
+                query[key] = value;
+            }
+        });
 
         // Date range filter
         if (startDate || endDate) {

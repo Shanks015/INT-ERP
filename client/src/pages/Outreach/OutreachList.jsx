@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Eye } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
+import DetailModal from '../../components/Modal/DetailModal';
 import StatsCard from '../../components/StatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
@@ -17,6 +18,7 @@ const OutreachList = () => {
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
+    const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -195,11 +197,11 @@ const OutreachList = () => {
                         <table className="table table-zebra">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
+                                    <th>University / Organization</th>
                                     <th>Country</th>
-                                    <th>University</th>
                                     <th>Contact Person</th>
                                     <th>Email</th>
+                                    <th>Reply</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -214,11 +216,24 @@ const OutreachList = () => {
                                 ) : (
                                     outreach.map((item) => (
                                         <tr key={item._id}>
-                                            <td>{item.name}</td>
+                                            <td>{item.university || item.name}</td>
                                             <td>{item.country}</td>
-                                            <td>{item.university || '-'}</td>
-                                            <td>{item.contactPerson || '-'}</td>
-                                            <td>{item.email || '-'}</td>
+                                            <td>{item.contactName || item.contactPerson || '-'}</td>
+                                            <td>
+                                                {item.email ? (
+                                                    <a
+                                                        href={`https://mail.google.com/mail/?view=cm&fs=1&to=${item.email}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-600 hover:underline"
+                                                    >
+                                                        {item.email}
+                                                    </a>
+                                                ) : '-'}
+                                            </td>
+                                            <td className="max-w-xs truncate" title={item.reply}>
+                                                {item.reply || '-'}
+                                            </td>
                                             <td>
                                                 {item.status === 'pending_edit' && (
                                                     <span className="badge badge-warning gap-2">
@@ -238,6 +253,13 @@ const OutreachList = () => {
                                             </td>
                                             <td>
                                                 <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => setDetailModal({ isOpen: true, item })}
+                                                        className="btn btn-info btn-sm"
+                                                        title="View Details"
+                                                    >
+                                                        <Eye size={16} />
+                                                    </button>
                                                     <Link
                                                         to={`/outreach/edit/${item._id}`}
                                                         className={`btn btn-warning btn-sm ${item.status !== 'active' ? 'btn-disabled' : ''}`}
@@ -292,6 +314,28 @@ const OutreachList = () => {
                     fetchStats();
                 }}
                 moduleName="outreach"
+            />
+            <DetailModal
+                isOpen={detailModal.isOpen}
+                onClose={() => setDetailModal({ isOpen: false, item: null })}
+                data={detailModal.item}
+                title="Outreach Details"
+                fields={[
+                    { key: 'university', label: 'University / Organization' },
+                    { key: 'name', label: 'Name' },
+                    { key: 'country', label: 'Country' },
+                    { key: 'contactName', label: 'Contact Name' },
+                    { key: 'contactPerson', label: 'Contact Person' },
+                    { key: 'email', label: 'Email' },
+                    { key: 'phone', label: 'Phone' },
+                    { key: 'website', label: 'Website', type: 'link' },
+                    { key: 'partnershipType', label: 'Partnership Type' },
+                    { key: 'reply', label: 'Reply' },
+                    { key: 'notes', label: 'Notes' },
+                    { key: 'status', label: 'Status' },
+                    { key: 'createdAt', label: 'Created At', type: 'date' },
+                    { key: 'updatedAt', label: 'Updated At', type: 'date' }
+                ]}
             />
         </div>
     );

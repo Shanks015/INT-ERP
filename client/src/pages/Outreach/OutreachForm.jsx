@@ -20,6 +20,7 @@ const OutreachForm = () => {
         phone: '',
         website: '',
         partnershipType: '',
+        reply: '',
         notes: ''
     });
     const [loading, setLoading] = useState(false);
@@ -44,6 +45,7 @@ const OutreachForm = () => {
                 phone: data.phone || '',
                 website: data.website || '',
                 partnershipType: data.partnershipType || '',
+                reply: data.reply || '',
                 notes: data.notes || ''
             });
         } catch (error) {
@@ -221,6 +223,20 @@ const OutreachForm = () => {
                                     placeholder="Enter partnership type"
                                     className="input input-bordered w-full"
                                     value={formData.partnershipType}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            <div className="form-control w-full md:col-span-2">
+                                <label className="label">
+                                    <span className="label-text">Reply</span>
+                                </label>
+                                <textarea
+                                    name="reply"
+                                    placeholder="Enter reply details"
+                                    className="textarea textarea-bordered w-full"
+                                    rows={2}
+                                    value={formData.reply}
                                     onChange={handleChange}
                                 />
                             </div>

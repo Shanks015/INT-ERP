@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "backend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5000",
+  "backendAuthType": "basic token",
+  "backendUsername": "admin@dsu.edu",
+  "backendPassword": "admin123",
+  "executionArgs": {
+    "projectName": "new-hope-erp",
+    "projectPath": "d:\\new-hope-erp",
+    "testIds": [],
+    "additionalInstruction": "Execute complete test suite covering all API endpoints and backend functionality",
+    "envs": {
+      "API_KEY": "sk-user-h13qirRPR1i_NRDpzYOWU5PUx_Cos32kS7Byro-Du46QbX8W_UDiIPE3hfUJ7rO5NG6fu1gifYpmmov6AVkNwCoMPN4m1rtqZagMP_JhqsDrau_tqWylhMUthw8Jwq8ZTKA"
+    }
+  }
+}

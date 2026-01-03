@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -43,8 +44,21 @@ app.use(cors({
         : true, // Allow all origins in development
     credentials: true
 }));
+
+// Enable compression middleware for all responses
+app.use(compression());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Add caching headers for API responses
+app.use('/api', (req, res, next) => {
+    // Cache GET requests for 5 minutes
+    if (req.method === 'GET') {
+        res.set('Cache-Control', 'public, max-age=300');
+    }
+    next();
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
