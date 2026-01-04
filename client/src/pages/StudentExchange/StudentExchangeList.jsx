@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, UserCheck, TrendingUp, Clock, Eye, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, UserCheck, TrendingUp, Clock, Eye, FileText, Building2, CheckCircle } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
@@ -86,8 +86,8 @@ const StudentExchangeList = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <StatsCard title="Total Exchanges" value={stats.total} icon={UserCheck} color="primary" />
-                <StatsCard title="This Month" value={stats.thisMonth} icon={TrendingUp} color="secondary" trend={`+${stats.thisMonth} new`} />
-                <StatsCard title="Pending" value={stats.pending} icon={Clock} color="warning" />
+                <StatsCard title="Universities" value={stats.universities} icon={Building2} color="secondary" />
+                <StatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" />
             </div>
             <FilterBar filters={filters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} showCountryFilter={true} />
             <div className="card bg-base-100 shadow-xl">
