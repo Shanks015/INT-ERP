@@ -80,7 +80,26 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.distinct('eventType').then(arr => arr.filter(Boolean).length),
                     Model.distinct('department').then(arr => arr.filter(Boolean).length)
                 ]);
-                stats = { ...stats, eventTypes, departments };
+
+                // Get distributions for charts
+                const [eventTypeDistribution, departmentDistribution] = await Promise.all([
+                    Model.aggregate([
+                        { $match: { status: 'active', eventType: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$eventType', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        { $match: { status: 'active', department: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$department', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ])
+                ]);
+
+                stats = { ...stats, eventTypes, departments, eventTypeDistribution, departmentDistribution };
                 break;
 
             case 'Conference':
@@ -88,7 +107,32 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
                     Model.distinct('department').then(arr => arr.filter(Boolean).length)
                 ]);
-                stats = { ...stats, countries: confCountries, departments: confDepartments };
+
+                // Get distributions
+                const [confCountryDist, confDeptDist] = await Promise.all([
+                    Model.aggregate([
+                        { $match: { status: 'active', country: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$country', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        { $match: { status: 'active', department: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$department', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ])
+                ]);
+
+                stats = {
+                    ...stats,
+                    countries: confCountries,
+                    departments: confDepartments,
+                    countryDistribution: confCountryDist,
+                    departmentDistribution: confDeptDist
+                };
                 break;
 
             case 'MouSigningCeremony':
@@ -149,24 +193,71 @@ export const getEnhancedStats = (Model) => async (req, res) => {
 
             case 'DigitalMedia':
                 const channels = await Model.distinct('channel').then(arr => arr.filter(Boolean).length);
-                stats = { ...stats, channels };
+
+                // Get channel distribution
+                const channelDistribution = await Model.aggregate([
+                    { $match: { status: 'active', channel: { $exists: true, $ne: '' } } },
+                    { $group: { _id: '$channel', value: { $sum: 1 } } },
+                    { $sort: { value: -1 } },
+                    { $limit: 10 },
+                    { $project: { _id: 0, name: '$_id', value: 1 } }
+                ]);
+
+                stats = { ...stats, channels, channelDistribution };
                 break;
 
             case 'Outreach':
-                const responses = await Model.countDocuments({
+                // Response calculation with distribution
+                const hasResponseCount = await Model.countDocuments({
                     status: 'active',
-                    response: { $exists: true, $ne: '' }
+                    reply: { $exists: true, $ne: '' }
                 });
-                const nonResponses = total - responses;
-                stats = { ...stats, responses, nonResponses };
+                const noResponseCount = stats.total - hasResponseCount;
+
+                // Response distribution for pie chart
+                const responseDistribution = [
+                    { name: 'Responded', value: hasResponseCount },
+                    { name: 'No Response', value: noResponseCount }
+                ];
+
+                stats = {
+                    ...stats,
+                    responses: hasResponseCount,
+                    nonResponses: noResponseCount,
+                    responseDistribution
+                };
                 break;
 
             case 'Partner':
-                const [partnerCountries, activePartners] = await Promise.all([
-                    Model.distinct('country').then(arr => arr.filter(Boolean).length),
-                    Model.countDocuments({ activeStatus: 'Active', status: 'active' })
+                const partnerCountries = await Model.distinct('country').then(arr => arr.filter(Boolean).length);
+                const activePartners = await Model.countDocuments({
+                    status: 'active',
+                    activeStatus: 'Active'
+                });
+
+                // Get country and status distributions
+                const [partnerCountryDist, statusDistribution] = await Promise.all([
+                    Model.aggregate([
+                        { $match: { status: 'active', country: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$country', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        { $match: { status: 'active' } },
+                        { $group: { _id: '$activeStatus', value: { $sum: 1 } } },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ])
                 ]);
-                stats = { ...stats, countries: partnerCountries, active: activePartners };
+
+                stats = {
+                    ...stats,
+                    countries: partnerCountries,
+                    active: activePartners,
+                    countryDistribution: partnerCountryDist,
+                    statusDistribution
+                };
                 break;
 
             default:
