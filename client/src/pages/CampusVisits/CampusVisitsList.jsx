@@ -168,29 +168,6 @@ const CampusVisitsList = () => {
                 />
             </div>
 
-            {/* Charts Section - Collapsible */}
-            <div className="mb-6">
-                <button
-                    onClick={() => setShowCharts(!showCharts)}
-                    className="btn btn-ghost btn-sm gap-2 mb-4"
-                >
-                    {showCharts ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    {showCharts ? 'Hide  Charts' : 'Show Charts'}
-                </button>
-
-                {showCharts && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <DistributionPieChart
-                            data={stats.countryDistribution}
-                            title="Top 10 Countries"
-                        />
-                        <DistributionBarChart
-                            data={stats.universityDistribution}
-                            title="Top 10 Universities"
-                        />
-                    </div>
-                )}
-            </div>
 
             {/* Custom Filters for Campus Visits */}
             <div className="card bg-base-100 shadow-xl mb-6">
