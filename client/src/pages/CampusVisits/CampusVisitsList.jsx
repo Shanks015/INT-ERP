@@ -3,18 +3,22 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Search, X, Eye, Building2, FileText, Globe } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Search, X, Eye, Building2, FileText, Globe, ChevronDown, ChevronUp } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
 import StatsCard from '../../components/StatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
+import DistributionPieChart from '../../components/Charts/DistributionPieChart';
+import DistributionBarChart from '../../components/Charts/DistributionBarChart';
 
 const CampusVisitsList = () => {
     const { user, isAdmin } = useAuth();
     const [campusVisits, setCampusVisits] = useState([]);
-    const [stats, setStats] = useState({ total: 0, countries: 0, universities: 0 });
+    const [stats, setStats] = useState({ total: 0, countries: 0, universities: 0, trend: null, countryDistribution: [], universityDistribution: [] });
+    const [showCharts, setShowCharts] = useState(true);
+    const [activeFilter, setActiveFilter] = useState(null);
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
@@ -145,10 +149,51 @@ const CampusVisitsList = () => {
                 </div>
             </div>
 
+            {/* Stats Cards with Trends */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard title="Total Visits" value={stats.total} icon={Users} color="primary" />
-                <StatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" />
-                <StatsCard title="Universities" value={stats.universities} icon={Building2} color="info" />
+                <StatsCard
+                    title="Total Visits"
+                    value={stats.total}
+                    icon={Users}
+                    color="primary"
+                    trend={stats.trend}
+                />
+                <StatsCard
+                    title="Countries"
+                    value={stats.countries}
+                    icon={Globe}
+                    color="secondary"
+                />
+                <StatsCard
+                    title="Universities"
+                    value={stats.universities}
+                    icon={Building2}
+                    color="info"
+                />
+            </div>
+
+            {/* Charts Section - Collapsible */}
+            <div className="mb-6">
+                <button
+                    onClick={() => setShowCharts(!showCharts)}
+                    className="btn btn-ghost btn-sm gap-2 mb-4"
+                >
+                    {showCharts ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    {showCharts ? 'Hide  Charts' : 'Show Charts'}
+                </button>
+
+                {showCharts && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <DistributionPieChart
+                            data={stats.countryDistribution}
+                            title="Top 10 Countries"
+                        />
+                        <DistributionBarChart
+                            data={stats.universityDistribution}
+                            title="Top 10 Universities"
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Custom Filters for Campus Visits */}
