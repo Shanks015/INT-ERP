@@ -199,17 +199,21 @@ const PartnersList = () => {
                                 <tr>
                                     <th>Country</th>
                                     <th>University</th>
-                                    <th>Contact Name</th>
+                                    <th>School</th>
+                                    <th>Contact Person</th>
                                     <th>Email</th>
-                                    <th>Phone</th>
-                                    <th>Status</th>
+                                    <th>MoU Status</th>
+                                    <th>Active Status</th>
+                                    <th>Signing Date</th>
+                                    <th>Expiry Date</th>
+                                    <th>Record Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {partners.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="text-center py-8">
+                                        <td colSpan={11} className="text-center py-8">
                                             No partners found. Add your first partner!
                                         </td>
                                     </tr>
@@ -218,9 +222,29 @@ const PartnersList = () => {
                                         <tr key={partner._id}>
                                             <td>{partner.country}</td>
                                             <td>{partner.university}</td>
-                                            <td>{partner.contactName || '-'}</td>
+                                            <td>{partner.school || '-'}</td>
+                                            <td>{partner.contactPerson || '-'}</td>
                                             <td>{partner.email || '-'}</td>
-                                            <td>{partner.phoneNumber || '-'}</td>
+                                            <td>
+                                                {partner.mouStatus ? (
+                                                    <span className={`badge badge-sm ${partner.mouStatus === 'Completed' ? 'badge-success' :
+                                                        partner.mouStatus === 'In progress' ? 'badge-warning' :
+                                                            'badge-info'
+                                                        }`}>
+                                                        {partner.mouStatus}
+                                                    </span>
+                                                ) : '-'}
+                                            </td>
+                                            <td>
+                                                {partner.activeStatus ? (
+                                                    <span className={`badge badge-sm ${partner.activeStatus === 'Active' ? 'badge-success' : 'badge-neutral'
+                                                        }`}>
+                                                        {partner.activeStatus}
+                                                    </span>
+                                                ) : '-'}
+                                            </td>
+                                            <td>{partner.signingDate ? new Date(partner.signingDate).toLocaleDateString() : '-'}</td>
+                                            <td>{partner.expiringDate ? new Date(partner.expiringDate).toLocaleDateString() : '-'}</td>
                                             <td>
                                                 <div className="flex flex-col gap-1">
                                                     {/* Record Status Badge */}
@@ -312,14 +336,20 @@ const PartnersList = () => {
                 data={detailModal.partner}
                 title="Partner Details"
                 fields={[
+                    { key: 'date', label: 'Date', type: 'date' },
                     { key: 'country', label: 'Country' },
                     { key: 'university', label: 'University' },
-                    { key: 'contactName', label: 'Contact Name' },
-                    { key: 'email', label: 'Email' },
-                    { key: 'reply', label: 'Reply' },
-                    { key: 'phoneNumber', label: 'Phone Number' },
+                    { key: 'school', label: 'School/Department' },
+                    { key: 'mouStatus', label: 'MoU Status' },
+                    { key: 'activeStatus', label: 'Active Status' },
                     { key: 'contactPerson', label: 'Contact Person' },
-                    { key: 'status', label: 'Status' },
+                    { key: 'email', label: 'Email' },
+                    { key: 'phoneNumber', label: 'Phone Number' },
+                    { key: 'agreementType', label: 'Agreement Type' },
+                    { key: 'signingDate', label: 'Signing Date', type: 'date' },
+                    { key: 'expiringDate', label: 'Expiry Date', type: 'date' },
+                    { key: 'recordStatus', label: 'Record Status' },
+                    { key: 'status', label: 'Approval Status' },
                     { key: 'createdAt', label: 'Created At', type: 'date' },
                     { key: 'updatedAt', label: 'Updated At', type: 'date' }
                 ]}
