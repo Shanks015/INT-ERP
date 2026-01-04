@@ -1,4 +1,3 @@
-```
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -72,7 +71,7 @@ const OutreachList = () => {
 
     const handleDelete = async (reason) => {
         try {
-            await api.delete(`/ outreach / ${ deleteModal.item._id } `, {
+            await api.delete(`/outreach/${deleteModal.item._id}`, {
                 data: { reason }
             });
 
@@ -161,23 +160,10 @@ const OutreachList = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <StatsCard title="Total Outreach" value={stats.total} icon={Mail} color="primary" />
                 <StatsCard title="Responses" value={stats.responses} icon={MessageSquare} color="success" />
                 <StatsCard title="No Response" value={stats.nonResponses} icon={XCircle} color="warning" />
-                <StatsCard
-                    title="This Month"
-                    value={stats.thisMonth}
-                    icon={TrendingUp}
-                    color="secondary"
-                    trend={`+ ${ stats.thisMonth } new entries`}
-                />
-                <StatsCard
-                    title="Pending Approval"
-                    value={stats.pending}
-                    icon={Clock}
-                    color="warning"
-                />
             </div>
 
             {/* Filters */}
@@ -221,11 +207,11 @@ const OutreachList = () => {
                                                 {item.email ? (
                                                     <a
                                                         href={`https://mail.google.com/mail/?view=cm&fs=1&to=${item.email}`}
-target = "_blank"
-rel = "noopener noreferrer"
-className = "text-blue-600 hover:underline"
-    >
-    { item.email }
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-600 hover:underline"
+                                                    >
+                                                        {item.email}
                                                     </a >
                                                 ) : '-'}
                                             </td >
@@ -280,22 +266,22 @@ className = "text-blue-600 hover:underline"
                         </table >
                     </div >
 
-    {/* Pagination */ }
-{
-    totalItems > 0 && (
-        <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            itemsPerPage={itemsPerPage}
-            onPageChange={setCurrentPage}
-            onItemsPerPageChange={(newLimit) => {
-                setItemsPerPage(newLimit);
-                setCurrentPage(1);
-            }}
-        />
-    )
-}
+                    {/* Pagination */}
+                    {
+                        totalItems > 0 && (
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalItems={totalItems}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
+                                onItemsPerPageChange={(newLimit) => {
+                                    setItemsPerPage(newLimit);
+                                    setCurrentPage(1);
+                                }}
+                            />
+                        )
+                    }
                 </div >
             </div >
 

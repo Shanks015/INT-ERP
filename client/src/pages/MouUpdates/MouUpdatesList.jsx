@@ -1,4 +1,3 @@
-```javascript
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -49,7 +48,7 @@ const MouUpdatesList = () => {
 
     const handleDelete = async (reason) => {
         try {
-            await api.delete(`/ mou - updates / ${ deleteModal.item._id } `, { data: { reason } });
+            await api.delete(`/mou-updates/${deleteModal.item._id}`, { data: { reason } });
             toast.success(isAdmin ? 'Update deleted successfully' : 'Delete request submitted');
             fetchUpdates(); fetchStats();
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -119,8 +118,8 @@ const MouUpdatesList = () => {
                                                 <button onClick={() => setDetailModal({ isOpen: true, item: update })} className="btn btn-info btn-sm" title="View Details">
                                                     <Eye size={16} />
                                                 </button>
-                                                <Link to={`/ mou - updates / edit / ${ update._id } `} className={`btn btn - warning btn - sm ${ update.status !== 'active' ? 'btn-disabled' : '' } `}><Edit size={16} /></Link>
-                                                <button onClick={() => setDeleteModal({ isOpen: true, item: update })} className={`btn btn - error btn - sm ${ update.status !== 'active' ? 'btn-disabled' : '' } `} disabled={update.status !== 'active'}><Trash2 size={16} /></button>
+                                                <Link to={`/mou-updates/edit/${update._id}`} className={`btn btn-warning btn-sm ${update.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
+                                                <button onClick={() => setDeleteModal({ isOpen: true, item: update })} className={`btn btn-error btn-sm ${update.status !== 'active' ? 'btn-disabled' : ''}`} disabled={update.status !== 'active'}><Trash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>
