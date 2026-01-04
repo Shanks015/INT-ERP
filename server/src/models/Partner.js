@@ -6,12 +6,10 @@ const partnerSchema = new mongoose.Schema({
     },
     country: {
         type: String,
-        required: true,
         trim: true
     },
     university: {
         type: String,
-        required: true,
         trim: true
     },
     school: {
