@@ -37,8 +37,16 @@ function parseFlexibleDate(value) {
         const parts = cleaned.split('/');
         if (parts.length === 3) {
             let [day, month, year] = parts.map(p => parseInt(p));
-            // Handle 2-digit years
-            if (year < 100) year += 2000;
+            // Handle 2-digit years using standard convention:
+            // 00-49 -> 2000-2049
+            // 50-99 -> 1950-1999
+            if (year < 100) {
+                if (year < 50) {
+                    year += 2000;
+                } else {
+                    year += 1900;
+                }
+            }
             return new Date(year, month - 1, day);
         }
     }
