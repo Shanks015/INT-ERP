@@ -1,12 +1,13 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth.js';
 import * as ctrl from '../controllers/generic.controller.js';
+import * as enhancedCtrl from '../controllers/enhancedStats.controller.js';
 import ImmersionProgram from '../models/ImmersionProgram.js';
 
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(ImmersionProgram));
-router.get('/stats', authenticate, ctrl.getStats(ImmersionProgram));
+router.get('/stats', authenticate, enhancedCtrl.getEnhancedStats(ImmersionProgram));
 router.get('/:id', authenticate, ctrl.getById(ImmersionProgram));
 router.post('/', authenticate, ctrl.create(ImmersionProgram));
 router.put('/:id', authenticate, ctrl.update(ImmersionProgram));

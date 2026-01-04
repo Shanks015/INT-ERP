@@ -1,12 +1,13 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth.js';
 import * as ctrl from '../controllers/generic.controller.js';
+import * as enhancedCtrl from '../controllers/enhancedStats.controller.js';
 import CampusVisit from '../models/CampusVisit.js';
 
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(CampusVisit));
-router.get('/stats', authenticate, ctrl.getStats(CampusVisit));
+router.get('/stats', authenticate, enhancedCtrl.getEnhancedStats(CampusVisit));
 router.get('/:id', authenticate, ctrl.getById(CampusVisit));
 router.post('/', authenticate, ctrl.create(CampusVisit));
 router.put('/:id', authenticate, ctrl.update(CampusVisit));

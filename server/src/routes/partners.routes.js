@@ -1,13 +1,14 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth.js';
 import * as ctrl from '../controllers/generic.controller.js';
+import * as enhancedCtrl from '../controllers/enhancedStats.controller.js';
 import Partner from '../models/Partner.js';
 
 const router = express.Router();
 
 // Standard CRUD routes
 router.get('/', authenticate, ctrl.getAll(Partner));
-router.get('/stats', authenticate, ctrl.getStats(Partner));
+router.get('/stats', authenticate, enhancedCtrl.getEnhancedStats(Partner));
 router.get('/:id', authenticate, ctrl.getById(Partner));
 router.post('/', authenticate, ctrl.create(Partner));
 router.put('/:id', authenticate, ctrl.update(Partner));

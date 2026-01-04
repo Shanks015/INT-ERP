@@ -1,11 +1,12 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth.js';
 import * as ctrl from '../controllers/generic.controller.js';
+import * as enhancedCtrl from '../controllers/enhancedStats.controller.js';
 import Event from '../models/Event.js';
 
 const router = express.Router();
 
-router.get('/stats', authenticate, ctrl.getStats(Event));
+router.get('/stats', authenticate, enhancedCtrl.getEnhancedStats(Event));
 router.get('/', authenticate, ctrl.getAll(Event));
 router.get('/stats', authenticate, ctrl.getStats(Event));
 router.get('/:id', authenticate, ctrl.getById(Event));
