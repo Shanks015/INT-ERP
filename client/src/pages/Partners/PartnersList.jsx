@@ -310,7 +310,7 @@ const PartnersList = () => {
                                             <td>{partner.email || '-'}</td>
                                             <td>
                                                 {partner.mouStatus ? (
-                                                    <span className={`badge badge-sm ${partner.mouStatus === 'Completed' ? 'badge-success' :
+                                                    <span className={`badge badge-sm whitespace-nowrap ${partner.mouStatus === 'Completed' ? 'badge-success' :
                                                         partner.mouStatus === 'InProgress' ? 'badge-warning' :
                                                             'badge-info'
                                                         }`}>
