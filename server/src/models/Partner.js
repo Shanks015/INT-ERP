@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
 
 const partnerSchema = new mongoose.Schema({
+    date: {
+        type: Date
+    },
     country: {
         type: String,
         required: true,
@@ -11,7 +14,20 @@ const partnerSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    contactName: {
+    school: {
+        type: String,
+        trim: true
+    },
+    mouStatus: {
+        type: String,
+        trim: true
+    },
+    activeStatus: {
+        type: String,
+        enum: ['Active', 'Inactive'],
+        default: 'Active'
+    },
+    contactPerson: {
         type: String,
         trim: true
     },
@@ -19,17 +35,19 @@ const partnerSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    reply: {
-        type: String,
-        trim: true
-    },
-    contactPerson: {
-        type: String,
-        trim: true
-    },
     phoneNumber: {
         type: String,
         trim: true
+    },
+    agreementType: {
+        type: String,
+        trim: true
+    },
+    signingDate: {
+        type: Date
+    },
+    expiringDate: {
+        type: Date
     },
     // Approval workflow fields
     status: {
@@ -65,11 +83,16 @@ const partnerSchema = new mongoose.Schema({
 });
 
 partnerSchema.virtual('isExpired').get(function () {
-    return false; // Partners don't expire
+    if (!this.expiringDate) return false;
+    return new Date() > new Date(this.expiringDate);
 });
 
 partnerSchema.pre('save', function (next) {
-    this.recordStatus = 'active'; // Always active
+    if (this.expiringDate && new Date() > new Date(this.expiringDate)) {
+        this.recordStatus = 'expired';
+    } else {
+        this.recordStatus = 'active';
+    }
     next();
 });
 
