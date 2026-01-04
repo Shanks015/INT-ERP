@@ -63,9 +63,30 @@ const studentExchangeSchema = new mongoose.Schema({
     updatedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    },
+    recordStatus: {
+        type: String,
+        enum: ['active', 'expired'],
+        default: 'active'
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+studentExchangeSchema.virtual('isExpired').get(function () {
+    if (!this.toDate) return false;
+    return new Date() > new Date(this.toDate);
+});
+
+studentExchangeSchema.pre('save', function (next) {
+    if (this.toDate && new Date() > new Date(this.toDate)) {
+        this.recordStatus = 'expired';
+    } else {
+        this.recordStatus = 'active';
+    }
+    next();
 });
 
 export default mongoose.model('StudentExchange', studentExchangeSchema);

@@ -66,9 +66,30 @@ const immersionProgramSchema = new mongoose.Schema({
     updatedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    },
+    recordStatus: {
+        type: String,
+        enum: ['active', 'expired'],
+        default: 'active'
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+immersionProgramSchema.virtual('isExpired').get(function () {
+    if (!this.departureDate) return false;
+    return new Date() > new Date(this.departureDate);
+});
+
+immersionProgramSchema.pre('save', function (next) {
+    if (this.departureDate && new Date() > new Date(this.departureDate)) {
+        this.recordStatus = 'expired';
+    } else {
+        this.recordStatus = 'active';
+    }
+    next();
 });
 
 export default mongoose.model('ImmersionProgram', immersionProgramSchema);

@@ -52,9 +52,25 @@ const partnerSchema = new mongoose.Schema({
     updatedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    },
+    recordStatus: {
+        type: String,
+        enum: ['active', 'expired'],
+        default: 'active'
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+partnerSchema.virtual('isExpired').get(function () {
+    return false; // Partners don't expire
+});
+
+partnerSchema.pre('save', function (next) {
+    this.recordStatus = 'active'; // Always active
+    next();
 });
 
 export default mongoose.model('Partner', partnerSchema);

@@ -104,9 +104,15 @@ const MouSigningCeremoniesList = () => {
                                         <td>{ceremony.department || '-'}</td>
                                         <td>{ceremony.location || '-'}</td>
                                         <td>
-                                            {ceremony.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
-                                            {ceremony.status === 'pending_delete' && <span className="badge badge-error gap-2"><Clock size={14} />Delete Pending</span>}
-                                            {ceremony.status === 'active' && <span className="badge badge-success">Active</span>}
+                                            <div className="flex flex-col gap-1">
+                                                {/* Record Status Badge */}
+                                                {ceremony.recordStatus === 'active' && <span className="badge badge-success badge-sm">Active</span>}
+                                                {ceremony.recordStatus === 'expired' && <span className="badge badge-error badge-sm">Expired</span>}
+
+                                                {/* Approval Workflow Badges */}
+                                                {ceremony.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1"><Clock size={12} />Edit Pending</span>}
+                                                {ceremony.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-1"><Clock size={12} />Delete Pending</span>}
+                                            </div>
                                         </td>
                                         <td>
                                             <div className="flex gap-2 justify-end">

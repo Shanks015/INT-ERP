@@ -103,9 +103,15 @@ const StudentExchangeList = () => {
                                         <td>{exchange.country}</td>
                                         <td>{exchange.duration || '-'}</td>
                                         <td>
-                                            {exchange.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
-                                            {exchange.status === 'pending_delete' && <span className="badge badge-error gap-2"><Clock size={14} />Delete Pending</span>}
-                                            {exchange.status === 'active' && <span className="badge badge-success">Active</span>}
+                                            <div className="flex flex-col gap-1">
+                                                {/* Record Status Badge */}
+                                                {exchange.recordStatus === 'active' && <span className="badge badge-success badge-sm">Active</span>}
+                                                {exchange.recordStatus === 'expired' && <span className="badge badge-error badge-sm">Expired</span>}
+
+                                                {/* Approval Workflow Badges */}
+                                                {exchange.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1"><Clock size={12} />Edit Pending</span>}
+                                                {exchange.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-1"><Clock size={12} />Delete Pending</span>}
+                                            </div>
                                         </td>
                                         <td>
                                             <div className="flex gap-2 justify-end">

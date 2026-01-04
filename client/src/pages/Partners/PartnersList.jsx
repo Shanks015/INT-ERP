@@ -222,21 +222,25 @@ const PartnersList = () => {
                                             <td>{partner.email || '-'}</td>
                                             <td>{partner.phoneNumber || '-'}</td>
                                             <td>
-                                                {partner.status === 'pending_edit' && (
-                                                    <span className="badge badge-warning gap-2">
-                                                        <Clock size={14} />
-                                                        Edit Pending
-                                                    </span>
-                                                )}
-                                                {partner.status === 'pending_delete' && (
-                                                    <span className="badge badge-error gap-2">
-                                                        <Clock size={14} />
-                                                        Delete Pending
-                                                    </span>
-                                                )}
-                                                {partner.status === 'active' && (
-                                                    <span className="badge badge-success">Active</span>
-                                                )}
+                                                <div className="flex flex-col gap-1">
+                                                    {/* Record Status Badge */}
+                                                    {partner.recordStatus === 'active' && <span className="badge badge-success badge-sm">Active</span>}
+                                                    {partner.recordStatus === 'expired' && <span className="badge badge-error badge-sm">Expired</span>}
+
+                                                    {/* Approval Workflow Badges */}
+                                                    {partner.status === 'pending_edit' && (
+                                                        <span className="badge badge-warning badge-sm gap-1">
+                                                            <Clock size={12} />
+                                                            Edit Pending
+                                                        </span>
+                                                    )}
+                                                    {partner.status === 'pending_delete' && (
+                                                        <span className="badge badge-error badge-sm gap-1">
+                                                            <Clock size={12} />
+                                                            Delete Pending
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td>
                                                 <div className="flex gap-2">

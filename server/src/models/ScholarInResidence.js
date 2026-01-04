@@ -64,9 +64,33 @@ const scholarInResidenceSchema = new mongoose.Schema({
     updatedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    },
+    // Record expiration status (separate from approval workflow)
+    recordStatus: {
+        type: String,
+        enum: ['active', 'expired'],
+        default: 'active'
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+// Virtual field to check if scholarship has expired
+scholarInResidenceSchema.virtual('isExpired').get(function () {
+    if (!this.toDate) return false;
+    return new Date() > new Date(this.toDate);
+});
+
+// Pre-save middleware to auto-update recordStatus based on toDate
+scholarInResidenceSchema.pre('save', function (next) {
+    if (this.toDate && new Date() > new Date(this.toDate)) {
+        this.recordStatus = 'expired';
+    } else {
+        this.recordStatus = 'active';
+    }
+    next();
 });
 
 export default mongoose.model('ScholarInResidence', scholarInResidenceSchema);
