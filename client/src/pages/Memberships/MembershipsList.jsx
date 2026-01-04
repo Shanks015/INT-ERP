@@ -100,9 +100,9 @@ const MembershipsList = () => {
                                     <tr key={membership._id}>
                                         <td>{membership.name}</td>
                                         <td>{membership.country || '-'}</td>
-                                        <td>{membership.membershipType || '-'}</td>
+                                        <td>{membership.membershipStatus || '-'}</td>
                                         <td>{membership.startDate ? new Date(membership.startDate).toLocaleDateString() : '-'}</td>
-                                        <td>{membership.expiryDate ? new Date(membership.expiryDate).toLocaleDateString() : '-'}</td>
+                                        <td>{membership.endDate ? new Date(membership.endDate).toLocaleDateString() : '-'}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Record Status Badge */}
