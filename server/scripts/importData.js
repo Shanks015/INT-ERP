@@ -159,16 +159,37 @@ const importData = async () => {
         }));
 
         // 2. MoU Signing Ceremony
-        await processSheet('MoU Signing Ceremony', MouSigningCeremony, (row) => ({
-            date: excelDateToJSDate(getVal(row, 'Date')),
-            type: cleanStr(getVal(row, 'Type')),
-            visitorName: cleanStr(getVal(row, "Visitor's Name & Details")),
-            university: cleanStr(getVal(row, 'University Name')),
-            department: cleanStr(getVal(row, 'Department')),
-            eventSummary: cleanStr(getVal(row, 'Event Summary')),
-            campus: cleanStr(getVal(row, 'Campus')),
-            driveLink: cleanStr(getVal(row, 'MoU Signing Ceremony Upload Zip File', 'Upload'))
-        }));
+        await processSheet('MoU Signing Ceremony', MouSigningCeremony, (row) => {
+            const universityRaw = cleanStr(getVal(row, 'University Name'));
+
+            // Extract country from university name
+            let university = universityRaw;
+            let country = '';
+
+            if (universityRaw) {
+                if (universityRaw.includes(',')) {
+                    const parts = universityRaw.split(',').map(p => p.trim());
+                    university = parts[0];
+                    country = parts[1] || '';
+                } else if (universityRaw.includes('-')) {
+                    const parts = universityRaw.split('-').map(p => p.trim());
+                    university = parts[0];
+                    country = parts[1] || '';
+                }
+            }
+
+            return {
+                date: excelDateToJSDate(getVal(row, 'Date')),
+                type: cleanStr(getVal(row, 'Type')),
+                visitorName: cleanStr(getVal(row, "Visitor's Name & Details")),
+                university: university,
+                country: country,
+                department: cleanStr(getVal(row, 'Department')),
+                eventSummary: cleanStr(getVal(row, 'Event Summary')),
+                campus: cleanStr(getVal(row, 'Campus')),
+                driveLink: cleanStr(getVal(row, 'MoU Signing Ceremony Upload Zip File', 'Upload'))
+            };
+        });
 
         // 3. Events
         await processSheet('Events', Event, (row) => ({
@@ -240,18 +261,42 @@ const importData = async () => {
         }));
 
         // 8. Student Exchange
-        await processSheet('Student Exchange', StudentExchange, (row) => ({
-            direction: cleanStr(getVal(row, 'Incoming / Outgoing')),
-            studentName: cleanStr(getVal(row, 'Students Name')),
-            course: cleanStr(getVal(row, 'Course')),
-            semesterYear: cleanStr(getVal(row, 'Semester /Year')),
-            usnNo: cleanStr(getVal(row, 'USN NO')),
-            exchangeUniversity: cleanStr(getVal(row, 'Exchange University')),
-            fromDate: excelDateToJSDate(getVal(row, 'From Date')),
-            toDate: excelDateToJSDate(getVal(row, 'To Date')),
-            exchangeStatus: cleanStr(getVal(row, 'Status')),
-            driveLink: cleanStr(getVal(row, 'Student Exchange - Upload Zip File', 'Upload'))
-        }));
+        await processSheet('Student Exchange', StudentExchange, (row) => {
+            const exchangeUnivRaw = cleanStr(getVal(row, 'Exchange University'));
+
+            // Extract country from university name (e.g., "University Name, Country" or "University Name - Country")
+            let exchangeUniversity = exchangeUnivRaw;
+            let country = '';
+
+            if (exchangeUnivRaw) {
+                // Try splitting by comma first
+                if (exchangeUnivRaw.includes(',')) {
+                    const parts = exchangeUnivRaw.split(',').map(p => p.trim());
+                    exchangeUniversity = parts[0];
+                    country = parts[1] || '';
+                }
+                // Then try hyphen
+                else if (exchangeUnivRaw.includes('-')) {
+                    const parts = exchangeUnivRaw.split('-').map(p => p.trim());
+                    exchangeUniversity = parts[0];
+                    country = parts[1] || '';
+                }
+            }
+
+            return {
+                direction: cleanStr(getVal(row, 'Incoming / Outgoing')),
+                studentName: cleanStr(getVal(row, 'Students Name')),
+                course: cleanStr(getVal(row, 'Course')),
+                semesterYear: cleanStr(getVal(row, 'Semester /Year')),
+                usnNo: cleanStr(getVal(row, 'USN NO')),
+                exchangeUniversity: exchangeUniversity,
+                country: country,
+                fromDate: excelDateToJSDate(getVal(row, 'From Date')),
+                toDate: excelDateToJSDate(getVal(row, 'To Date')),
+                exchangeStatus: cleanStr(getVal(row, 'Status')),
+                driveLink: cleanStr(getVal(row, 'Student Exchange - Upload Zip File', 'Upload'))
+            };
+        });
 
         // 10. Memberships
         await processSheet('Memberships', Membership, (row) => ({
