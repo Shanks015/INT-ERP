@@ -14,7 +14,7 @@ import Pagination from '../../components/Pagination';
 const StudentExchangeList = () => {
     const { isAdmin } = useAuth();
     const [exchanges, setExchanges] = useState([]);
-    const [stats, setStats] = useState({ total: 0, thisMonth: 0, pending: 0 });
+    const [stats, setStats] = useState({ total: 0, universities: 0, active: 0 });
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
