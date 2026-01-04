@@ -1,9 +1,10 @@
+```
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Mail, TrendingUp, Clock, Eye, MessageSquare, XCircle } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
@@ -14,7 +15,7 @@ import Pagination from '../../components/Pagination';
 const OutreachList = () => {
     const { user, isAdmin } = useAuth();
     const [outreach, setOutreach] = useState([]);
-    const [stats, setStats] = useState({ total: 0, thisMonth: 0, pending: 0 });
+    const [stats, setStats] = useState({ total: 0, responses: 0, nonResponses: 0 });
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
@@ -71,7 +72,7 @@ const OutreachList = () => {
 
     const handleDelete = async (reason) => {
         try {
-            await api.delete(`/outreach/${deleteModal.item._id}`, {
+            await api.delete(`/ outreach / ${ deleteModal.item._id } `, {
                 data: { reason }
             });
 
@@ -160,19 +161,16 @@ const OutreachList = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard
-                    title="Total Outreach"
-                    value={stats.total}
-                    icon={Users}
-                    color="primary"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+                <StatsCard title="Total Outreach" value={stats.total} icon={Mail} color="primary" />
+                <StatsCard title="Responses" value={stats.responses} icon={MessageSquare} color="success" />
+                <StatsCard title="No Response" value={stats.nonResponses} icon={XCircle} color="warning" />
                 <StatsCard
                     title="This Month"
                     value={stats.thisMonth}
                     icon={TrendingUp}
                     color="secondary"
-                    trend={`+${stats.thisMonth} new entries`}
+                    trend={`+ ${ stats.thisMonth } new entries`}
                 />
                 <StatsCard
                     title="Pending Approval"
@@ -223,14 +221,14 @@ const OutreachList = () => {
                                                 {item.email ? (
                                                     <a
                                                         href={`https://mail.google.com/mail/?view=cm&fs=1&to=${item.email}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-blue-600 hover:underline"
-                                                    >
-                                                        {item.email}
-                                                    </a>
+target = "_blank"
+rel = "noopener noreferrer"
+className = "text-blue-600 hover:underline"
+    >
+    { item.email }
+                                                    </a >
                                                 ) : '-'}
-                                            </td>
+                                            </td >
                                             <td className="max-w-xs truncate" title={item.reply}>
                                                 {item.reply || '-'}
                                             </td>
@@ -275,29 +273,31 @@ const OutreachList = () => {
                                                     </button>
                                                 </div>
                                             </td>
-                                        </tr>
+                                        </tr >
                                     ))
                                 )}
-                            </tbody>
-                        </table>
-                    </div>
+                            </tbody >
+                        </table >
+                    </div >
 
-                    {/* Pagination */}
-                    {totalItems > 0 && (
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            totalItems={totalItems}
-                            itemsPerPage={itemsPerPage}
-                            onPageChange={setCurrentPage}
-                            onItemsPerPageChange={(newLimit) => {
-                                setItemsPerPage(newLimit);
-                                setCurrentPage(1);
-                            }}
-                        />
-                    )}
-                </div>
-            </div>
+    {/* Pagination */ }
+{
+    totalItems > 0 && (
+        <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={(newLimit) => {
+                setItemsPerPage(newLimit);
+                setCurrentPage(1);
+            }}
+        />
+    )
+}
+                </div >
+            </div >
 
             <DeleteConfirmModal
                 isOpen={deleteModal.isOpen}
@@ -337,7 +337,7 @@ const OutreachList = () => {
                     { key: 'updatedAt', label: 'Updated At', type: 'date' }
                 ]}
             />
-        </div>
+        </div >
     );
 };
 
