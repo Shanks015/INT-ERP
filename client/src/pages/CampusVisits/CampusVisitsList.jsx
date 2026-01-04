@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Search, X, Eye, Building2, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Search, X, Eye, Building2, FileText, Globe } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
@@ -14,7 +14,7 @@ import Pagination from '../../components/Pagination';
 const CampusVisitsList = () => {
     const { user, isAdmin } = useAuth();
     const [campusVisits, setCampusVisits] = useState([]);
-    const [stats, setStats] = useState({ total: 0, thisMonth: 0, pending: 0 });
+    const [stats, setStats] = useState({ total: 0, countries: 0, universities: 0 });
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
@@ -146,9 +146,9 @@ const CampusVisitsList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard title="Total Visits" value={stats.total} icon={Building2} color="primary" />
-                <StatsCard title="This Month" value={stats.thisMonth} icon={TrendingUp} color="secondary" trend={`+ ${stats.thisMonth} new `} />
-                <StatsCard title="Pending" value={stats.pending} icon={Clock} color="warning" />
+                <StatsCard title="Total Visits" value={stats.total} icon={Users} color="primary" />
+                <StatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" />
+                <StatsCard title="Universities" value={stats.universities} icon={Building2} color="info" />
             </div>
 
             {/* Custom Filters for Campus Visits */}

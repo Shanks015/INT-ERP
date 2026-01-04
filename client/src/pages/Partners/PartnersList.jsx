@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Eye, Globe, CheckCircle } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
@@ -14,7 +14,7 @@ import Pagination from '../../components/Pagination';
 const PartnersList = () => {
     const { user, isAdmin } = useAuth();
     const [partners, setPartners] = useState([]);
-    const [stats, setStats] = useState({ total: 0, thisMonth: 0, pending: 0 });
+    const [stats, setStats] = useState({ total: 0, countries: 0, active: 0 });
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, partner: null });
     const [importModal, setImportModal] = useState(false);
@@ -176,104 +176,109 @@ const PartnersList = () => {
                     color="primary"
                 />
                 <StatsCard
-                    title="This Month"
-                    value={stats.thisMonth}
-                    icon={TrendingUp}
+                    title="Countries"
+                    value={stats.countries}
+                    icon={Globe}
                     color="secondary"
-                    trend={`+${stats.thisMonth} new`}
                 />
                 <StatsCard
-                    title="Pending"
-                    value={stats.pending}
-                    icon={Clock}
-                    color="warning"
+                    title="Active"
+                    value={stats.active}
+                    icon={CheckCircle}
+                    color="success"
                 />
             </div>
+            title="Pending"
+            value={stats.pending}
+            icon={Clock}
+            color="warning"
+                />
+        </div>
 
-            {/* Custom Filter UI for Partners */}
-            <div className="card bg-base-100 shadow-sm mb-6">
-                <div className="card-body">
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                        {/* Search */}
-                        <input
-                            type="text"
-                            placeholder="Search university..."
-                            className="input input-bordered w-full"
-                            value={filters.search}
-                            onChange={(e) => handleFilterChange('search', e.target.value)}
-                        />
+            {/* Custom Filter UI for Partners */ }
+    <div className="card bg-base-100 shadow-sm mb-6">
+        <div className="card-body">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {/* Search */}
+                <input
+                    type="text"
+                    placeholder="Search university..."
+                    className="input input-bordered w-full"
+                    value={filters.search}
+                    onChange={(e) => handleFilterChange('search', e.target.value)}
+                />
 
-                        {/* Country */}
-                        <input
-                            type="text"
-                            placeholder="Country..."
-                            className="input input-bordered w-full"
-                            value={filters.country}
-                            onChange={(e) => handleFilterChange('country', e.target.value)}
-                        />
+                {/* Country */}
+                <input
+                    type="text"
+                    placeholder="Country..."
+                    className="input input-bordered w-full"
+                    value={filters.country}
+                    onChange={(e) => handleFilterChange('country', e.target.value)}
+                />
 
-                        {/* MoU Status */}
-                        <select
-                            className="select select-bordered w-full"
-                            value={filters.mouStatus}
-                            onChange={(e) => handleFilterChange('mouStatus', e.target.value)}
-                        >
-                            <option value="">All MoU Status</option>
-                            <option value="Completed">Completed</option>
-                            <option value="InProgress">In Progress</option>
-                            <option value="Waiting for Signature">Waiting for Signature</option>
-                        </select>
+                {/* MoU Status */}
+                <select
+                    className="select select-bordered w-full"
+                    value={filters.mouStatus}
+                    onChange={(e) => handleFilterChange('mouStatus', e.target.value)}
+                >
+                    <option value="">All MoU Status</option>
+                    <option value="Completed">Completed</option>
+                    <option value="InProgress">In Progress</option>
+                    <option value="Waiting for Signature">Waiting for Signature</option>
+                </select>
 
-                        {/* Active Status */}
-                        <select
-                            className="select select-bordered w-full"
-                            value={filters.activeStatus}
-                            onChange={(e) => handleFilterChange('activeStatus', e.target.value)}
-                        >
-                            <option value="">All Status</option>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                        </select>
+                {/* Active Status */}
+                <select
+                    className="select select-bordered w-full"
+                    value={filters.activeStatus}
+                    onChange={(e) => handleFilterChange('activeStatus', e.target.value)}
+                >
+                    <option value="">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
 
-                        {/* School/Department */}
-                        <input
-                            type="text"
-                            placeholder="School/Department..."
-                            className="input input-bordered w-full"
-                            value={filters.school}
-                            onChange={(e) => handleFilterChange('school', e.target.value)}
-                        />
+                {/* School/Department */}
+                <input
+                    type="text"
+                    placeholder="School/Department..."
+                    className="input input-bordered w-full"
+                    value={filters.school}
+                    onChange={(e) => handleFilterChange('school', e.target.value)}
+                />
 
-                        {/* Agreement Type */}
-                        <select
-                            className="select select-bordered w-full"
-                            value={filters.agreementType}
-                            onChange={(e) => handleFilterChange('agreementType', e.target.value)}
-                        >
-                            <option value="">All Agreements</option>
-                            <option value="MoU">MoU</option>
-                            <option value="MOU">MOU</option>
-                            <option value="MoA">MoA</option>
-                            <option value="MoU/ Student Exchange">MoU/ Student Exchange</option>
-                            <option value="Exchange Agreement">Exchange Agreement</option>
-                        </select>
-                    </div>
-
-                    {/* Clear Filters Button */}
-                    {hasActiveFilters && (
-                        <div className="flex justify-end mt-4">
-                            <button
-                                onClick={handleClearFilters}
-                                className="btn btn-ghost btn-sm"
-                            >
-                                Clear Filters
-                            </button>
-                        </div>
-                    )}
-                </div>
+                {/* Agreement Type */}
+                <select
+                    className="select select-bordered w-full"
+                    value={filters.agreementType}
+                    onChange={(e) => handleFilterChange('agreementType', e.target.value)}
+                >
+                    <option value="">All Agreements</option>
+                    <option value="MoU">MoU</option>
+                    <option value="MOU">MOU</option>
+                    <option value="MoA">MoA</option>
+                    <option value="MoU/ Student Exchange">MoU/ Student Exchange</option>
+                    <option value="Exchange Agreement">Exchange Agreement</option>
+                </select>
             </div>
 
-            {/* Partners Table */}
+            {/* Clear Filters Button */}
+            {hasActiveFilters && (
+                <div className="flex justify-end mt-4">
+                    <button
+                        onClick={handleClearFilters}
+                        className="btn btn-ghost btn-sm"
+                    >
+                        Clear Filters
+                    </button>
+                </div>
+            )}
+        </div>
+    </div>
+
+    {/* Partners Table */ }
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">
@@ -439,7 +444,7 @@ const PartnersList = () => {
                     { key: 'updatedAt', label: 'Updated At', type: 'date' }
                 ]}
             />
-        </div>
+        </div >
     );
 };
 
