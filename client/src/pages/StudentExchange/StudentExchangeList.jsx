@@ -94,14 +94,22 @@ const StudentExchangeList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Student Name</th><th>Exchange University</th><th>Country</th><th>Duration</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Student Name</th><th>Exchange University</th><th>Direction</th><th>Date Range</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
                                 {exchanges.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No exchanges found</td></tr> : exchanges.map((exchange) => (
                                     <tr key={exchange._id}>
                                         <td>{exchange.studentName}</td>
                                         <td>{exchange.exchangeUniversity}</td>
-                                        <td>{exchange.country}</td>
-                                        <td>{exchange.duration || '-'}</td>
+                                        <td>
+                                            <span className={`badge ${exchange.direction === 'Incoming' ? 'badge-info' : 'badge-primary'} badge-sm`}>
+                                                {exchange.direction || '-'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {exchange.fromDate && exchange.toDate
+                                                ? `${new Date(exchange.fromDate).toLocaleDateString()} - ${new Date(exchange.toDate).toLocaleDateString()}`
+                                                : '-'}
+                                        </td>
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Record Status Badge */}
