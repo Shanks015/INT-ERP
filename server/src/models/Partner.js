@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const partnerSchema = new mongoose.Schema({
-    date: {
+    completedOn: {
         type: Date
     },
     country: {
@@ -42,6 +42,13 @@ const partnerSchema = new mongoose.Schema({
     agreementType: {
         type: String,
         trim: true
+    },
+    link: {
+        type: String,
+        trim: true
+    },
+    submitted: {
+        type: Date
     },
     signingDate: {
         type: Date
