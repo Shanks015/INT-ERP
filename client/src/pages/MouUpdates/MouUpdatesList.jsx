@@ -1,9 +1,10 @@
+```javascript
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, FileEdit, TrendingUp, Clock, Eye, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, RefreshCw, TrendingUp, Clock, Eye, Globe, CheckCircle } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
@@ -14,7 +15,7 @@ import Pagination from '../../components/Pagination';
 const MouUpdatesList = () => {
     const { isAdmin } = useAuth();
     const [updates, setUpdates] = useState([]);
-    const [stats, setStats] = useState({ total: 0, thisMonth: 0, pending: 0 });
+    const [stats, setStats] = useState({ total: 0, countries: 0, active: 0 });
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
@@ -48,7 +49,7 @@ const MouUpdatesList = () => {
 
     const handleDelete = async (reason) => {
         try {
-            await api.delete(`/ mou - updates / ${deleteModal.item._id} `, { data: { reason } });
+            await api.delete(`/ mou - updates / ${ deleteModal.item._id } `, { data: { reason } });
             toast.success(isAdmin ? 'Update deleted successfully' : 'Delete request submitted');
             fetchUpdates(); fetchStats();
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -85,9 +86,9 @@ const MouUpdatesList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard title="Total Updates" value={stats.total} icon={FileEdit} color="primary" />
-                <StatsCard title="This Month" value={stats.thisMonth} icon={TrendingUp} color="secondary" trend={`+ ${stats.thisMonth} new `} />
-                <StatsCard title="Pending" value={stats.pending} icon={Clock} color="warning" />
+                <StatsCard title="Total Updates" value={stats.total} icon={RefreshCw} color="primary" />
+                <StatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" />
+                <StatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" />
             </div>
             <FilterBar filters={filters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} showCountryFilter={false} />
             <div className="card bg-base-100 shadow-xl">
@@ -118,8 +119,8 @@ const MouUpdatesList = () => {
                                                 <button onClick={() => setDetailModal({ isOpen: true, item: update })} className="btn btn-info btn-sm" title="View Details">
                                                     <Eye size={16} />
                                                 </button>
-                                                <Link to={`/mou-updates/edit/${update._id}`} className={`btn btn-warning btn-sm ${update.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
-                                                <button onClick={() => setDeleteModal({ isOpen: true, item: update })} className={`btn btn-error btn-sm ${update.status !== 'active' ? 'btn-disabled' : ''}`} disabled={update.status !== 'active'}><Trash2 size={16} /></button>
+                                                <Link to={`/ mou - updates / edit / ${ update._id } `} className={`btn btn - warning btn - sm ${ update.status !== 'active' ? 'btn-disabled' : '' } `}><Edit size={16} /></Link>
+                                                <button onClick={() => setDeleteModal({ isOpen: true, item: update })} className={`btn btn - error btn - sm ${ update.status !== 'active' ? 'btn-disabled' : '' } `} disabled={update.status !== 'active'}><Trash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>
