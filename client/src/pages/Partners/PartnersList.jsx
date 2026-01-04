@@ -252,7 +252,9 @@ const PartnersList = () => {
                         >
                             <option value="">All Agreements</option>
                             <option value="MoU">MoU</option>
+                            <option value="MOU">MOU</option>
                             <option value="MoA">MoA</option>
+                            <option value="MoU/ Student Exchange">MoU/ Student Exchange</option>
                             <option value="Exchange Agreement">Exchange Agreement</option>
                         </select>
                     </div>
@@ -309,10 +311,10 @@ const PartnersList = () => {
                                             <td>
                                                 {partner.mouStatus ? (
                                                     <span className={`badge badge-sm ${partner.mouStatus === 'Completed' ? 'badge-success' :
-                                                        partner.mouStatus === 'In progress' ? 'badge-warning' :
+                                                        partner.mouStatus === 'InProgress' ? 'badge-warning' :
                                                             'badge-info'
                                                         }`}>
-                                                        {partner.mouStatus}
+                                                        {partner.mouStatus === 'InProgress' ? 'In Progress' : partner.mouStatus}
                                                     </span>
                                                 ) : '-'}
                                             </td>
