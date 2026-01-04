@@ -56,9 +56,25 @@ const mastersAbroadSchema = new mongoose.Schema({
     updatedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    },
+    recordStatus: {
+        type: String,
+        enum: ['active', 'expired'],
+        default: 'active'
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+mastersAbroadSchema.virtual('isExpired').get(function () {
+    return false; // Masters students don't expire
+});
+
+mastersAbroadSchema.pre('save', function (next) {
+    this.recordStatus = 'active'; // Always active
+    next();
 });
 
 export default mongoose.model('MastersAbroad', mastersAbroadSchema);

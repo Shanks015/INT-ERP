@@ -57,9 +57,33 @@ const membershipSchema = new mongoose.Schema({
     updatedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    },
+    // Record expiration status (separate from approval workflow)
+    recordStatus: {
+        type: String,
+        enum: ['active', 'expired'],
+        default: 'active'
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+// Virtual field to check if membership has expired
+membershipSchema.virtual('isExpired').get(function () {
+    if (!this.endDate) return false;
+    return new Date() > new Date(this.endDate);
+});
+
+// Pre-save middleware to auto-update recordStatus based on endDate
+membershipSchema.pre('save', function (next) {
+    if (this.endDate && new Date() > new Date(this.endDate)) {
+        this.recordStatus = 'expired';
+    } else {
+        this.recordStatus = 'active';
+    }
+    next();
 });
 
 export default mongoose.model('Membership', membershipSchema);
