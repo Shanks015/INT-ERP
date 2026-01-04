@@ -1,56 +1,63 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
-import { Users, FileText, GraduationCap, Calendar } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import toast from 'react-hot-toast';
+import {
+    Users, Globe, Building2, Calendar, Tag, GraduationCap, FileText,
+    RefreshCw, Plane, UserCheck, Radio, Mail, CheckCircle,
+    ChevronDown, ChevronUp
+} from 'lucide-react';
+import StatsCard from '../../components/StatsCard';
+import DistributionPieChart from '../../components/Charts/DistributionPieChart';
+import DistributionBarChart from '../../components/Charts/DistributionBarChart';
 
 const Dashboard = () => {
     const { user } = useAuth();
-    const [stats, setStats] = useState({
-        counts: { partners: 0, conferences: 0, events: 0, scholars: 0 },
-        charts: { eventTypes: [], scholarCountries: [], visitsByMonth: [] }
-    });
     const [loading, setLoading] = useState(true);
+    const [allModuleStats, setAllModuleStats] = useState({});
+    const [expandedSections, setExpandedSections] = useState({
+        overview: true,
+        campusVisits: false,
+        events: false,
+        partners: false
+    });
 
     useEffect(() => {
-        fetchStats();
+        fetchAllStats();
     }, []);
 
-    const CustomTooltip = ({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-base-100 p-3 rounded-lg shadow-lg border border-base-200">
-                    <p className="font-semibold">{label}</p>
-                    <p className="text-primary">
-                        Count: {payload[0].value}
-                    </p>
-                </div>
-            );
-        }
-        return null;
-    };
-
-    const fetchStats = async () => {
+    const fetchAllStats = async () => {
         try {
-            // Use the new aggregated endpoint - fast, cached, and single request
-            const response = await api.get('/reports/dashboard-stats');
+            setLoading(true);
+            // Fetch stats from all modules in parallel
+            const [campusVisits, events, conferences, partners, outreach, digitalMedia] = await Promise.all([
+                api.get('/campus-visits/stats'),
+                api.get('/events/stats'),
+                api.get('/conferences/stats'),
+                api.get('/partners/stats'),
+                api.get('/outreach/stats'),
+                api.get('/digital-media/stats')
+            ]);
 
-            setStats({
-                counts: {
-                    partners: response.data.stats.counts.partners,
-                    conferences: response.data.stats.counts.conferences,
-                    events: response.data.stats.counts.events,
-                    scholars: response.data.stats.counts.scholars
-                },
-                charts: response.data.stats.charts
+            setAllModuleStats({
+                campusVisits: campusVisits.data.stats,
+                events: events.data.stats,
+                conferences: conferences.data.stats,
+                partners: partners.data.stats,
+                outreach: outreach.data.stats,
+                digitalMedia: digitalMedia.data.stats
             });
         } catch (error) {
-            console.error(error);
-            toast.error('Error fetching statistics');
+            console.error('Error fetching stats:', error);
         } finally {
             setLoading(false);
         }
+    };
+
+    const toggleSection = (section) => {
+        setExpandedSections(prev => ({
+            ...prev,
+            [section]: !prev[section]
+        }));
     };
 
     if (loading) {
@@ -61,155 +68,153 @@ const Dashboard = () => {
         );
     }
 
-
+    const { campusVisits, events, conferences, partners, outreach, digitalMedia } = allModuleStats;
 
     return (
         <div>
             <div className="mb-6">
-                <h1 className="text-3xl font-bold">Dashboard</h1>
+                <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
                 <p className="text-base-content/70 mt-2">
-                    Welcome back, {user?.name}!
+                    Welcome back, {user?.name}! Here's your comprehensive overview.
                 </p>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <div className="card bg-base-100 shadow-xl">
-                    <div className="card-body p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-base-content/70 text-sm">Total Partners</p>
-                                <p className="text-3xl font-bold">{stats.counts.partners}</p>
-                            </div>
-                            <div className="bg-primary/10 p-3 rounded-lg">
-                                <Users className="text-primary" size={24} />
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            {/* Overview Stats Grid */}
+            <div className="mb-6">
+                <button
+                    onClick={() => toggleSection('overview')}
+                    className="btn btn-ghost btn-sm gap-2 mb-4"
+                >
+                    {expandedSections.overview ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    Overview Statistics
+                </button>
 
-                <div className="card bg-base-100 shadow-xl">
-                    <div className="card-body p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-base-content/70 text-sm">Events</p>
-                                <p className="text-3xl font-bold">{stats.counts.events}</p>
-                            </div>
-                            <div className="bg-secondary/10 p-3 rounded-lg">
-                                <Calendar className="text-secondary" size={24} />
-                            </div>
-                        </div>
+                {expandedSections.overview && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <StatsCard title="Total Partners" value={partners?.total || 0} icon={Users} color="primary" trend={partners?.trend} />
+                        <StatsCard title="Total Events" value={events?.total || 0} icon={Calendar} color="secondary" trend={events?.trend} />
+                        <StatsCard title="Total Visits" value={campusVisits?.total || 0} icon={Building2} color="info" trend={campusVisits?.trend} />
+                        <StatsCard title="Total Outreach" value={outreach?.total || 0} icon={Mail} color="accent" trend={outreach?.trend} />
                     </div>
-                </div>
-
-                <div className="card bg-base-100 shadow-xl">
-                    <div className="card-body p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-base-content/70 text-sm">Active Scholars</p>
-                                <p className="text-3xl font-bold">{stats.counts.scholars}</p>
-                            </div>
-                            <div className="bg-accent/10 p-3 rounded-lg">
-                                <GraduationCap className="text-accent" size={24} />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="card bg-base-100 shadow-xl">
-                    <div className="card-body p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-base-content/70 text-sm">Conferences</p>
-                                <p className="text-3xl font-bold">{stats.counts.conferences}</p>
-                            </div>
-                            <div className="bg-info/10 p-3 rounded-lg">
-                                <FileText className="text-info" size={24} />
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                )}
             </div>
 
-            {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Campus Visits Section */}
+            <div className="mb-6">
+                <button
+                    onClick={() => toggleSection('campusVisits')}
+                    className="btn btn-ghost btn-sm gap-2 mb-4"
+                >
+                    {expandedSections.campusVisits ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    Campus Visits Analytics
+                </button>
 
-                {/* Visits Trend */}
-                <div className="card bg-base-100 shadow-xl overflow-hidden">
-                    <div className="card-body p-4">
-                        <h2 className="card-title text-sm mb-4">Campus Visits Trend</h2>
-                        <div style={{ width: '100%', height: 300, minWidth: 0 }}>
-                            <ResponsiveContainer width="99%" height="100%">
-                                <BarChart data={stats.charts.visitsByMonth}>
-                                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                                    <XAxis dataKey="name" fontSize={12} tick={{ fill: 'currentColor' }} />
-                                    <YAxis fontSize={12} tick={{ fill: 'currentColor' }} />
-                                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'currentColor', opacity: 0.1 }} />
-                                    <Bar dataKey="visits" fill="oklch(var(--p))" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
+                {expandedSections.campusVisits && (
+                    <div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <StatsCard title="Total Visits" value={campusVisits?.total || 0} icon={Users} color="primary" />
+                            <StatsCard title="Countries" value={campusVisits?.countries || 0} icon={Globe} color="secondary" />
+                            <StatsCard title="Universities" value={campusVisits?.universities || 0} icon={Building2} color="info" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <DistributionPieChart data={campusVisits?.countryDistribution || []} title="Top 10 Countries" />
+                            <DistributionBarChart data={campusVisits?.universityDistribution || []} title="Top 10 Universities" />
                         </div>
                     </div>
-                </div>
-
-                {/* Event Types */}
-                <div className="card bg-base-100 shadow-xl overflow-hidden">
-                    <div className="card-body p-4">
-                        <h2 className="card-title text-sm mb-4">Event Types Distribution</h2>
-                        <div style={{ width: '100%', height: 300, minWidth: 0 }}>
-                            <ResponsiveContainer width="99%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={stats.charts.eventTypes}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={60}
-                                        outerRadius={80}
-                                        paddingAngle={5}
-                                        dataKey="value"
-                                    >
-                                        {stats.charts.eventTypes.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={index % 2 === 0 ? 'oklch(var(--p))' : 'oklch(var(--s))'} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Legend />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Scholars by Country */}
-                <div className="card bg-base-100 shadow-xl lg:col-span-2 overflow-hidden">
-                    <div className="card-body p-4">
-                        <h2 className="card-title text-sm mb-4">Top Scholar Origins</h2>
-                        <div style={{ width: '100%', height: 300, minWidth: 0 }}>
-                            <ResponsiveContainer width="99%" height="100%">
-                                <BarChart data={stats.charts.scholarCountries} layout="vertical" margin={{ left: 50 }}>
-                                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                                    <XAxis type="number" fontSize={12} tick={{ fill: 'currentColor' }} />
-                                    <YAxis dataKey="name" type="category" fontSize={12} width={100} tick={{ fill: 'currentColor' }} />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Bar dataKey="value" fill="oklch(var(--a))" radius={[0, 4, 4, 0]} barSize={20} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                </div>
+                )}
             </div>
 
-            {/* Quick Links */}
-            <div className="card bg-base-100 shadow-xl">
-                <div className="card-body">
-                    <h2 className="card-title">Quick Links</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                        <a href="/partners" className="btn btn-outline">Partners</a>
-                        <a href="/events" className="btn btn-outline">Events</a>
-                        <a href="/campus-visits" className="btn btn-outline">Campus Visits</a>
-                        <a href="/conferences" className="btn btn-outline">Conferences</a>
+            {/* Events Section */}
+            <div className="mb-6">
+                <button
+                    onClick={() => toggleSection('events')}
+                    className="btn btn-ghost btn-sm gap-2 mb-4"
+                >
+                    {expandedSections.events ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    Events Analytics
+                </button>
+
+                {expandedSections.events && (
+                    <div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <StatsCard title="Total Events" value={events?.total || 0} icon={Calendar} color="primary" />
+                            <StatsCard title="Event Types" value={events?.eventTypes || 0} icon={Tag} color="secondary" />
+                            <StatsCard title="Departments" value={events?.departments || 0} icon={Building2} color="info" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <DistributionPieChart data={events?.eventTypeDistribution || []} title="Event Types Distribution" />
+                            <DistributionBarChart data={events?.departmentDistribution || []} title="Top 10 Departments" />
+                        </div>
                     </div>
-                </div>
+                )}
+            </div>
+
+            {/* Partners Section */}
+            <div className="mb-6">
+                <button
+                    onClick={() => toggleSection('partners')}
+                    className="btn btn-ghost btn-sm gap-2 mb-4"
+                >
+                    {expandedSections.partners ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    Partners Analytics
+                </button>
+
+                {expandedSections.partners && (
+                    <div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <StatsCard title="Total Partners" value={partners?.total || 0} icon={Users} color="primary" />
+                            <StatsCard title="Countries" value={partners?.countries || 0} icon={Globe} color="secondary" />
+                            <StatsCard title="Active" value={partners?.active || 0} icon={CheckCircle} color="success" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <DistributionPieChart data={partners?.countryDistribution || []} title="Top 10 Countries" />
+                            <DistributionPieChart data={partners?.statusDistribution || []} title="Active Status Distribution" />
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Outreach Section */}
+            <div className="mb-6">
+                <button
+                    onClick={() => toggleSection('outreach')}
+                    className="btn btn-ghost btn-sm gap-2 mb-4"
+                >
+                    {expandedSections.outreach ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    Outreach Analytics
+                </button>
+
+                {expandedSections.outreach && (
+                    <div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <StatsCard title="Total Outreach" value={outreach?.total || 0} icon={Mail} color="primary" />
+                            <StatsCard title="Responses" value={outreach?.responses || 0} icon={CheckCircle} color="success" />
+                            <StatsCard title="No Response" value={outreach?.nonResponses || 0} icon={Mail} color="warning" />
+                        </div>
+                        <DistributionPieChart data={outreach?.responseDistribution || []} title="Response Rate" />
+                    </div>
+                )}
+            </div>
+
+            {/* Digital Media Section */}
+            <div className="mb-6">
+                <button
+                    onClick={() => toggleSection('digitalMedia')}
+                    className="btn btn-ghost btn-sm gap-2 mb-4"
+                >
+                    {expandedSections.digitalMedia ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    Digital Media Analytics
+                </button>
+
+                {expandedSections.digitalMedia && (
+                    <div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <StatsCard title="Total Media" value={digitalMedia?.total || 0} icon={Radio} color="primary" />
+                            <StatsCard title="Channels" value={digitalMedia?.channels || 0} icon={Radio} color="secondary" />
+                        </div>
+                        <DistributionBarChart data={digitalMedia?.channelDistribution || []} title="Content by Channel" />
+                    </div>
+                )}
             </div>
         </div>
     );
