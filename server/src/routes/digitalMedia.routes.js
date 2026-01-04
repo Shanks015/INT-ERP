@@ -1,12 +1,13 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth.js';
 import * as ctrl from '../controllers/generic.controller.js';
+import * as enhancedCtrl from '../controllers/enhancedStats.controller.js';
 import DigitalMedia from '../models/DigitalMedia.js';
 
 const router = express.Router();
 
 router.get('/', authenticate, ctrl.getAll(DigitalMedia));
-router.get('/stats', authenticate, ctrl.getStats(DigitalMedia));
+router.get('/stats', authenticate, enhancedCtrl.getEnhancedStats(DigitalMedia));
 router.get('/:id', authenticate, ctrl.getById(DigitalMedia));
 router.post('/', authenticate, ctrl.create(DigitalMedia));
 router.put('/:id', authenticate, ctrl.update(DigitalMedia));
