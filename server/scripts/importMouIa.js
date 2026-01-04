@@ -75,7 +75,7 @@ const importMouIa = async () => {
 
         const partners = data.map((row, index) => {
             try {
-                return {
+                const partner = {
                     completedOn: parseFlexibleDate(row['COMPLETED ON']) || excelDateToJSDate(row['COMPLETED ON']),
                     country: cleanStr(row['COUNTRY']),
                     university: cleanStr(row['UNIVERSITY']),
@@ -88,31 +88,84 @@ const importMouIa = async () => {
                     link: cleanStr(row['Link']),
                     submitted: parseFlexibleDate(row['Submitted']) || excelDateToJSDate(row['Submitted']),
                     signingDate: parseFlexibleDate(row['Signing Date']),
-                    expiringDate: parseFlexibleDate(row['Expiring Date'])
+                    expiringDate: parseFlexibleDate(row['Expiring Date']),
+                    _rowIndex: index + 2  // Temporary field for debugging
                 };
+
+                return partner;
             } catch (err) {
-                console.error(`Error parsing row ${index + 2}:`, err.message);
+                console.error(`❌ Row ${index + 2} error:`, err.message);
                 return null;
             }
-        }).filter(p => p !== null && p.university && p.country);
+        }).filter(p => p !== null);
 
-        console.log(`Mapped ${partners.length} valid partners`);
+        console.log(`✅ Mapped ${partners.length} partners from ${data.length} Excel rows`);
+
+        // Deduplicate by university + country (keep first occurrence)
+        const seen = new Set();
+        const duplicates = [];
+        const unique = partners.filter(p => {
+            const key = `${p.country}|||${p.university}`;
+            if (seen.has(key)) {
+                duplicates.push({ row: p._rowIndex, key });
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+
+        // Remove temporary field
+        unique.forEach(p => delete p._rowIndex);
+
+        if (duplicates.length > 0) {
+            console.log(`\n⚠️  Found ${duplicates.length} duplicate entries (keeping first occurrence):`);
+            duplicates.slice(0, 5).forEach(dup => {
+                const [country, university] = dup.key.split('|||');
+                console.log(`   Row ${dup.row}: ${country} - ${university}`);
+            });
+            if (duplicates.length > 5) {
+                console.log(`   ... and ${duplicates.length - 5} more duplicates`);
+            }
+        }
+
+        console.log(`\n✅ ${unique.length} unique partners after deduplication`);
 
         // Clear existing partners
         await Partner.deleteMany({});
         console.log('🗑️  Cleared existing partners');
 
-        // Insert new partners
-        const result = await Partner.insertMany(partners, { ordered: false });
-        console.log(`✅ Successfully imported ${result.length} partners`);
+        // Insert new partners with detailed error handling
+        try {
+            const result = await Partner.insertMany(unique, { ordered: false });
+            console.log(`✅ Successfully imported ${result.length} partners`);
+        } catch (insertError) {
+            console.error(`⚠️  Partial import with validation errors:`);
+
+            if (insertError.insertedDocs) {
+                console.log(`✅ Successfully inserted ${insertError.insertedDocs.length} records`);
+            }
+
+            if (insertError.writeErrors) {
+                console.log(`❌ Failed to insert ${insertError.writeErrors.length} records:`);
+                insertError.writeErrors.forEach((err, idx) => {
+                    if (idx < 10) { // Show first 10 errors
+                        console.log(`   Row: ${err.err.op?.university || 'Unknown'} - ${err.err.errmsg}`);
+                    }
+                });
+                if (insertError.writeErrors.length > 10) {
+                    console.log(`   ... and ${insertError.writeErrors.length - 10} more errors`);
+                }
+            }
+        }
 
         // Show summary
+        const total = await Partner.countDocuments({});
         const active = await Partner.countDocuments({ activeStatus: 'Active' });
         const inactive = await Partner.countDocuments({ activeStatus: 'Inactive' });
         const expired = await Partner.countDocuments({ recordStatus: 'expired' });
 
         console.log('\n📊 Import Summary:');
-        console.log(`   Total: ${result.length}`);
+        console.log(`   Total in DB: ${total}`);
         console.log(`   Active Status: ${active}`);
         console.log(`   Inactive Status: ${inactive}`);
         console.log(`   Auto-Expired (past expiringDate): ${expired}`);
