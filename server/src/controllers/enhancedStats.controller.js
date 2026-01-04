@@ -77,15 +77,15 @@ export const getEnhancedStats = (Model) => async (req, res) => {
 
             case 'Event':
                 const [eventTypes, departments] = await Promise.all([
-                    Model.distinct('eventType').then(arr => arr.filter(Boolean).length),
+                    Model.distinct('type').then(arr => arr.filter(Boolean).length),
                     Model.distinct('department').then(arr => arr.filter(Boolean).length)
                 ]);
 
                 // Get distributions for charts
                 const [eventTypeDistribution, departmentDistribution] = await Promise.all([
                     Model.aggregate([
-                        { $match: { status: 'active', eventType: { $exists: true, $ne: '' } } },
-                        { $group: { _id: '$eventType', value: { $sum: 1 } } },
+                        { $match: { status: 'active', type: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$type', value: { $sum: 1 } } },
                         { $sort: { value: -1 } },
                         { $limit: 10 },
                         { $project: { _id: 0, name: '$_id', value: 1 } }
@@ -207,10 +207,14 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 break;
 
             case 'Outreach':
-                // Response calculation with distribution
+                // Response calculation - check for actual responses vs \"No reply\"/\"No response\" text
                 const hasResponseCount = await Model.countDocuments({
                     status: 'active',
-                    reply: { $exists: true, $ne: '' }
+                    reply: {
+                        $exists: true,
+                        $ne: '',
+                        $nin: ['No reply', 'No response', 'no reply', 'no response', 'N/A', 'NA', '-']
+                    }
                 });
                 const noResponseCount = stats.total - hasResponseCount;
 
