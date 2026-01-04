@@ -1,11 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
-import {
-    Users, Globe, Building2, Calendar, Tag, GraduationCap, FileText,
-    RefreshCw, Plane, UserCheck, Radio, Mail, CheckCircle,
-    ChevronDown, ChevronUp
-} from 'lucide-react';
+import { Users, Globe, Building2, Calendar, TrendingUp } from 'lucide-react';
 import StatsCard from '../../components/StatsCard';
 import DistributionPieChart from '../../components/Charts/DistributionPieChart';
 import DistributionBarChart from '../../components/Charts/DistributionBarChart';
@@ -13,12 +9,11 @@ import DistributionBarChart from '../../components/Charts/DistributionBarChart';
 const Dashboard = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [allModuleStats, setAllModuleStats] = useState({});
-    const [expandedSections, setExpandedSections] = useState({
-        overview: true,
-        campusVisits: false,
-        events: false,
-        partners: false
+    const [stats, setStats] = useState({
+        campusVisits: null,
+        events: null,
+        partners: null,
+        outreach: null
     });
 
     useEffect(() => {
@@ -28,36 +23,24 @@ const Dashboard = () => {
     const fetchAllStats = async () => {
         try {
             setLoading(true);
-            // Fetch stats from all modules in parallel
-            const [campusVisits, events, conferences, partners, outreach, digitalMedia] = await Promise.all([
+            const [campusVisits, events, partners, outreach] = await Promise.all([
                 api.get('/campus-visits/stats'),
                 api.get('/events/stats'),
-                api.get('/conferences/stats'),
                 api.get('/partners/stats'),
-                api.get('/outreach/stats'),
-                api.get('/digital-media/stats')
+                api.get('/outreach/stats')
             ]);
 
-            setAllModuleStats({
+            setStats({
                 campusVisits: campusVisits.data.stats,
                 events: events.data.stats,
-                conferences: conferences.data.stats,
                 partners: partners.data.stats,
-                outreach: outreach.data.stats,
-                digitalMedia: digitalMedia.data.stats
+                outreach: outreach.data.stats
             });
         } catch (error) {
             console.error('Error fetching stats:', error);
         } finally {
             setLoading(false);
         }
-    };
-
-    const toggleSection = (section) => {
-        setExpandedSections(prev => ({
-            ...prev,
-            [section]: !prev[section]
-        }));
     };
 
     if (loading) {
@@ -68,7 +51,7 @@ const Dashboard = () => {
         );
     }
 
-    const { campusVisits, events, conferences, partners, outreach, digitalMedia } = allModuleStats;
+    const { campusVisits, events, partners, outreach } = stats;
 
     return (
         <div>
@@ -79,142 +62,86 @@ const Dashboard = () => {
                 </p>
             </div>
 
-            {/* Overview Stats Grid */}
-            <div className="mb-6">
-                <button
-                    onClick={() => toggleSection('overview')}
-                    className="btn btn-ghost btn-sm gap-2 mb-4"
-                >
-                    {expandedSections.overview ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    Overview Statistics
-                </button>
-
-                {expandedSections.overview && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <StatsCard title="Total Partners" value={partners?.total || 0} icon={Users} color="primary" trend={partners?.trend} />
-                        <StatsCard title="Total Events" value={events?.total || 0} icon={Calendar} color="secondary" trend={events?.trend} />
-                        <StatsCard title="Total Visits" value={campusVisits?.total || 0} icon={Building2} color="info" trend={campusVisits?.trend} />
-                        <StatsCard title="Total Outreach" value={outreach?.total || 0} icon={Mail} color="accent" trend={outreach?.trend} />
-                    </div>
-                )}
+            {/* Overview Stats - Always Visible */}
+            <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-4">Overview Statistics</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <StatsCard
+                        title="Campus Visits"
+                        value={campusVisits?.total || 0}
+                        icon={Users}
+                        color="primary"
+                        trend={campusVisits?.trend}
+                    />
+                    <StatsCard
+                        title="Events"
+                        value={events?.total || 0}
+                        icon={Calendar}
+                        color="secondary"
+                        trend={events?.trend}
+                    />
+                    <StatsCard
+                        title="Partners"
+                        value={partners?.total || 0}
+                        icon={Globe}
+                        color="info"
+                        trend={partners?.trend}
+                    />
+                    <StatsCard
+                        title="Outreach"
+                        value={outreach?.total || 0}
+                        icon={TrendingUp}
+                        color="accent"
+                        trend={outreach?.trend}
+                    />
+                </div>
             </div>
 
-            {/* Campus Visits Section */}
-            <div className="mb-6">
-                <button
-                    onClick={() => toggleSection('campusVisits')}
-                    className="btn btn-ghost btn-sm gap-2 mb-4"
-                >
-                    {expandedSections.campusVisits ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    Campus Visits Analytics
-                </button>
+            {/* Essential Analytics Charts */}
+            <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-4">Key Analytics</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Campus Visits by Country */}
+                    <DistributionPieChart
+                        data={campusVisits?.countryDistribution || []}
+                        title="Campus Visits by Country"
+                    />
 
-                {expandedSections.campusVisits && (
-                    <div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <StatsCard title="Total Visits" value={campusVisits?.total || 0} icon={Users} color="primary" />
-                            <StatsCard title="Countries" value={campusVisits?.countries || 0} icon={Globe} color="secondary" />
-                            <StatsCard title="Universities" value={campusVisits?.universities || 0} icon={Building2} color="info" />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <DistributionPieChart data={campusVisits?.countryDistribution || []} title="Top 10 Countries" />
-                            <DistributionBarChart data={campusVisits?.universityDistribution || []} title="Top 10 Universities" />
-                        </div>
-                    </div>
-                )}
+                    {/* Events by Type */}
+                    <DistributionPieChart
+                        data={events?.eventTypeDistribution || []}
+                        title="Events by Type"
+                    />
+
+                    {/* Partner Countries */}
+                    <DistributionBarChart
+                        data={partners?.countryDistribution || []}
+                        title="Partner Countries"
+                    />
+
+                    {/* Outreach Response Rate */}
+                    <DistributionPieChart
+                        data={outreach?.responseDistribution || []}
+                        title="Outreach Response Rate"
+                    />
+                </div>
             </div>
 
-            {/* Events Section */}
-            <div className="mb-6">
-                <button
-                    onClick={() => toggleSection('events')}
-                    className="btn btn-ghost btn-sm gap-2 mb-4"
-                >
-                    {expandedSections.events ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    Events Analytics
-                </button>
-
-                {expandedSections.events && (
-                    <div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <StatsCard title="Total Events" value={events?.total || 0} icon={Calendar} color="primary" />
-                            <StatsCard title="Event Types" value={events?.eventTypes || 0} icon={Tag} color="secondary" />
-                            <StatsCard title="Departments" value={events?.departments || 0} icon={Building2} color="info" />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <DistributionPieChart data={events?.eventTypeDistribution || []} title="Event Types Distribution" />
-                            <DistributionBarChart data={events?.departmentDistribution || []} title="Top 10 Departments" />
-                        </div>
+            {/* Quick Links */}
+            <div className="card bg-base-100 shadow-xl">
+                <div className="card-body">
+                    <h2 className="card-title mb-4">Quick Access</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <a href="/campus-visits" className="btn btn-outline">Campus Visits</a>
+                        <a href="/events" className="btn btn-outline">Events</a>
+                        <a href="/partners" className="btn btn-outline">Partners</a>
+                        <a href="/outreach" className="btn btn-outline">Outreach</a>
+                        <a href="/conferences" className="btn btn-outline">Conferences</a>
+                        <a href="/scholars-in-residence" className="btn btn-outline">Scholars</a>
+                        <a href="/memberships" className="btn btn-outline">Memberships</a>
+                        <a href="/digital-media" className="btn btn-outline">Digital Media</a>
                     </div>
-                )}
-            </div>
-
-            {/* Partners Section */}
-            <div className="mb-6">
-                <button
-                    onClick={() => toggleSection('partners')}
-                    className="btn btn-ghost btn-sm gap-2 mb-4"
-                >
-                    {expandedSections.partners ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    Partners Analytics
-                </button>
-
-                {expandedSections.partners && (
-                    <div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <StatsCard title="Total Partners" value={partners?.total || 0} icon={Users} color="primary" />
-                            <StatsCard title="Countries" value={partners?.countries || 0} icon={Globe} color="secondary" />
-                            <StatsCard title="Active" value={partners?.active || 0} icon={CheckCircle} color="success" />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <DistributionPieChart data={partners?.countryDistribution || []} title="Top 10 Countries" />
-                            <DistributionPieChart data={partners?.statusDistribution || []} title="Active Status Distribution" />
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Outreach Section */}
-            <div className="mb-6">
-                <button
-                    onClick={() => toggleSection('outreach')}
-                    className="btn btn-ghost btn-sm gap-2 mb-4"
-                >
-                    {expandedSections.outreach ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    Outreach Analytics
-                </button>
-
-                {expandedSections.outreach && (
-                    <div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <StatsCard title="Total Outreach" value={outreach?.total || 0} icon={Mail} color="primary" />
-                            <StatsCard title="Responses" value={outreach?.responses || 0} icon={CheckCircle} color="success" />
-                            <StatsCard title="No Response" value={outreach?.nonResponses || 0} icon={Mail} color="warning" />
-                        </div>
-                        <DistributionPieChart data={outreach?.responseDistribution || []} title="Response Rate" />
-                    </div>
-                )}
-            </div>
-
-            {/* Digital Media Section */}
-            <div className="mb-6">
-                <button
-                    onClick={() => toggleSection('digitalMedia')}
-                    className="btn btn-ghost btn-sm gap-2 mb-4"
-                >
-                    {expandedSections.digitalMedia ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    Digital Media Analytics
-                </button>
-
-                {expandedSections.digitalMedia && (
-                    <div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <StatsCard title="Total Media" value={digitalMedia?.total || 0} icon={Radio} color="primary" />
-                            <StatsCard title="Channels" value={digitalMedia?.channels || 0} icon={Radio} color="secondary" />
-                        </div>
-                        <DistributionBarChart data={digitalMedia?.channelDistribution || []} title="Content by Channel" />
-                    </div>
-                )}
+                </div>
             </div>
         </div>
     );

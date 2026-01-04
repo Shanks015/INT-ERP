@@ -3,22 +3,18 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Search, X, Eye, Building2, FileText, Globe, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Search, X, Eye, Building2, FileText, Globe } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
 import StatsCard from '../../components/StatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
-import DistributionPieChart from '../../components/Charts/DistributionPieChart';
-import DistributionBarChart from '../../components/Charts/DistributionBarChart';
 
 const CampusVisitsList = () => {
     const { user, isAdmin } = useAuth();
     const [campusVisits, setCampusVisits] = useState([]);
-    const [stats, setStats] = useState({ total: 0, countries: 0, universities: 0, trend: null, countryDistribution: [], universityDistribution: [] });
-    const [showCharts, setShowCharts] = useState(true);
-    const [activeFilter, setActiveFilter] = useState(null);
+    const [stats, setStats] = useState({ total: 0, countries: 0, universities: 0, trend: null });
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
