@@ -1,6 +1,18 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
-const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#14b8a6', '#f97316', '#06b6d4'];
+// Use DaisyUI theme colors - these automatically adapt to the selected theme
+const THEME_COLORS = [
+    'oklch(var(--p))',    // primary
+    'oklch(var(--s))',    // secondary
+    'oklch(var(--a))',    // accent
+    'oklch(var(--in))',   // info
+    'oklch(var(--su))',   // success
+    'oklch(var(--wa))',   // warning
+    'oklch(var(--er))',   // error
+    'oklch(var(--p) / 0.7)',  // primary lighter
+    'oklch(var(--s) / 0.7)',  // secondary lighter
+    'oklch(var(--a) / 0.7)'   // accent lighter
+];
 
 const DistributionBarChart = ({ data, title, dataKey = 'value', nameKey = 'name' }) => {
     if (!data || data.length === 0) {
@@ -36,7 +48,7 @@ const DistributionBarChart = ({ data, title, dataKey = 'value', nameKey = 'name'
                         <Legend />
                         <Bar dataKey={dataKey} name="Count">
                             {data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                <Cell key={`cell-${index}`} fill={THEME_COLORS[index % THEME_COLORS.length]} />
                             ))}
                         </Bar>
                     </BarChart>
