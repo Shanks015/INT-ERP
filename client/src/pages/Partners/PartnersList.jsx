@@ -336,7 +336,7 @@ const PartnersList = () => {
                 data={detailModal.partner}
                 title="Partner Details"
                 fields={[
-                    { key: 'date', label: 'Date', type: 'date' },
+                    { key: 'completedOn', label: 'Completed On', type: 'date' },
                     { key: 'country', label: 'Country' },
                     { key: 'university', label: 'University' },
                     { key: 'school', label: 'School/Department' },
@@ -346,6 +346,8 @@ const PartnersList = () => {
                     { key: 'email', label: 'Email' },
                     { key: 'phoneNumber', label: 'Phone Number' },
                     { key: 'agreementType', label: 'Agreement Type' },
+                    { key: 'link', label: 'Link', type: 'link' },
+                    { key: 'submitted', label: 'Submitted', type: 'date' },
                     { key: 'signingDate', label: 'Signing Date', type: 'date' },
                     { key: 'expiringDate', label: 'Expiry Date', type: 'date' },
                     { key: 'recordStatus', label: 'Record Status' },

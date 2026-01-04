@@ -76,7 +76,7 @@ const importMouIa = async () => {
         const partners = data.map((row, index) => {
             try {
                 return {
-                    date: parseFlexibleDate(row['DATE']) || excelDateToJSDate(row['DATE']),
+                    completedOn: parseFlexibleDate(row['COMPLETED ON']) || excelDateToJSDate(row['COMPLETED ON']),
                     country: cleanStr(row['COUNTRY']),
                     university: cleanStr(row['UNIVERSITY']),
                     school: cleanStr(row['SCHOOL']),
@@ -85,6 +85,8 @@ const importMouIa = async () => {
                     contactPerson: cleanStr(row['Contact Person']),
                     email: cleanStr(row['Email Id']),
                     agreementType: cleanStr(row['Agreement']),
+                    link: cleanStr(row['Link']),
+                    submitted: parseFlexibleDate(row['Submitted']) || excelDateToJSDate(row['Submitted']),
                     signingDate: parseFlexibleDate(row['Signing Date']),
                     expiringDate: parseFlexibleDate(row['Expiring Date'])
                 };
