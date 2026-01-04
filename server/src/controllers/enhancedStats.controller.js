@@ -5,19 +5,74 @@ export const getEnhancedStats = (Model) => async (req, res) => {
     try {
         const modelName = Model.modelName;
 
+        // Date ranges for trend calculation
+        const now = new Date();
+        const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
         // Base stats all modules have
         const total = await Model.countDocuments({ status: 'active' });
 
         let stats = { total };
 
+        // Calculate trend - compare this month to last month
+        const thisMonthCount = await Model.countDocuments({
+            status: 'active',
+            createdAt: { $gte: startOfThisMonth }
+        });
+
+        const lastMonthCount = await Model.countDocuments({
+            status: 'active',
+            createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth }
+        });
+
+        // Calculate trend metrics
+        const change = thisMonthCount - lastMonthCount;
+        const percentage = lastMonthCount > 0
+            ? ((change / lastMonthCount) * 100).toFixed(1)
+            : thisMonthCount > 0 ? 100 : 0;
+
+        stats.trend = {
+            change,
+            percentage: parseFloat(percentage),
+            direction: change > 0 ? 'up' : change < 0 ? 'down' : 'stable'
+        };
+
         // Module-specific stats
         switch (modelName) {
             case 'CampusVisit':
+                // Get distinct counts
                 const [countries, universities] = await Promise.all([
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
                     Model.distinct('universityName').then(arr => arr.filter(Boolean).length)
                 ]);
-                stats = { ...stats, countries, universities };
+
+                // Get distributions for charts (top 10)
+                const [countryDistribution, universityDistribution] = await Promise.all([
+                    Model.aggregate([
+                        { $match: { status: 'active', country: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$country', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        { $match: { status: 'active', universityName: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$universityName', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ])
+                ]);
+
+                stats = {
+                    ...stats,
+                    countries,
+                    universities,
+                    countryDistribution,
+                    universityDistribution
+                };
                 break;
 
             case 'Event':
