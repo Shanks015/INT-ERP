@@ -16,6 +16,10 @@ const studentExchangeSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    country: {
+        type: String,
+        trim: true
+    },
     course: {
         type: String,
         trim: true

@@ -94,15 +94,16 @@ const MouSigningCeremoniesList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Title</th><th>Date</th><th>University</th><th>Department</th><th>Location</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Title</th><th>Date</th><th>University</th><th>Country</th><th>Department</th><th>Campus</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {ceremonies.length === 0 ? <tr><td colSpan={7} className="text-center py-8">No ceremonies found</td></tr> : ceremonies.map((ceremony) => (
+                                {ceremonies.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No ceremonies found</td></tr> : ceremonies.map((ceremony) => (
                                     <tr key={ceremony._id}>
                                         <td>{ceremony.title || ceremony.university}</td>
                                         <td>{new Date(ceremony.date).toLocaleDateString()}</td>
                                         <td>{ceremony.university || '-'}</td>
+                                        <td>{ceremony.country || '-'}</td>
                                         <td>{ceremony.department || '-'}</td>
-                                        <td>{ceremony.location || '-'}</td>
+                                        <td>{ceremony.campus || '-'}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Record Status Badge */}

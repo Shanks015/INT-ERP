@@ -19,6 +19,10 @@ const mouSigningCeremonySchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    country: {
+        type: String,
+        trim: true
+    },
     department: {
         type: String,
         trim: true
