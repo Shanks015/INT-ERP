@@ -22,11 +22,14 @@ const EventsList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', type: '', startDate: '', endDate: '' });
+    const [filters, setFilters] = useState({ search: '', type: '', department: '', startDate: '', endDate: '' });
     const [searchInput, setSearchInput] = useState('');
-    const [eventTypes, setEventTypes] = useState([]);
 
-    useEffect(() => { fetchEvents(); fetchStats(); fetchFilters(); }, [currentPage, itemsPerPage, filters]);
+    // Dynamic filter data
+    const [eventTypes, setEventTypes] = useState([]);
+    const [departments, setDepartments] = useState([]);
+
+    useEffect(() => { fetchEvents(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -41,6 +44,19 @@ const EventsList = () => {
             const response = await api.get('/events/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+    };
+
+    const fetchFilterData = async () => {
+        try {
+            const response = await api.get('/events', { params: { limit: 1000 } });
+            const events = response.data.data || [];
+
+            const uniqueTypes = [...new Set(events.map(e => e.type).filter(Boolean))].sort();
+            setEventTypes(uniqueTypes);
+
+            const uniqueDepts = [...new Set(events.map(e => e.department).filter(Boolean))].sort();
+            setDepartments(uniqueDepts);
+        } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
     const fetchFilters = async () => {
@@ -89,7 +105,7 @@ const EventsList = () => {
 
     const handleClearFilters = () => {
         setSearchInput('');
-        setFilters({ search: '', type: '', startDate: '', endDate: '' });
+        setFilters({ search: '', type: '', department: '', startDate: '', endDate: '' });
         setCurrentPage(1);
     };
 
@@ -131,7 +147,18 @@ const EventsList = () => {
                             <label className="label"><span className="label-text">Event Type</span></label>
                             <select className="select select-bordered w-full" value={filters.type || ''} onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}>
                                 <option value="">All Types</option>
-                                {eventTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                                {eventTypes.map(type => (
+                                    <option key={type} value={type}>{type}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Department</span></label>
+                            <select className="select select-bordered w-full" value={filters.department || ''} onChange={(e) => setFilters(prev => ({ ...prev, department: e.target.value }))}>
+                                <option value="">All Departments</option>
+                                {departments.map(dept => (
+                                    <option key={dept} value={dept}>{dept}</option>
+                                ))}
                             </select>
                         </div>
 

@@ -24,20 +24,18 @@ const CampusVisitsList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    const [filters, setFilters] = useState({
-        search: '', type: '', startDate: '', endDate: '', country: ''
-    });
-
+    const [filters, setFilters] = useState({ search: '', startDate: '', endDate: '', country: '', university: '' });
     // Debounced search to prevent refresh on every keystroke
     const [searchInput, setSearchInput] = useState('');
 
     // Dynamic countries list from database
     const [countries, setCountries] = useState([]);
+    const [universities, setUniversities] = useState([]);
 
     useEffect(() => {
-        fetchCampusVisits();
+        fetchVisits();
         fetchStats();
-        fetchCountries();
+        fetchFilterData();
     }, [currentPage, itemsPerPage, filters]);
 
     // Debounce search input - only update filters after user stops typing for 500ms
@@ -59,21 +57,24 @@ const CampusVisitsList = () => {
         }
     };
 
-    const fetchCountries = async () => {
+    const fetchFilterData = async () => {
         try {
-            // Fetch all campus visits to extract unique countries
             const response = await api.get('/campus-visits', { params: { limit: 1000 } });
             const visits = response.data.data || [];
 
-            // Extract unique countries and sort alphabetically
-            const uniqueCountries = [...new Set(visits.map(visit => visit.country).filter(Boolean))].sort();
+            // Extract unique countries
+            const uniqueCountries = [...new Set(visits.map(v => v.country).filter(Boolean))].sort();
             setCountries(uniqueCountries);
+
+            // Extract unique universities
+            const uniqueUniversities = [...new Set(visits.map(v => v.universityName).filter(Boolean))].sort();
+            setUniversities(uniqueUniversities);
         } catch (error) {
-            console.error('Error fetching countries:', error);
+            console.error('Error fetching filter data:', error);
         }
     };
 
-    const fetchCampusVisits = async () => {
+    const fetchVisits = async () => {
         try {
             setLoading(true);
             const params = { page: currentPage, limit: itemsPerPage, ...filters };
@@ -90,14 +91,19 @@ const CampusVisitsList = () => {
 
     const handleDelete = async (reason) => {
         try {
-            await api.delete(`/ campus - visits / ${deleteModal.item._id} `, { data: { reason } });
-            toast.success(isAdmin ? 'Campus visit deleted successfully' : 'Delete request submitted for approval');
-            fetchCampusVisits();
+            await api.delete(`/campus-visits/${deleteModal.item._id}`, { data: { reason } });
+            toast.success(isAdmin ? 'Campus visit deleted successfully' : 'Delete request submitted');
+            fetchVisits();
             fetchStats();
             window.dispatchEvent(new Event('pendingCountUpdated'));
         } catch (error) {
             toast.error(error.response?.data?.message || 'Error deleting campus visit');
         }
+    };
+
+    const handleImportSuccess = () => {
+        fetchVisits();
+        fetchStats();
     };
 
     const handleExportCSV = async () => {
@@ -123,7 +129,7 @@ const CampusVisitsList = () => {
 
     const handleClearFilters = () => {
         setSearchInput('');
-        setFilters({ search: '', type: '', startDate: '', endDate: '', country: '' });
+        setFilters({ search: '', startDate: '', endDate: '', country: '', university: '' });
         setCurrentPage(1);
     };
 
@@ -301,7 +307,7 @@ const CampusVisitsList = () => {
             </div>
 
             <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.universityName} requireReason={!isAdmin} />
-            <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchCampusVisits(); fetchStats(); }} moduleName="campus-visits" />
+            <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={handleImportSuccess} moduleName="campus-visits" />
             <DetailModal
                 isOpen={detailModal.isOpen}
                 onClose={() => setDetailModal({ isOpen: false, item: null })}

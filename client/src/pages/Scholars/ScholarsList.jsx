@@ -23,15 +23,31 @@ const ScholarsList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', status: '', startDate: '', endDate: '', country: '' });
-
-    useEffect(() => { fetchScholars(); fetchStats(); }, [currentPage, itemsPerPage, filters]);
+    const [filters, setFilters] = useState({ search: '', country: '', department: '', designation: '', startDate: '', endDate: '' });
+    const [searchInput, setSearchInput] = useState('');
+    const [countries, setCountries] = useState([]);
+    const [departments, setDepartments] = useState([]);
+    const [designations, setDesignations] = useState([]);
+    useEffect(() => { fetchScholars(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
 
     const fetchStats = async () => {
         try {
             const response = await api.get('/scholars-in-residence/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+    };
+
+    const fetchFilterData = async () => {
+        try {
+            const response = await api.get('/scholars-in-residence', { params: { limit: 1000 } });
+            const scholars = response.data.data || [];
+            const uniqueCountries = [...new Set(scholars.map(s => s.country).filter(Boolean))].sort();
+            setCountries(uniqueCountries);
+            const uniqueDepts = [...new Set(scholars.map(s => s.department).filter(Boolean))].sort();
+            setDepartments(uniqueDepts);
+            const uniqueDesigs = [...new Set(scholars.map(s => s.designation).filter(Boolean))].sort();
+            setDesignations(uniqueDesigs);
+        } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
     const fetchScholars = async () => {
@@ -70,7 +86,7 @@ const ScholarsList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', status: '', startDate: '', endDate: '', country: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', country: '', department: '', designation: '', startDate: '', endDate: '' }); setCurrentPage(1); };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
@@ -89,7 +105,15 @@ const ScholarsList = () => {
                 <StatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" />
                 <StatsCard title="Departments" value={stats.departments} icon={Building2} color="info" />
             </div>
-            <FilterBar filters={filters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} showCountryFilter={true} />
+            <FilterBar
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={handleClearFilters}
+                showCountryFilter={true}
+                countries={countries}
+                departments={departments}
+                designations={designations}
+            />
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">

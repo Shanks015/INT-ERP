@@ -26,7 +26,6 @@ const PartnersList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    // Filter state
     const [filters, setFilters] = useState({
         search: '',
         mouStatus: '',
@@ -36,9 +35,16 @@ const PartnersList = () => {
         country: ''
     });
 
+    // Dynamic filter data
+    const [countries, setCountries] = useState([]);
+    const [agreementTypes, setAgreementTypes] = useState([]);
+    const [mouStatuses, setMouStatuses] = useState([]);
+    const [schools, setSchools] = useState([]);
+
     useEffect(() => {
         fetchPartners();
         fetchStats();
+        fetchFilterData();
     }, [currentPage, itemsPerPage, filters]);
 
     const fetchStats = async () => {
@@ -47,6 +53,28 @@ const PartnersList = () => {
             setStats(response.data.stats);
         } catch (error) {
             console.error('Error fetching stats:', error);
+        }
+    };
+
+    const fetchFilterData = async () => {
+        try {
+            const response = await api.get('/partners', { params: { limit: 1000 } });
+            const partners = response.data.data || [];
+
+            // Extract unique values for each filter
+            const uniqueCountries = [...new Set(partners.map(p => p.country).filter(Boolean))].sort();
+            setCountries(uniqueCountries);
+
+            const uniqueAgreementTypes = [...new Set(partners.map(p => p.agreementType).filter(Boolean))].sort();
+            setAgreementTypes(uniqueAgreementTypes);
+
+            const uniqueMouStatuses = [...new Set(partners.map(p => p.mouStatus).filter(Boolean))].sort();
+            setMouStatuses(uniqueMouStatuses);
+
+            const uniqueSchools = [...new Set(partners.map(p => p.school).filter(Boolean))].sort();
+            setSchools(uniqueSchools);
+        } catch (error) {
+            console.error('Error fetching filter data:', error);
         }
     };
 
@@ -203,13 +231,16 @@ const PartnersList = () => {
                         />
 
                         {/* Country */}
-                        <input
-                            type="text"
-                            placeholder="Country..."
-                            className="input input-bordered w-full"
+                        <select
+                            className="select select-bordered w-full"
                             value={filters.country}
                             onChange={(e) => handleFilterChange('country', e.target.value)}
-                        />
+                        >
+                            <option value="">All Countries</option>
+                            {countries.map(country => (
+                                <option key={country} value={country}>{country}</option>
+                            ))}
+                        </select>
 
                         {/* MoU Status */}
                         <select
@@ -218,9 +249,9 @@ const PartnersList = () => {
                             onChange={(e) => handleFilterChange('mouStatus', e.target.value)}
                         >
                             <option value="">All MoU Status</option>
-                            <option value="Completed">Completed</option>
-                            <option value="InProgress">In Progress</option>
-                            <option value="Waiting for Signature">Waiting for Signature</option>
+                            {mouStatuses.map(status => (
+                                <option key={status} value={status}>{status}</option>
+                            ))}
                         </select>
 
                         {/* Active Status */}
@@ -234,14 +265,17 @@ const PartnersList = () => {
                             <option value="Inactive">Inactive</option>
                         </select>
 
-                        {/* School/Department */}
-                        <input
-                            type="text"
-                            placeholder="School/Department..."
-                            className="input input-bordered w-full"
+                        {/* School */}
+                        <select
+                            className="select select-bordered w-full"
                             value={filters.school}
                             onChange={(e) => handleFilterChange('school', e.target.value)}
-                        />
+                        >
+                            <option value="">All Schools</option>
+                            {schools.map(school => (
+                                <option key={school} value={school}>{school}</option>
+                            ))}
+                        </select>
 
                         {/* Agreement Type */}
                         <select
@@ -250,11 +284,9 @@ const PartnersList = () => {
                             onChange={(e) => handleFilterChange('agreementType', e.target.value)}
                         >
                             <option value="">All Agreements</option>
-                            <option value="MoU">MoU</option>
-                            <option value="MOU">MOU</option>
-                            <option value="MoA">MoA</option>
-                            <option value="MoU/ Student Exchange">MoU/ Student Exchange</option>
-                            <option value="Exchange Agreement">Exchange Agreement</option>
+                            {agreementTypes.map(type => (
+                                <option key={type} value={type}>{type}</option>
+                            ))}
                         </select>
                     </div>
 
