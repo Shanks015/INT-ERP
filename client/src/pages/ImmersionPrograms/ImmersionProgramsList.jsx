@@ -144,16 +144,6 @@ const ImmersionProgramsList = () => {
                         </div>
 
                         <div className="form-control">
-                            <label className="label"><span className="label-text">Status</span></label>
-                            <select className="select select-bordered w-full" value={filters.programStatus || ''} onChange={(e) => setFilters(prev => ({ ...prev, programStatus: e.target.value }))}>
-                                <option value="">All Status</option>
-                                <option value="Completed">Completed</option>
-                                <option value="Ongoing">Ongoing</option>
-                                <option value="Upcoming">Upcoming</option>
-                            </select>
-                        </div>
-
-                        <div className="form-control">
                             <label className="label"><span className="label-text">Country</span></label>
                             <select className="select select-bordered w-full" value={filters.country || ''} onChange={(e) => setFilters(prev => ({ ...prev, country: e.target.value }))}>
                                 <option value="">All Countries</option>
