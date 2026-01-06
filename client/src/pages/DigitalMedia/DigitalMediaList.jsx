@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Radio, TrendingUp, Clock, Eye, Hash, X, Search, ExternalLink } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Radio, TrendingUp, Clock, Eye, Hash, X, Search, ExternalLink, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
@@ -195,7 +195,7 @@ const DigitalMediaList = () => {
                                                 )}
                                                 {item.driveLink && (
                                                     <a href={item.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="View Documents">
-                                                        <ExternalLink size={16} />
+                                                        <FileText size={16} />
                                                     </a>
                                                 )}
                                                 <button onClick={() => setDetailModal({ isOpen: true, item })} className="btn btn-info btn-sm" title="View Details">
