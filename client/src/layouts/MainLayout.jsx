@@ -114,6 +114,42 @@ const MainLayout = () => {
         </>
     );
 
+    const themes = [
+        'light',
+        'bumblebee',
+        'forest',
+        'lofi',
+        'fantasy',
+        'cmyk',
+        'autumn',
+        'acid',
+        'lemonade',
+        'winter',
+        'halloween',
+        'valentine',
+
+        // Commented out themes (uncomment to re-enable):
+        // 'dark',
+        // 'cupcake',
+        // 'emerald',
+        // 'corporate',
+        // 'synthwave',
+        // 'retro',
+        // 'cyberpunk',
+        // 'aqua',
+        // 'garden',
+        // 'pastel',
+        // 'wireframe',
+        // 'black',
+        // 'luxury',
+        // 'dracula',
+        // 'business',
+        // 'night',
+        // 'coffee',
+        // 'dim',
+        // 'nord',
+        // 'sunset',
+    ];
     return (
         <div className="drawer lg:drawer-open">
             <input
