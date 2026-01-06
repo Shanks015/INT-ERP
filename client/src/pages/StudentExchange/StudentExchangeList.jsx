@@ -23,15 +23,27 @@ const StudentExchangeList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', status: '', startDate: '', endDate: '', country: '' });
+    const [filters, setFilters] = useState({ search: '', country: '', exchangeType: '', direction: '', startDate: '', endDate: '' });
+    const [searchInput, setSearchInput] = useState('');
+    const [countries, setCountries] = useState([]);
+    const [exchangeTypes, setExchangeTypes] = useState([]);
 
-    useEffect(() => { fetchExchanges(); fetchStats(); }, [currentPage, itemsPerPage, filters]);
+    useEffect(() => { fetchExchanges(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
 
     const fetchStats = async () => {
         try {
             const response = await api.get('/student-exchange/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+    };
+
+    const fetchFilterData = async () => {
+        try {
+            const response = await api.get('/student-exchange', { params: { limit: 1000 } });
+            const exchanges = response.data.data || [];
+            setCountries([...new Set(exchanges.map(e => e.country).filter(Boolean))].sort());
+            setExchangeTypes([...new Set(exchanges.map(e => e.exchangeType).filter(Boolean))].sort());
+        } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
     const fetchExchanges = async () => {

@@ -23,15 +23,26 @@ const MembershipsList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', status: '', startDate: '', endDate: '', country: '' });
-
-    useEffect(() => { fetchMemberships(); fetchStats(); }, [currentPage, itemsPerPage, filters]);
+    const [filters, setFilters] = useState({ search: '', membershipType: '', country: '', startDate: '', endDate: '' });
+    const [searchInput, setSearchInput] = useState('');
+    const [membershipTypes, setMembershipTypes] = useState([]);
+    const [countries, setCountries] = useState([]);
+    useEffect(() => { fetchMemberships(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
 
     const fetchStats = async () => {
         try {
             const response = await api.get('/memberships/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+    };
+
+    const fetchFilterData = async () => {
+        try {
+            const response = await api.get('/memberships', { params: { limit: 1000 } });
+            const memberships = response.data.data || [];
+            setMembershipTypes([...new Set(memberships.map(m => m.membershipType).filter(Boolean))].sort());
+            setCountries([...new Set(memberships.map(m => m.country).filter(Boolean))].sort());
+        } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
     const fetchMemberships = async () => {

@@ -23,15 +23,30 @@ const MouUpdatesList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', status: '', startDate: '', endDate: '', country: '' });
-
-    useEffect(() => { fetchUpdates(); fetchStats(); }, [currentPage, itemsPerPage, filters]);
+    const [filters, setFilters] = useState({ search: '', country: '', agreementType: '', mouStatus: '', validityStatus: '', startDate: '', endDate: '' });
+    const [searchInput, setSearchInput] = useState('');
+    const [countries, setCountries] = useState([]);
+    const [agreementTypes, setAgreementTypes] = useState([]);
+    const [mouStatuses, setMouStatuses] = useState([]);
+    const [validityStatuses, setValidityStatuses] = useState([]);
+    useEffect(() => { fetchUpdates(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
 
     const fetchStats = async () => {
         try {
             const response = await api.get('/mou-updates/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+    };
+
+    const fetchFilterData = async () => {
+        try {
+            const response = await api.get('/mou-updates', { params: { limit: 1000 } });
+            const updates = response.data.data || [];
+            setCountries([...new Set(updates.map(u => u.country).filter(Boolean))].sort());
+            setAgreementTypes([...new Set(updates.map(u => u.agreementType).filter(Boolean))].sort());
+            setMouStatuses([...new Set(updates.map(u => u.mouStatus).filter(Boolean))].sort());
+            setValidityStatuses([...new Set(updates.map(u => u.validityStatus).filter(Boolean))].sort());
+        } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
     const fetchUpdates = async () => {
@@ -89,7 +104,36 @@ const MouUpdatesList = () => {
                 <StatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" />
                 <StatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" />
             </div>
-            <FilterBar filters={filters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} showCountryFilter={false} />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div className="form-control">
+                    <label className="label"><span className="label-text">Country</span></label>
+                    <select className="select select-bordered w-full" value={filters.country || ''} onChange={(e) => handleFilterChange({ country: e.target.value })}>
+                        <option value="">All Countries</option>
+                        {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                </div>
+                <div className="form-control">
+                    <label className="label"><span className="label-text">Agreement Type</span></label>
+                    <select className="select select-bordered w-full" value={filters.agreementType || ''} onChange={(e) => handleFilterChange({ agreementType: e.target.value })}>
+                        <option value="">All Types</option>
+                        {agreementTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                    </select>
+                </div>
+                <div className="form-control">
+                    <label className="label"><span className="label-text">MoU Status</span></label>
+                    <select className="select select-bordered w-full" value={filters.mouStatus || ''} onChange={(e) => handleFilterChange({ mouStatus: e.target.value })}>
+                        <option value="">All MoU Statuses</option>
+                        {mouStatuses.map(status => <option key={status} value={status}>{status}</option>)}
+                    </select>
+                </div>
+                <div className="form-control">
+                    <label className="label"><span className="label-text">Validity Status</span></label>
+                    <select className="select select-bordered w-full" value={filters.validityStatus || ''} onChange={(e) => handleFilterChange({ validityStatus: e.target.value })}>
+                        <option value="">All Validity Statuses</option>
+                        {validityStatuses.map(status => <option key={status} value={status}>{status}</option>)}
+                    </select>
+                </div>
+            </div>
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">

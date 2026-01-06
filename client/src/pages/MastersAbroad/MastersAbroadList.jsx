@@ -21,15 +21,29 @@ const MastersAbroadList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', status: '', startDate: '', endDate: '', country: '' });
+    const [filters, setFilters] = useState({ search: '', country: '', university: '', courseType: '', startDate: '', endDate: '' });
+    const [searchInput, setSearchInput] = useState('');
+    const [countries, setCountries] = useState([]);
+    const [universities, setUniversities] = useState([]);
+    const [courseTypes, setCourseTypes] = useState([]);
 
-    useEffect(() => { fetchPrograms(); fetchStats(); }, [currentPage, itemsPerPage, filters]);
+    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
 
     const fetchStats = async () => {
         try {
             const response = await api.get('/masters-abroad/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+    };
+
+    const fetchFilterData = async () => {
+        try {
+            const response = await api.get('/masters-abroad', { params: { limit: 1000 } });
+            const masters = response.data.data || [];
+            setCountries([...new Set(masters.map(m => m.country).filter(Boolean))].sort());
+            setUniversities([...new Set(masters.map(m => m.university).filter(Boolean))].sort());
+            setCourseTypes([...new Set(masters.map(m => m.courseType).filter(Boolean))].sort());
+        } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
     const fetchPrograms = async () => {

@@ -22,11 +22,13 @@ const DigitalMediaList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', startDate: '', endDate: '', channel: '' });
+    const [filters, setFilters] = useState({ search: '', mediaType: '', platformType: '', startDate: '', endDate: '', channel: '' });
     const [searchInput, setSearchInput] = useState('');
+    const [mediaTypes, setMediaTypes] = useState([]);
+    const [platformTypes, setPlatformTypes] = useState([]);
     const [channels, setChannels] = useState([]);
 
-    useEffect(() => { fetchMedia(); fetchStats(); fetchChannels(); }, [currentPage, itemsPerPage, filters]);
+    useEffect(() => { fetchMedia(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -41,6 +43,15 @@ const DigitalMediaList = () => {
             const response = await api.get('/digital-media/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+    };
+
+    const fetchFilterData = async () => {
+        try {
+            const response = await api.get('/digital-media', { params: { limit: 1000 } });
+            const media = response.data.data || [];
+            setMediaTypes([...new Set(media.map(m => m.mediaType).filter(Boolean))].sort());
+            setPlatformTypes([...new Set(media.map(m => m.platformType).filter(Boolean))].sort());
+        } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
     const fetchChannels = async () => {

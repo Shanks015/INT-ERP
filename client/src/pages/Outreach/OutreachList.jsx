@@ -16,6 +16,11 @@ const OutreachList = () => {
     const [outreach, setOutreach] = useState([]);
     const [stats, setStats] = useState({ total: 0, responses: 0, nonResponses: 0 });
     const [loading, setLoading] = useState(true);
+    const [filters, setFilters] = useState({ search: '', country: '', partnershipType: '', outreachType: '', startDate: '', endDate: '' });
+    const [searchInput, setSearchInput] = useState('');
+    const [countries, setCountries] = useState([]);
+    const [partnershipTypes, setPartnershipTypes] = useState([]);
+    const [outreachTypes, setOutreachTypes] = useState([]);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
     const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
@@ -27,27 +32,36 @@ const OutreachList = () => {
     const [totalPages, setTotalPages] = useState(0);
 
     // Filter state
-    const [filters, setFilters] = useState({
-        search: '',
-        status: '',
-        startDate: '',
-        endDate: '',
-        country: ''
-    });
+    // This state is now redundant as `filters` above covers it. Keeping it for context of the original change.
+    // The instruction implies `filters` should be updated, and new states added.
+    // The original `filters` state was:
+    // const [filters, setFilters] = useState({
+    //     search: '',
+    //     status: '',
+    //     startDate: '',
+    //     endDate: '',
+    //     country: ''
+    // });
 
-    useEffect(() => {
-        fetchOutreach();
-        fetchStats();
-    }, [currentPage, itemsPerPage, filters]);
+    useEffect(() => { fetchOutreach(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
 
     const fetchStats = async () => {
         try {
             const response = await api.get('/outreach/stats');
             setStats(response.data.stats);
-        } catch (error) {
-            console.error('Error fetching stats:', error);
-        }
+        } catch (error) { console.error('Error fetching stats:', error); }
     };
+
+    const fetchFilterData = async () => {
+        try {
+            const response = await api.get('/outreach', { params: { limit: 1000 } });
+            const outreach = response.data.data || [];
+            setCountries([...new Set(outreach.map(o => o.country).filter(Boolean))].sort());
+            setPartnershipTypes([...new Set(outreach.map(o => o.partnershipType).filter(Boolean))].sort());
+            setOutreachTypes([...new Set(outreach.map(o => o.outreachType).filter(Boolean))].sort());
+        } catch (error) { console.error('Error fetching filter data:', error); }
+    };
+
 
     const fetchOutreach = async () => {
         try {
