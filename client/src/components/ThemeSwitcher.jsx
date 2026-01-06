@@ -5,36 +5,36 @@ const ThemeSwitcher = () => {
     const themes = [
         "light",
         "dark",
-        "cupcake",
+        /* "cupcake", */
         "bumblebee",
-        "emerald",
-        "corporate",
-        "synthwave",
-        "retro",
-        "cyberpunk",
+        /* "emerald", */
+        /* "corporate", */
+        /* "synthwave", */
+        /* "retro",
+        "cyberpunk", */
         "valentine",
         "halloween",
-        "garden",
+        /* "garden", */
         "forest",
-        "aqua",
+        /* "aqua", */
         "lofi",
-        "pastel",
-        "fantasy",
-        "wireframe",
+        /* "pastel", */
+        /* "fantasy",
+        "wireframe", */
         "black",
-        "luxury",
+        /*"luxury",*/
         "dracula",
         "cmyk",
         "autumn",
-        "business",
+        /* "business", */
         "acid",
         "lemonade",
-        "night",
-        "coffee",
+        /* "night", */
+        /* "coffee", */
         "winter",
-        "dim",
-        "nord",
-        "sunset",
+        /* "dim", */
+        /* "nord",
+        "sunset", */
     ];
 
     const [currentTheme, setCurrentTheme] = useState(
