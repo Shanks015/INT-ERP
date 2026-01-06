@@ -5,20 +5,42 @@ export const register = async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
 
-        console.log('Registration attempt:', { name, email, role, hasPassword: !!password });
-
         // Check if user already exists
         const existingUser = await User.findOne({ email });
+
         if (existingUser) {
-            console.log('User already exists:', email);
+            // If user exists but is rejected, allow re-registration by updating the record
+            if (existingUser.approvalStatus === 'rejected') {
+                existingUser.name = name;
+                existingUser.password = password; // Will be hashed by pre-save hook
+                existingUser.role = role;
+                existingUser.approvalStatus = 'pending';
+                existingUser.approved = false;
+                existingUser.rejectionReason = undefined;
+                existingUser.approvedBy = undefined;
+                existingUser.approvedAt = undefined;
+
+                await existingUser.save();
+
+                return res.status(200).json({
+                    message: 'Registration successful! Your account is pending admin approval.',
+                    requiresApproval: true,
+                    user: {
+                        id: existingUser._id,
+                        name: existingUser.name,
+                        email: existingUser.email,
+                        role: existingUser.role,
+                        approvalStatus: existingUser.approvalStatus
+                    }
+                });
+            }
+
             return res.status(400).json({ message: 'User already exists with this email' });
         }
 
         // Create new user (pending approval)
         const user = new User({ name, email, password, role });
         await user.save();
-
-        console.log('User registered successfully:', user._id);
 
         res.status(201).json({
             message: 'Registration successful! Your account is pending admin approval. You will be able to login once approved.',
@@ -32,14 +54,6 @@ export const register = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Registration error:', error);
-        console.error('Error details:', error.message);
-        if (error.errors) {
-            console.error('Validation errors:', Object.keys(error.errors).map(key => ({
-                field: key,
-                message: error.errors[key].message
-            })));
-        }
         res.status(500).json({
             message: 'Error registering user',
             error: error.message
