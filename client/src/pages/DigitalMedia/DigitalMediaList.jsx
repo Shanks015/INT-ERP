@@ -100,7 +100,7 @@ const DigitalMediaList = () => {
 
     const handleClearFilters = () => {
         setSearchInput('');
-        setFilters({ search: '', startDate: '', endDate: '', channel: '' });
+        setFilters({ search: '', mediaType: '', platformType: '', startDate: '', endDate: '', channel: '' });
         setCurrentPage(1);
     };
 
@@ -128,7 +128,7 @@ const DigitalMediaList = () => {
                         <h3 className="text-lg font-semibold">Filters</h3>
                         <button onClick={handleClearFilters} className="btn btn-ghost btn-sm gap-2"><X size={16} /> Clear All</button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         <div className="form-control">
                             <label className="label"><span className="label-text">Search</span></label>
                             <div className="relative">
@@ -142,6 +142,22 @@ const DigitalMediaList = () => {
                             <select className="select select-bordered w-full" value={filters.channel || ''} onChange={(e) => setFilters(prev => ({ ...prev, channel: e.target.value }))}>
                                 <option value="">All Channels</option>
                                 {channels.map(channel => <option key={channel} value={channel}>{channel}</option>)}
+                            </select>
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Media Type</span></label>
+                            <select className="select select-bordered w-full" value={filters.mediaType || ''} onChange={(e) => setFilters(prev => ({ ...prev, mediaType: e.target.value }))}>
+                                <option value="">All Media Types</option>
+                                {mediaTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                            </select>
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Platform Type</span></label>
+                            <select className="select select-bordered w-full" value={filters.platformType || ''} onChange={(e) => setFilters(prev => ({ ...prev, platformType: e.target.value }))}>
+                                <option value="">All Platforms</option>
+                                {platformTypes.map(platform => <option key={platform} value={platform}>{platform}</option>)}
                             </select>
                         </div>
 

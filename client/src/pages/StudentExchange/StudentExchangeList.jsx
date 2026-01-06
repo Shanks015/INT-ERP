@@ -82,7 +82,7 @@ const StudentExchangeList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', status: '', startDate: '', endDate: '', country: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', country: '', exchangeType: '', direction: '', startDate: '', endDate: '' }); setCurrentPage(1); };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
@@ -101,7 +101,14 @@ const StudentExchangeList = () => {
                 <StatsCard title="Universities" value={stats.universities} icon={Building2} color="secondary" />
                 <StatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" />
             </div>
-            <FilterBar filters={filters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} showCountryFilter={true} />
+            <FilterBar
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={handleClearFilters}
+                showCountryFilter={true}
+                countries={countries}
+                exchangeTypes={exchangeTypes}
+            />
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">
