@@ -22,11 +22,12 @@ const ImmersionProgramsList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', direction: '', programStatus: '', country: '', startDate: '', endDate: '' });
+    const [filters, setFilters] = useState({ search: '', direction: '', activeStatus: '', country: '', startDate: '', endDate: '' });
     const [searchInput, setSearchInput] = useState('');
     const [countries, setCountries] = useState([]);
+    const [activeStatuses, setActiveStatuses] = useState([]);
 
-    useEffect(() => { fetchPrograms(); fetchStats(); fetchCountries(); }, [currentPage, itemsPerPage, filters]);
+    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -43,13 +44,19 @@ const ImmersionProgramsList = () => {
         } catch (error) { console.error('Error fetching stats:', error); }
     };
 
-    const fetchCountries = async () => {
+    const fetchFilterData = async () => {
         try {
             const response = await api.get('/immersion-programs', { params: { limit: 1000 } });
-            const progs = response.data.data || [];
-            const uniqueCountries = [...new Set(progs.map(p => p.country).filter(Boolean))].sort();
+            const programs = response.data.data || [];
+
+            // Extract unique countries
+            const uniqueCountries = [...new Set(programs.map(p => p.country).filter(Boolean))].sort();
             setCountries(uniqueCountries);
-        } catch (error) { console.error('Error fetching countries:', error); }
+
+            // Extract unique active statuses
+            const uniqueStatuses = [...new Set(programs.map(p => p.activeStatus).filter(Boolean))].sort();
+            setActiveStatuses(uniqueStatuses);
+        } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
     const fetchPrograms = async () => {
@@ -89,7 +96,7 @@ const ImmersionProgramsList = () => {
 
     const handleClearFilters = () => {
         setSearchInput('');
-        setFilters({ search: '', direction: '', programStatus: '', country: '', startDate: '', endDate: '' });
+        setFilters({ search: '', direction: '', activeStatus: '', country: '', startDate: '', endDate: '' });
         setCurrentPage(1);
     };
 
@@ -158,10 +165,30 @@ const ImmersionProgramsList = () => {
                             <label className="label"><span className="label-text">From Date</span></label>
                             <input type="date" className="input input-bordered w-full" value={filters.startDate || ''} onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))} />
                         </div>
-
+                        {/* To Date */}
                         <div className="form-control">
                             <label className="label"><span className="label-text">To Date</span></label>
-                            <input type="date" className="input input-bordered w-full" value={filters.endDate || ''} onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))} />
+                            <input
+                                type="date"
+                                className="input input-bordered w-full"
+                                value={filters.endDate || ''}
+                                onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                            />
+                        </div>
+
+                        {/* Active Status Filter */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Status</span></label>
+                            <select
+                                className="select select-bordered w-full"
+                                value={filters.activeStatus || ''}
+                                onChange={(e) => setFilters(prev => ({ ...prev, activeStatus: e.target.value }))}
+                            >
+                                <option value="">All Statuses</option>
+                                {activeStatuses.map(status => (
+                                    <option key={status} value={status}>{status}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
                 </div>
