@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Settings as SettingsIcon, User, Lock, Palette, Bell } from 'lucide-react';
+import { Settings as SettingsIcon, User, Lock, Palette } from 'lucide-react';
 import ProfileTab from './ProfileTab';
 import SecurityTab from './SecurityTab';
 import PreferencesTab from './PreferencesTab';
-import NotificationsTab from './NotificationsTab';
 
 const Settings = () => {
     const { user } = useAuth();
@@ -13,8 +12,7 @@ const Settings = () => {
     const tabs = [
         { id: 'profile', label: 'Profile', icon: User },
         { id: 'security', label: 'Security', icon: Lock },
-        { id: 'preferences', label: 'Preferences', icon: Palette },
-        { id: 'notifications', label: 'Notifications', icon: Bell }
+        { id: 'preferences', label: 'Preferences', icon: Palette }
     ];
 
     return (
@@ -55,7 +53,6 @@ const Settings = () => {
                         {activeTab === 'profile' && <ProfileTab />}
                         {activeTab === 'security' && <SecurityTab />}
                         {activeTab === 'preferences' && <PreferencesTab />}
-                        {activeTab === 'notifications' && <NotificationsTab />}
                     </div>
                 </div>
             </div>
