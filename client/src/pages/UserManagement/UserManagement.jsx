@@ -44,15 +44,22 @@ const UserManagement = () => {
             await api.post(`/users/${userId}/approve`);
             toast.success('User approved successfully');
 
-            // Immediately update local state to remove from pending
-            setUsers(users.filter(u => u._id !== userId));
+            // Optimistic update
+            if (filter === 'all') {
+                setUsers(users.map(u =>
+                    u._id === userId ? { ...u, approvalStatus: 'approved', approved: true } : u
+                ));
+            } else {
+                setUsers(users.filter(u => u._id !== userId));
+            }
 
-            // Then fetch fresh data
-            await fetchUsers();
-            window.dispatchEvent(new Event('pendingCountUpdated'));
+            // Fetch fresh data after a short delay to allow DB update to propagate
+            setTimeout(() => {
+                fetchUsers();
+                window.dispatchEvent(new Event('pendingCountUpdated'));
+            }, 500);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Error approving user');
-            // Refresh on error to sync state
             await fetchUsers();
         } finally {
             setProcessingUserId(null);
@@ -79,16 +86,31 @@ const UserManagement = () => {
             setRejectModal({ isOpen: false, user: null });
             setRejectionReason('');
 
-            // Immediately update local state to remove from current view
-            setUsers(users.filter(u => u._id !== userId));
+            toast.success('User rejected successfully');
 
-            // Then fetch fresh data
-            await fetchUsers();
-            window.dispatchEvent(new Event('pendingCountUpdated'));
+            // Optimistic update
+            if (filter === 'all') {
+                setUsers(users.map(u =>
+                    u._id === userId
+                        ? { ...u, approvalStatus: 'rejected', approved: false, rejectionReason: rejectionReason }
+                        : u
+                ));
+            } else {
+                setUsers(users.filter(u => u._id !== userId));
+            }
+
+            // Close modal
+            setRejectModal({ isOpen: false, user: null });
+            setRejectionReason('');
+
+            // Fetch fresh data after a short delay
+            setTimeout(() => {
+                fetchUsers();
+                window.dispatchEvent(new Event('pendingCountUpdated'));
+            }, 500);
         } catch (error) {
             console.error('Rejection error:', error);
             toast.error(error.response?.data?.message || 'Error rejecting user');
-            // Refresh on error to sync state
             await fetchUsers();
         } finally {
             setSubmitting(false);
