@@ -24,17 +24,27 @@ export const getAllUsers = async (req, res) => {
     try {
         const { status, approvalStatus } = req.query;
 
+        console.log('=== getAllUsers API called ===');
+        console.log('Query params:', req.query);
+
         // Support both 'status' and 'approvalStatus' parameters
         const filterStatus = approvalStatus || status;
+
+        console.log('Filter status:', filterStatus);
 
         let query = {};
         if (filterStatus && filterStatus !== 'all') {
             query.approvalStatus = filterStatus;
         }
 
+        console.log('MongoDB query:', JSON.stringify(query));
+
         const users = await User.find(query)
             .select('-password')
             .sort({ createdAt: -1 });
+
+        console.log('Found users:', users.length);
+        console.log('Sample statuses:', users.slice(0, 3).map(u => u.approvalStatus));
 
         res.json({
             success: true,
@@ -99,32 +109,56 @@ export const rejectUser = async (req, res) => {
         const { reason } = req.body;
         const adminId = req.userId;
 
+        console.log('=== REJECT USER CALLED ===');
+        console.log('User ID:', id);
+        console.log('Reason:', reason);
+        console.log('Admin ID:', adminId);
+
         if (!reason) {
             return res.status(400).json({ message: 'Rejection reason is required' });
         }
 
         const user = await User.findById(id);
         if (!user) {
+            console.log('User not found:', id);
             return res.status(404).json({ message: 'User not found' });
         }
 
-        user.approved = false;
-        user.approvalStatus = 'rejected';
-        user.approvedBy = adminId;
-        user.approvedAt = new Date();
-        user.rejectionReason = reason;
+        console.log('User before update:', {
+            name: user.name,
+            currentStatus: user.approvalStatus,
+            approved: user.approved
+        });
 
-        await user.save();
+        // Direct database update using findByIdAndUpdate
+        const updatedUser = await User.findByIdAndUpdate(
+            id,
+            {
+                approved: false,
+                approvalStatus: 'rejected',
+                approvedBy: adminId,
+                approvedAt: new Date(),
+                rejectionReason: reason
+            },
+            { new: true, runValidators: true }
+        );
+
+        console.log('User updated successfully!');
+        console.log('Updated user status:', {
+            name: updatedUser.name,
+            status: updatedUser.approvalStatus,
+            reason: updatedUser.rejectionReason
+        });
 
         res.json({
             message: 'User rejected successfully',
             user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                approvalStatus: user.approvalStatus,
-                rejectionReason: user.rejectionReason
+                id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                approvalStatus: updatedUser.approvalStatus,
+                rejectionReason: updatedUser.rejectionReason
             }
         });
     } catch (error) {

@@ -12,14 +12,15 @@ const UserManagement = () => {
     const [rejectModal, setRejectModal] = useState({ isOpen: false, user: null });
     const [rejectionReason, setRejectionReason] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [processingUserId, setProcessingUserId] = useState(null);
 
     useEffect(() => {
         fetchUsers();
 
-        // Auto-refresh every 10 seconds
+        // Auto-refresh every 3 seconds for real-time updates
         const interval = setInterval(() => {
             fetchUsers();
-        }, 10000);
+        }, 3000);
 
         return () => clearInterval(interval);
     }, [filter]);
@@ -30,6 +31,7 @@ const UserManagement = () => {
             const response = await api.get(endpoint);
             setUsers(response.data.users || []);
         } catch (error) {
+            console.error('Error fetching users:', error);
             toast.error('Error fetching users');
         } finally {
             setLoading(false);
@@ -38,12 +40,22 @@ const UserManagement = () => {
 
     const handleApprove = async (userId) => {
         try {
+            setProcessingUserId(userId);
             await api.post(`/users/${userId}/approve`);
             toast.success('User approved successfully');
-            fetchUsers();
+
+            // Immediately update local state to remove from pending
+            setUsers(users.filter(u => u._id !== userId));
+
+            // Then fetch fresh data
+            await fetchUsers();
             window.dispatchEvent(new Event('pendingCountUpdated'));
         } catch (error) {
             toast.error(error.response?.data?.message || 'Error approving user');
+            // Refresh on error to sync state
+            await fetchUsers();
+        } finally {
+            setProcessingUserId(null);
         }
     };
 
@@ -55,17 +67,29 @@ const UserManagement = () => {
 
         try {
             setSubmitting(true);
-            await api.post(`/users/${rejectModal.user._id}/reject`, {
+            const userId = rejectModal.user._id;
+
+            await api.post(`/users/${userId}/reject`, {
                 reason: rejectionReason
             });
+
             toast.success('User rejected successfully');
+
+            // Close modal first
             setRejectModal({ isOpen: false, user: null });
             setRejectionReason('');
-            await fetchUsers(); // Wait for refresh to complete
+
+            // Immediately update local state to remove from current view
+            setUsers(users.filter(u => u._id !== userId));
+
+            // Then fetch fresh data
+            await fetchUsers();
             window.dispatchEvent(new Event('pendingCountUpdated'));
         } catch (error) {
             console.error('Rejection error:', error);
             toast.error(error.response?.data?.message || 'Error rejecting user');
+            // Refresh on error to sync state
+            await fetchUsers();
         } finally {
             setSubmitting(false);
         }
@@ -138,10 +162,23 @@ const UserManagement = () => {
                                             <td>
                                                 {user.approvalStatus === 'pending' && (
                                                     <div className="flex gap-2">
-                                                        <button onClick={() => handleApprove(user._id)} className="btn btn-success btn-sm">
-                                                            <Check size={16} />Approve
+                                                        <button
+                                                            onClick={() => handleApprove(user._id)}
+                                                            className="btn btn-success btn-sm"
+                                                            disabled={processingUserId === user._id}
+                                                        >
+                                                            {processingUserId === user._id ? (
+                                                                <span className="loading loading-spinner loading-xs"></span>
+                                                            ) : (
+                                                                <Check size={16} />
+                                                            )}
+                                                            Approve
                                                         </button>
-                                                        <button onClick={() => setRejectModal({ isOpen: true, user })} className="btn btn-error btn-sm">
+                                                        <button
+                                                            onClick={() => setRejectModal({ isOpen: true, user })}
+                                                            className="btn btn-error btn-sm"
+                                                            disabled={processingUserId === user._id}
+                                                        >
                                                             <X size={16} />Reject
                                                         </button>
                                                     </div>
