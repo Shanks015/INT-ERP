@@ -27,8 +27,18 @@ const UserManagement = () => {
 
     const fetchUsers = async () => {
         try {
-            const endpoint = filter === 'all' ? '/users' : `/users?approvalStatus=${filter}`;
-            const response = await api.get(endpoint);
+            const timestamp = new Date().getTime();
+            const endpoint = filter === 'all'
+                ? `/users?_t=${timestamp}`
+                : `/users?approvalStatus=${filter}&_t=${timestamp}`;
+
+            const response = await api.get(endpoint, {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
             setUsers(response.data.users || []);
         } catch (error) {
             console.error('Error fetching users:', error);
@@ -53,11 +63,11 @@ const UserManagement = () => {
                 setUsers(users.filter(u => u._id !== userId));
             }
 
-            // Fetch fresh data after a short delay to allow DB update to propagate
+            // Fetch fresh data after a delay to allow DB update to propagate
             setTimeout(() => {
                 fetchUsers();
                 window.dispatchEvent(new Event('pendingCountUpdated'));
-            }, 500);
+            }, 1000);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Error approving user');
             await fetchUsers();
@@ -103,11 +113,11 @@ const UserManagement = () => {
             setRejectModal({ isOpen: false, user: null });
             setRejectionReason('');
 
-            // Fetch fresh data after a short delay
+            // Fetch fresh data after a delay
             setTimeout(() => {
                 fetchUsers();
                 window.dispatchEvent(new Event('pendingCountUpdated'));
-            }, 500);
+            }, 1000);
         } catch (error) {
             console.error('Rejection error:', error);
             toast.error(error.response?.data?.message || 'Error rejecting user');
