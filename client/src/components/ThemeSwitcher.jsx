@@ -7,7 +7,7 @@ const ThemeSwitcher = () => {
         'bumblebee',
         'forest',
         'lofi',
-        'fantasy',
+        //'fantasy',
         'cmyk',
         'autumn',
         'acid',
