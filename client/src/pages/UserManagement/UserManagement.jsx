@@ -11,14 +11,22 @@ const UserManagement = () => {
     const [filter, setFilter] = useState('all');
     const [rejectModal, setRejectModal] = useState({ isOpen: false, user: null });
     const [rejectionReason, setRejectionReason] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         fetchUsers();
+
+        // Auto-refresh every 10 seconds
+        const interval = setInterval(() => {
+            fetchUsers();
+        }, 10000);
+
+        return () => clearInterval(interval);
     }, [filter]);
 
     const fetchUsers = async () => {
         try {
-            const endpoint = filter === 'all' ? '/users' : `/users?status=${filter}`;
+            const endpoint = filter === 'all' ? '/users' : `/users?approvalStatus=${filter}`;
             const response = await api.get(endpoint);
             setUsers(response.data.users || []);
         } catch (error) {
@@ -46,16 +54,20 @@ const UserManagement = () => {
         }
 
         try {
+            setSubmitting(true);
             await api.post(`/users/${rejectModal.user._id}/reject`, {
                 reason: rejectionReason
             });
-            toast.success('User rejected');
+            toast.success('User rejected successfully');
             setRejectModal({ isOpen: false, user: null });
             setRejectionReason('');
-            fetchUsers();
+            await fetchUsers(); // Wait for refresh to complete
             window.dispatchEvent(new Event('pendingCountUpdated'));
         } catch (error) {
+            console.error('Rejection error:', error);
             toast.error(error.response?.data?.message || 'Error rejecting user');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -166,8 +178,27 @@ const UserManagement = () => {
                             />
                         </div>
                         <div className="modal-action">
-                            <button onClick={() => { setRejectModal({ isOpen: false, user: null }); setRejectionReason(''); }} className="btn">Cancel</button>
-                            <button onClick={handleReject} className="btn btn-error">Reject User</button>
+                            <button
+                                onClick={() => { setRejectModal({ isOpen: false, user: null }); setRejectionReason(''); }}
+                                className="btn"
+                                disabled={submitting}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleReject}
+                                className="btn btn-error"
+                                disabled={submitting || !rejectionReason.trim()}
+                            >
+                                {submitting ? (
+                                    <>
+                                        <span className="loading loading-spinner loading-sm"></span>
+                                        Rejecting...
+                                    </>
+                                ) : (
+                                    'Reject User'
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom';
+import { Link, useNavigate, Outlet, useLocation, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ThemeSwitcher from '../components/ThemeSwitcher';
 import {
@@ -228,9 +228,7 @@ const MainLayout = () => {
                                 <li className="menu-title">
                                     <span>{user?.name}</span>
                                     <span className="text-xs">{user?.email}</span>
-                                </li>
-                                <li>
-                                    <span className="badge badge-primary badge-sm">
+                                    <span className="badge badge-primary badge-sm mt-1">
                                         {user?.role}
                                     </span>
                                 </li>
