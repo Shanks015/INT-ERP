@@ -22,6 +22,7 @@ const MyRequests = () => {
         { name: 'masters-abroad', label: 'Masters Abroad', endpoint: '/masters-abroad' },
         { name: 'memberships', label: 'Memberships', endpoint: '/memberships' },
         { name: 'digital-media', label: 'Digital Media', endpoint: '/digital-media' },
+        { name: 'outreach', label: 'Outreach', endpoint: '/outreach' },
     ];
 
     useEffect(() => {
@@ -33,17 +34,24 @@ const MyRequests = () => {
         try {
             const responses = await Promise.all(
                 modules.map(module =>
-                    api.get(module.endpoint).catch(() => ({ data: { data: [] } }))
+                    api.get(module.endpoint, {
+                        params: { limit: 500 }
+                    }).catch(() => ({ data: { data: [] } }))
                 )
             );
 
             const myRequests = responses.flatMap((response, index) => {
                 const items = response.data.data || [];
                 return items
-                    .filter(item =>
-                        (item.status === 'pending_edit' || item.status === 'pending_delete') &&
-                        (item.updatedBy?.email === user?.email || item.createdBy?.email === user?.email)
-                    )
+                    .filter(item => {
+                        // Filter for pending items
+                        const isPending = item.status === 'pending_edit' || item.status === 'pending_delete';
+
+                        // Check ownership (creator or updator)
+                        const isMyRequest = (item.updatedBy?.email === user?.email) || (item.createdBy?.email === user?.email);
+
+                        return isPending && isMyRequest;
+                    })
                     .map(item => ({
                         ...item,
                         moduleName: modules[index].name,
@@ -55,6 +63,7 @@ const MyRequests = () => {
             setRequests(myRequests);
         } catch (error) {
             toast.error('Error fetching your requests');
+            console.error(error);
         } finally {
             setLoading(false);
         }
