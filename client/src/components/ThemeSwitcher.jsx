@@ -3,42 +3,44 @@ import { Palette } from 'lucide-react';
 
 const ThemeSwitcher = () => {
     const themes = [
-        "light",
-        "dark",
-        /* "cupcake", */
-        "bumblebee",
-        /* "emerald", */
-        /* "corporate", */
-        /* "synthwave", */
-        /* "retro",
-        "cyberpunk", */
-        "valentine",
-        "halloween",
-        /* "garden", */
-        "forest",
-        /* "aqua", */
-        "lofi",
-        /* "pastel", */
-        /* "fantasy",
-        "wireframe", */
-        "black",
-        /*"luxury",*/
-        "dracula",
-        "cmyk",
-        "autumn",
-        /* "business", */
-        "acid",
-        "lemonade",
-        /* "night", */
-        /* "coffee", */
-        "winter",
-        /* "dim", */
-        /* "nord",
-        "sunset", */
+        'light',
+        'bumblebee',
+        'forest',
+        'lofi',
+        'fantasy',
+        'cmyk',
+        'autumn',
+        'acid',
+        'lemonade',
+        'winter',
+        'halloween',
+        'valentine',
+
+        // Commented out themes (uncomment to re-enable):
+        // 'dark',
+        // 'cupcake',
+        // 'emerald',
+        // 'corporate',
+        // 'synthwave',
+        // 'retro',
+        // 'cyberpunk',
+        // 'aqua',
+        // 'garden',
+        // 'pastel',
+        // 'wireframe',
+        // 'black',
+        // 'luxury',
+        // 'dracula',
+        // 'business',
+        // 'night',
+        // 'coffee',
+        // 'dim',
+        // 'nord',
+        // 'sunset',
     ];
 
     const [currentTheme, setCurrentTheme] = useState(
-        localStorage.getItem('theme') || 'corporate'
+        localStorage.getItem('theme') || 'light'
     );
 
     useEffect(() => {
