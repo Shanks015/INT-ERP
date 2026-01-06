@@ -68,6 +68,12 @@ const DigitalMediaForm = lazy(() => import('./pages/DigitalMedia/DigitalMediaFor
 const OutreachList = lazy(() => import('./pages/Outreach/OutreachList'));
 const OutreachForm = lazy(() => import('./pages/Outreach/OutreachForm'));
 
+// Settings
+const Settings = lazy(() => import('./pages/Settings/Settings'));
+
+// Activity Logs (Admin only)
+const ActivityLogs = lazy(() => import('./pages/ActivityLogs/ActivityLogs'));
+
 function App() {
     const { user, loading } = useAuth();
 
@@ -142,6 +148,8 @@ function App() {
                         <Route path="my-requests" element={<MyRequests />} />
                         <Route path="reports" element={<Reports />} />
                         <Route path="user-management" element={<ProtectedRoute adminOnly><UserManagement /></ProtectedRoute>} />
+                        <Route path="settings" element={<Settings />} />
+                        <Route path="activity-logs" element={<ProtectedRoute adminOnly><ActivityLogs /></ProtectedRoute>} />
                     </Route>
 
                     <Route path="*" element={<Navigate to="/" replace />} />
