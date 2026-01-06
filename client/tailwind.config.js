@@ -21,6 +21,7 @@ export default {
             "lemonade",
             "winter",
             "halloween",
+            "valentine",
 
             // Commented out themes (uncomment to re-enable):
             // "dark",
