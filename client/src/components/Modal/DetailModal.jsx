@@ -35,6 +35,20 @@ const DetailModal = ({ isOpen, onClose, data, title, fields }) => {
             );
         }
 
+        // Handle emails
+        if (field.type === 'email') {
+            return (
+                <a
+                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${value}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link link-primary"
+                >
+                    {value}
+                </a>
+            );
+        }
+
         // Handle long text
         if (typeof value === 'string' && value.length > 100) {
             return <p className="whitespace-pre-wrap">{value}</p>;
