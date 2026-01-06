@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { UserPlus, Eye, EyeOff } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { UserPlus, Eye, EyeOff, Check } from 'lucide-react';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -14,6 +15,7 @@ const Register = () => {
     });
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
@@ -34,8 +36,7 @@ const Register = () => {
         );
 
         if (success) {
-            // Don't navigate to dashboard - show approval message
-            toast.success('Registration successful! Your account is pending admin approval.');
+            setShowSuccessModal(true);
         }
 
         setLoading(false);
@@ -149,6 +150,24 @@ const Register = () => {
                     </p>
                 </div>
             </div>
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-base-100 p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center">
+                        <div className="w-20 h-20 bg-success/10 text-success rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Check size={40} strokeWidth={3} />
+                        </div>
+                        <h3 className="text-2xl font-bold mb-3">Registration Successful!</h3>
+                        <p className="text-base-content/70 mb-8 leading-relaxed">
+                            Your account has been created and is pending admin approval. You will be able to log in once your account is approved.
+                        </p>
+                        <Link to="/login" className="btn btn-primary w-full text-lg">
+                            Back to Login
+                        </Link>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
