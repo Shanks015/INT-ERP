@@ -129,13 +129,8 @@ const OutreachList = () => {
     };
 
     const handleClearFilters = () => {
-        setFilters({
-            search: '',
-            status: '',
-            startDate: '',
-            endDate: '',
-            country: ''
-        });
+        setSearchInput('');
+        setFilters({ search: '', country: '', partnershipType: '', outreachType: '', startDate: '', endDate: '' });
         setCurrentPage(1);
     };
 
@@ -186,7 +181,29 @@ const OutreachList = () => {
                 onFilterChange={handleFilterChange}
                 onClearFilters={handleClearFilters}
                 showCountryFilter={true}
-            />
+            >
+                <div className="form-control">
+                    <label className="label"><span className="label-text">Partnership Type</span></label>
+                    <select className="select select-bordered w-full" value={filters.partnershipType || ''} onChange={(e) => handleFilterChange({ partnershipType: e.target.value })}>
+                        <option value="">All Types</option>
+                        {partnershipTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                </div>
+                <div className="form-control">
+                    <label className="label"><span className="label-text">Outreach Type</span></label>
+                    <select className="select select-bordered w-full" value={filters.outreachType || ''} onChange={(e) => handleFilterChange({ outreachType: e.target.value })}>
+                        <option value="">All Outreach Types</option>
+                        {outreachTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                </div>
+                <div className="form-control">
+                    <label className="label"><span className="label-text">Country</span></label>
+                    <select className="select select-bordered w-full" value={filters.country || ''} onChange={(e) => handleFilterChange({ country: e.target.value })}>
+                        <option value="">All Countries</option>
+                        {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                </div>
+            </FilterBar>
 
             {/* Table */}
             <div className="card bg-base-100 shadow-xl">
