@@ -1,5 +1,5 @@
 import express from 'express';
-import { auth } from '../middleware/auth.js';
+import { authenticate } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
 import { logActivity } from '../middleware/activityLogger.js';
 import {
@@ -15,7 +15,7 @@ import {
 const router = express.Router();
 
 // All routes require authentication
-router.use(auth);
+router.use(authenticate);
 
 // Get current user with full settings
 router.get('/me', getCurrentUser);
