@@ -306,7 +306,18 @@ const PartnersList = () => {
                                             <td>{partner.university}</td>
                                             <td>{partner.school || '-'}</td>
                                             <td>{partner.contactPerson || '-'}</td>
-                                            <td>{partner.email || '-'}</td>
+                                            <td>
+                                                {partner.email ? (
+                                                    <a
+                                                        href={`https://mail.google.com/mail/?view=cm&fs=1&to=${partner.email}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="link link-primary"
+                                                    >
+                                                        {partner.email}
+                                                    </a>
+                                                ) : '-'}
+                                            </td>
                                             <td>
                                                 {partner.mouStatus ? (
                                                     <span className={`badge badge-sm whitespace-nowrap ${partner.mouStatus === 'Completed' ? 'badge-success' :
@@ -425,7 +436,7 @@ const PartnersList = () => {
                     { key: 'mouStatus', label: 'MoU Status' },
                     { key: 'activeStatus', label: 'Active Status' },
                     { key: 'contactPerson', label: 'Contact Person' },
-                    { key: 'email', label: 'Email' },
+                    { key: 'email', label: 'Email', type: 'email' },
                     { key: 'phoneNumber', label: 'Phone Number' },
                     { key: 'agreementType', label: 'Agreement Type' },
                     { key: 'link', label: 'Link', type: 'link' },

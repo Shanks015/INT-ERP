@@ -144,7 +144,7 @@ const MouUpdatesList = () => {
                     { key: 'completedDate', label: 'Completed Date', type: 'date' },
                     { key: 'mouStatus', label: 'MoU Status' },
                     { key: 'contactPerson', label: 'Contact Person' },
-                    { key: 'contactEmail', label: 'Contact Email' },
+                    { key: 'contactEmail', label: 'Contact Email', type: 'email' },
                     { key: 'agreementType', label: 'Agreement Type' },
                     { key: 'term', label: 'Term' },
                     { key: 'validityStatus', label: 'Validity Status' },

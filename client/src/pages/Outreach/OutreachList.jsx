@@ -312,7 +312,7 @@ const OutreachList = () => {
                     { key: 'country', label: 'Country' },
                     { key: 'contactName', label: 'Contact Name' },
                     { key: 'contactPerson', label: 'Contact Person' },
-                    { key: 'email', label: 'Email' },
+                    { key: 'email', label: 'Email', type: 'email' },
                     { key: 'phone', label: 'Phone' },
                     { key: 'website', label: 'Website', type: 'link' },
                     { key: 'partnershipType', label: 'Partnership Type' },
