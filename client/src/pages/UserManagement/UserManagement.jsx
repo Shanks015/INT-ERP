@@ -110,7 +110,16 @@ const UserManagement = () => {
                                     users.map((user) => (
                                         <tr key={user._id}>
                                             <td>{user.name}</td>
-                                            <td>{user.email}</td>
+                                            <td>
+                                                <a
+                                                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${user.email}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="link link-primary"
+                                                >
+                                                    {user.email}
+                                                </a>
+                                            </td>
                                             <td><span className="badge">{user.role}</span></td>
                                             <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                                             <td>{getStatusBadge(user.approvalStatus)}</td>
