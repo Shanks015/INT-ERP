@@ -139,15 +139,15 @@ const CampusVisitsList = () => {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
                     <h1 className="text-3xl font-bold">Campus Visits</h1>
                     <p className="text-base-content/70 mt-2">Manage campus visit records</p>
                 </div>
-                <div className="flex gap-2">
-                    <button onClick={() => setImportModal(true)} className="btn btn-outline"><Upload size={18} />Import</button>
-                    <button onClick={handleExportCSV} className="btn btn-outline"><Download size={18} />Export CSV</button>
-                    <Link to="/campus-visits/new" className="btn btn-primary"><Plus size={18} />Add Visit</Link>
+                <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                    <button onClick={() => setImportModal(true)} className="btn btn-outline flex-1 md:flex-none"><Upload size={18} />Import</button>
+                    <button onClick={handleExportCSV} className="btn btn-outline flex-1 md:flex-none"><Download size={18} />Export CSV</button>
+                    <Link to="/campus-visits/new" className="btn btn-primary flex-1 md:flex-none"><Plus size={18} />Add Visit</Link>
                 </div>
             </div>
 
@@ -259,11 +259,11 @@ const CampusVisitsList = () => {
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
                             <thead>
-                                <tr><th>University</th><th>Country</th><th>Visitor</th><th>Date</th><th>Type</th><th>Department</th><th>Campus</th><th className="text-right">Actions</th></tr>
+                                <tr><th>University</th><th>Country</th><th>Visitor</th><th>Date</th><th>Type</th><th>Department</th><th>Campus</th><th>Status</th><th className="text-right">Actions</th></tr>
                             </thead>
                             <tbody>
                                 {campusVisits.length === 0 ? (
-                                    <tr><td colSpan={8} className="text-center py-8">No campus visits found</td></tr>
+                                    <tr><td colSpan={9} className="text-center py-8">No campus visits found</td></tr>
                                 ) : (
                                     campusVisits.map((visit) => (
                                         <tr key={visit._id}>
@@ -278,6 +278,11 @@ const CampusVisitsList = () => {
                                             </td>
                                             <td>{visit.department || '-'}</td>
                                             <td>{visit.campus || '-'}</td>
+                                            <td>
+                                                {visit.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
+                                                {visit.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
+                                                {visit.status === 'active' && <span className="badge badge-success badge-sm">Active</span>}
+                                            </td>
                                             <td>
                                                 <div className="flex gap-2 justify-end">
                                                     {visit.driveLink && (

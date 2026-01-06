@@ -145,23 +145,23 @@ const OutreachList = () => {
     return (
         <div>
             {/* Header */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
                     <h1 className="text-3xl font-bold">Outreach Data</h1>
                     <p className="text-base-content/70 mt-2">
                         Manage outreach activities and partnerships
                     </p>
                 </div>
-                <div className="flex gap-2">
-                    <button onClick={() => setImportModal(true)} className="btn btn-outline">
+                <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                    <button onClick={() => setImportModal(true)} className="btn btn-outline flex-1 md:flex-none">
                         <Upload size={18} />
                         Import
                     </button>
-                    <button onClick={handleExportCSV} className="btn btn-outline">
+                    <button onClick={handleExportCSV} className="btn btn-outline flex-1 md:flex-none">
                         <Download size={18} />
                         Export CSV
                     </button>
-                    <Link to="/outreach/new" className="btn btn-primary">
+                    <Link to="/outreach/new" className="btn btn-primary flex-1 md:flex-none">
                         <Plus size={18} />
                         Add Outreach
                     </Link>
@@ -251,19 +251,19 @@ const OutreachList = () => {
                                             </td>
                                             <td>
                                                 {item.status === 'pending_edit' && (
-                                                    <span className="badge badge-warning gap-2">
-                                                        <Clock size={14} />
+                                                    <span className="badge badge-warning badge-sm gap-2 whitespace-nowrap">
+                                                        <Clock size={12} />
                                                         Edit Pending
                                                     </span>
                                                 )}
                                                 {item.status === 'pending_delete' && (
-                                                    <span className="badge badge-error gap-2">
-                                                        <Clock size={14} />
+                                                    <span className="badge badge-error badge-sm gap-2 whitespace-nowrap">
+                                                        <Clock size={12} />
                                                         Delete Pending
                                                     </span>
                                                 )}
                                                 {item.status === 'active' && (
-                                                    <span className="badge badge-success">Active</span>
+                                                    <span className="badge badge-success badge-sm">Active</span>
                                                 )}
                                             </td>
                                             <td>

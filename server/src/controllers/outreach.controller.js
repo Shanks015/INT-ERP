@@ -7,6 +7,7 @@ import {
     remove,
     approve,
     reject,
+    getAllPending,
     exportCSV
 } from './generic.controller.js';
 import { getEnhancedStats } from './enhancedStats.controller.js';
@@ -18,5 +19,6 @@ export const updateOutreach = update(Outreach);
 export const deleteOutreach = remove(Outreach);
 export const approveOutreach = approve(Outreach);
 export const rejectOutreach = reject(Outreach);
+export const getOutreachPending = getAllPending(Outreach);
 export const exportOutreachCSV = exportCSV(Outreach);
 export const getOutreachStats = getEnhancedStats(Outreach);
