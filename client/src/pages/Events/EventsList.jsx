@@ -113,12 +113,12 @@ const EventsList = () => {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div><h1 className="text-3xl font-bold">Events</h1><p className="text-base-content/70 mt-2">Manage event records</p></div>
-                <div className="flex gap-2">
-                    <button onClick={() => setImportModal(true)} className="btn btn-outline"><Upload size={18} />Import</button>
-                    <button onClick={handleExportCSV} className="btn btn-outline"><Download size={18} />Export CSV</button>
-                    <Link to="/events/new" className="btn btn-primary"><Plus size={18} />Add Event</Link>
+                <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                    <button onClick={() => setImportModal(true)} className="btn btn-outline flex-1 md:flex-none"><Upload size={18} />Import</button>
+                    <button onClick={handleExportCSV} className="btn btn-outline flex-1 md:flex-none"><Download size={18} />Export CSV</button>
+                    <Link to="/events/new" className="btn btn-primary flex-1 md:flex-none"><Plus size={18} />Add Event</Link>
                 </div>
             </div>
 
@@ -179,9 +179,9 @@ const EventsList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Title</th><th>Type</th><th>University / Country</th><th>Date</th><th>Department</th><th>Campus</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Title</th><th>Type</th><th>University / Country</th><th>Date</th><th>Department</th><th>Campus</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {events.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No events found</td></tr> : events.map((event) => (
+                                {events.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No events found</td></tr> : events.map((event) => (
                                     <tr key={event._id}>
                                         <td className="max-w-md" title={event.title}>{event.title}</td>
                                         <td><span className="badge badge-info badge-sm whitespace-nowrap">{event.type || '-'}</span></td>
@@ -193,6 +193,11 @@ const EventsList = () => {
                                         <td>{new Date(event.date).toLocaleDateString()}</td>
                                         <td>{event.department || '-'}</td>
                                         <td>{event.campus || '-'}</td>
+                                        <td>
+                                            {event.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
+                                            {event.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
+                                            {event.status === 'active' && <span className="badge badge-success badge-sm">Active</span>}
+                                        </td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
                                                 {event.driveLink && (

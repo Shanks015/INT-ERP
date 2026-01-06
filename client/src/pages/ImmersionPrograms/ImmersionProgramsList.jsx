@@ -104,12 +104,12 @@ const ImmersionProgramsList = () => {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div><h1 className="text-3xl font-bold">Immersion Programs</h1><p className="text-base-content/70 mt-2">Manage immersion programs</p></div>
-                <div className="flex gap-2">
-                    <button onClick={() => setImportModal(true)} className="btn btn-outline"><Upload size={18} />Import</button>
-                    <button onClick={handleExportCSV} className="btn btn-outline"><Download size={18} />Export CSV</button>
-                    <Link to="/immersion-programs/new" className="btn btn-primary"><Plus size={18} />Add Program</Link>
+                <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                    <button onClick={() => setImportModal(true)} className="btn btn-outline flex-1 md:flex-none"><Upload size={18} />Import</button>
+                    <button onClick={handleExportCSV} className="btn btn-outline flex-1 md:flex-none"><Download size={18} />Export CSV</button>
+                    <Link to="/immersion-programs/new" className="btn btn-primary flex-1 md:flex-none"><Plus size={18} />Add Program</Link>
                 </div>
             </div>
 
@@ -196,7 +196,14 @@ const ImmersionProgramsList = () => {
                                         <td>{program.country}</td>
                                         <td><span className={`badge badge-sm ${program.direction === 'Outgoing' ? 'badge-primary' : 'badge-secondary'}`}>{program.direction}</span></td>
                                         <td>{program.numberOfPax}</td>
-                                        <td><span className={`badge badge-sm ${program.programStatus === 'Completed' ? 'badge-success' : 'badge-info'}`}>{program.programStatus}</span></td>
+                                        <td>
+                                            <div className="flex flex-col gap-1">
+                                                <span className={`badge badge-sm ${program.programStatus === 'Completed' ? 'badge-success' : 'badge-info'}`}>{program.programStatus}</span>
+                                                {program.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
+                                                {program.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
+                                                {program.status === 'active' && <span className="badge badge-success badge-sm">Active</span>}
+                                            </div>
+                                        </td>
                                         <td>{program.arrivalDate ? `${new Date(program.arrivalDate).toLocaleDateString()} - ${new Date(program.departureDate).toLocaleDateString()}` : '-'}</td>
                                         <td>
                                             <div className="flex gap-2 justify-end">

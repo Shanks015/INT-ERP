@@ -24,27 +24,17 @@ export const getAllUsers = async (req, res) => {
     try {
         const { status, approvalStatus } = req.query;
 
-        console.log('=== getAllUsers API called ===');
-        console.log('Query params:', req.query);
-
         // Support both 'status' and 'approvalStatus' parameters
         const filterStatus = approvalStatus || status;
-
-        console.log('Filter status:', filterStatus);
 
         let query = {};
         if (filterStatus && filterStatus !== 'all') {
             query.approvalStatus = filterStatus;
         }
 
-        console.log('MongoDB query:', JSON.stringify(query));
-
         const users = await User.find(query)
             .select('-password')
             .sort({ createdAt: -1 });
-
-        console.log('Found users:', users.length);
-        console.log('Sample statuses:', users.slice(0, 3).map(u => u.approvalStatus));
 
         res.json({
             success: true,
@@ -109,26 +99,14 @@ export const rejectUser = async (req, res) => {
         const { reason } = req.body;
         const adminId = req.userId;
 
-        console.log('=== REJECT USER CALLED ===');
-        console.log('User ID:', id);
-        console.log('Reason:', reason);
-        console.log('Admin ID:', adminId);
-
         if (!reason) {
             return res.status(400).json({ message: 'Rejection reason is required' });
         }
 
         const user = await User.findById(id);
         if (!user) {
-            console.log('User not found:', id);
             return res.status(404).json({ message: 'User not found' });
         }
-
-        console.log('User before update:', {
-            name: user.name,
-            currentStatus: user.approvalStatus,
-            approved: user.approved
-        });
 
         // Direct database update using findByIdAndUpdate
         const updatedUser = await User.findByIdAndUpdate(
@@ -142,13 +120,6 @@ export const rejectUser = async (req, res) => {
             },
             { new: true, runValidators: true }
         );
-
-        console.log('User updated successfully!');
-        console.log('Updated user status:', {
-            name: updatedUser.name,
-            status: updatedUser.approvalStatus,
-            reason: updatedUser.rejectionReason
-        });
 
         res.json({
             message: 'User rejected successfully',

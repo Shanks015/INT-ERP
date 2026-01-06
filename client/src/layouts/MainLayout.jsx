@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, Outlet, useLocation, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import api from '../api';
 import ThemeSwitcher from '../components/ThemeSwitcher';
 import {
     LayoutDashboard,
@@ -28,15 +29,32 @@ const MainLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [pendingCount, setPendingCount] = useState(0);
+    const [pendingUsersCount, setPendingUsersCount] = useState(0);
     const [drawerOpen, setDrawerOpen] = useState(false);
+
+    const modules = [
+        { name: 'partners', endpoint: '/partners' },
+        { name: 'campus-visits', endpoint: '/campus-visits' },
+        { name: 'events', endpoint: '/events' },
+        { name: 'conferences', endpoint: '/conferences' },
+        { name: 'mou-signing-ceremonies', endpoint: '/mou-signing-ceremonies' },
+        { name: 'scholars-in-residence', endpoint: '/scholars-in-residence' },
+        { name: 'mou-updates', endpoint: '/mou-updates' },
+        { name: 'immersion-programs', endpoint: '/immersion-programs' },
+        { name: 'student-exchange', endpoint: '/student-exchange' },
+        { name: 'masters-abroad', endpoint: '/masters-abroad' },
+        { name: 'memberships', endpoint: '/memberships' },
+        { name: 'digital-media', endpoint: '/digital-media' },
+        { name: 'outreach', endpoint: '/outreach' },
+    ];
 
     useEffect(() => {
         // Fetch pending count for admin
         if (isAdmin) {
-            fetchPendingCount();
+            fetchPendingCounts();
 
             // Listen for pending count updates
-            const handlePendingUpdate = () => fetchPendingCount();
+            const handlePendingUpdate = () => fetchPendingCounts();
             window.addEventListener('pendingCountUpdated', handlePendingUpdate);
 
             return () => {
@@ -45,10 +63,27 @@ const MainLayout = () => {
         }
     }, [isAdmin]);
 
-    const fetchPendingCount = async () => {
-        // This will be implemented to fetch total pending across all modules
-        // For now, setting to 0
-        setPendingCount(0);
+    const fetchPendingCounts = async () => {
+        try {
+            // Fetch pending users
+            const usersResponse = await api.get('/users?approvalStatus=pending');
+            setPendingUsersCount(usersResponse.data.users?.length || 0);
+
+            // Fetch pending actions across all modules
+            const actionResponses = await Promise.all(
+                modules.map(module =>
+                    api.get(`${module.endpoint}/pending/all`).catch(() => ({ data: { data: [] } }))
+                )
+            );
+
+            const totalPendingActions = actionResponses.reduce((acc, response) => {
+                return acc + (response.data.data?.length || 0);
+            }, 0);
+
+            setPendingCount(totalPendingActions);
+        } catch (error) {
+            console.error('Error fetching pending counts:', error);
+        }
     };
 
     const handleLogout = () => {
@@ -90,7 +125,11 @@ const MainLayout = () => {
                     <li>
                         {user.role === 'admin' && (
                             <NavLink to="/user-management" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-lg ${isActive ? 'bg-primary text-primary-content' : 'hover:bg-base-200'}`}>
-                                <Users size={18} /> User Management
+                                <div className="flex items-center gap-3 flex-1">
+                                    <Users size={18} />
+                                    <span>User Management</span>
+                                </div>
+                                {pendingUsersCount > 0 && <span className="badge badge-error badge-sm">{pendingUsersCount}</span>}
                             </NavLink>
                         )}
                     </li>
@@ -110,7 +149,10 @@ const MainLayout = () => {
                     </li>
                     <li>
                         <Link to="/pending-actions" className={location.pathname === '/pending-actions' ? 'active' : ''}>
-                            <Bell size={18} /> Pending Actions
+                            <div className="flex items-center gap-2 flex-1">
+                                <Bell size={18} />
+                                <span>Pending Actions</span>
+                            </div>
                             {pendingCount > 0 && <span className="badge badge-error badge-sm">{pendingCount}</span>}
                         </Link>
                     </li>

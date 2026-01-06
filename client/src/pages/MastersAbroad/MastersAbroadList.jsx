@@ -88,12 +88,12 @@ const MastersAbroadList = () => {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div><h1 className="text-3xl font-bold">Masters Abroad</h1><p className="text-base-content/70 mt-2">Manage masters programs abroad</p></div>
-                <div className="flex gap-2">
-                    <button onClick={() => setImportModal(true)} className="btn btn-outline"><Upload size={18} />Import</button>
-                    <button onClick={handleExportCSV} className="btn btn-outline"><Download size={18} />Export CSV</button>
-                    <Link to="/masters-abroad/new" className="btn btn-primary"><Plus size={18} />Add Program</Link>
+                <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                    <button onClick={() => setImportModal(true)} className="btn btn-outline flex-1 md:flex-none"><Upload size={18} />Import</button>
+                    <button onClick={handleExportCSV} className="btn btn-outline flex-1 md:flex-none"><Download size={18} />Export CSV</button>
+                    <Link to="/masters-abroad/new" className="btn btn-primary flex-1 md:flex-none"><Plus size={18} />Add Program</Link>
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -122,8 +122,8 @@ const MastersAbroadList = () => {
                                         <td>{program.country}</td>
                                         <td>{program.duration || '-'}</td>
                                         <td>
-                                            {program.status === 'pending_edit' && <span className="badge badge-warning gap-2"><Clock size={14} />Edit Pending</span>}
-                                            {program.status === 'pending_delete' && <span className="badge badge-error gap-2"><Clock size={14} />Delete Pending</span>}
+                                            {program.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2"><Clock size={14} />Edit Pending</span>}
+                                            {program.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2"><Clock size={14} />Delete Pending</span>}
                                             {program.status === 'active' && <span className="badge badge-success">Active</span>}
                                         </td>
                                         <td>

@@ -168,27 +168,27 @@ const PartnersList = () => {
     return (
         <div>
             {/* Header */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
                     <h1 className="text-3xl font-bold">Partners</h1>
                     <p className="text-base-content/70 mt-2">Manage international partnerships and MOUs</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 w-full md:w-auto">
                     <button
                         onClick={() => setImportModal(true)}
-                        className="btn btn-outline"
+                        className="btn btn-outline flex-1 md:flex-none"
                     >
                         <Upload size={18} />
                         Import
                     </button>
                     <button
                         onClick={handleExportCSV}
-                        className="btn btn-outline"
+                        className="btn btn-outline flex-1 md:flex-none"
                     >
                         <Download size={18} />
                         Export CSV
                     </button>
-                    <Link to="/partners/new" className="btn btn-primary">
+                    <Link to="/partners/new" className="btn btn-primary flex-1 md:flex-none">
                         <Plus size={18} />
                         Add Partner
                     </Link>

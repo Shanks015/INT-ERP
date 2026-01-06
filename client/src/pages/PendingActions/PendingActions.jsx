@@ -23,6 +23,7 @@ const PendingActions = () => {
         { name: 'masters-abroad', label: 'Masters Abroad', endpoint: '/masters-abroad' },
         { name: 'memberships', label: 'Memberships', endpoint: '/memberships' },
         { name: 'digital-media', label: 'Digital Media', endpoint: '/digital-media' },
+        { name: 'outreach', label: 'Outreach', endpoint: '/outreach' },
     ];
 
     useEffect(() => {
@@ -169,10 +170,10 @@ const PendingActions = () => {
                                             </td>
                                             <td>
                                                 {item.status === 'pending_edit' && (
-                                                    <span className="badge badge-warning">Edit Request</span>
+                                                    <span className="badge badge-warning badge-sm">Edit Request</span>
                                                 )}
                                                 {item.status === 'pending_delete' && (
-                                                    <span className="badge badge-error">Delete Request</span>
+                                                    <span className="badge badge-error badge-sm">Delete Request</span>
                                                 )}
                                             </td>
                                             <td className="font-medium">{getDisplayValue(item)}</td>

@@ -1,4 +1,4 @@
-import express from 'express';
+import express from 'express'; // server restart trigger
 import mongoose from 'mongoose';
 import cors from 'cors';
 import compression from 'compression';
@@ -54,11 +54,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Add caching headers for API responses
+// Disable caching for API responses to ensure real-time updates
 app.use('/api', (req, res, next) => {
-    // Cache GET requests for 5 minutes
-    if (req.method === 'GET') {
-        res.set('Cache-Control', 'public, max-age=300');
-    }
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.set('Surrogate-Control', 'no-store');
     next();
 });
 
