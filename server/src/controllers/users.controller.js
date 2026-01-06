@@ -22,11 +22,14 @@ export const getPendingUsers = async (req, res) => {
 // Get all users with optional status filter
 export const getAllUsers = async (req, res) => {
     try {
-        const { status } = req.query;
+        const { status, approvalStatus } = req.query;
+
+        // Support both 'status' and 'approvalStatus' parameters
+        const filterStatus = approvalStatus || status;
 
         let query = {};
-        if (status && status !== 'all') {
-            query.approvalStatus = status;
+        if (filterStatus && filterStatus !== 'all') {
+            query.approvalStatus = filterStatus;
         }
 
         const users = await User.find(query)
