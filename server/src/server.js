@@ -28,6 +28,8 @@ import outreachRoutes from './routes/outreach.routes.js';
 import importRoutes from './routes/import.routes.js';
 import reportsRoutes from './routes/reports.routes.js';
 import usersRoutes from './routes/users.routes.js';
+import activityLogsRoutes from './routes/activityLogs.routes.js';
+import userSettingsRoutes from './routes/userSettings.routes.js';
 
 import googleFormsRoutes from './routes/googleForms.routes.js';
 
@@ -79,6 +81,11 @@ app.use('/api/outreach', outreachRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/google-forms', googleFormsRoutes);
+app.use('/api/activity-logs', activityLogsRoutes);
+app.use('/api/settings', userSettingsRoutes);
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {

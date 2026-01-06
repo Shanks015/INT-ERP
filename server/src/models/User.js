@@ -45,6 +45,53 @@ const userSchema = new mongoose.Schema({
   },
   rejectionReason: {
     type: String
+  },
+  profilePhoto: {
+    type: String,
+    default: null
+  },
+  preferences: {
+    theme: {
+      type: String,
+      default: 'light',
+      enum: ['light', 'bumblebee', 'forest', 'lofi', 'fantasy',
+        'cmyk', 'autumn', 'acid', 'lemonade', 'winter',
+        'halloween', 'valentine']
+    },
+    dateFormat: {
+      type: String,
+      default: 'MM/DD/YYYY',
+      enum: ['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']
+    },
+    timeFormat: {
+      type: String,
+      default: '12h',
+      enum: ['12h', '24h']
+    },
+    language: {
+      type: String,
+      default: 'en',
+      enum: ['en']
+    }
+  },
+  notificationSettings: {
+    email: {
+      enabled: { type: Boolean, default: true },
+      frequency: {
+        type: String,
+        default: 'instant',
+        enum: ['instant', 'daily', 'weekly']
+      },
+      events: {
+        newSubmission: { type: Boolean, default: true },
+        approvalNeeded: { type: Boolean, default: true },
+        statusUpdate: { type: Boolean, default: true }
+      }
+    }
+  },
+  lastPasswordChange: {
+    type: Date,
+    default: Date.now
   }
 }, {
   timestamps: true
