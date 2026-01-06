@@ -1,5 +1,5 @@
 import express from 'express';
-import { auth, authorize } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 import {
     getActivityLogs,
     getActivityStats,
@@ -9,8 +9,16 @@ import {
 const router = express.Router();
 
 // All routes require authentication and admin role
-router.use(auth);
-router.use(authorize('admin'));
+router.use(authenticate);
+router.use((req, res, next) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({
+            success: false,
+            message: 'Access denied. Admin only.'
+        });
+    }
+    next();
+});
 
 // Get activity logs with filtering
 router.get('/', getActivityLogs);
