@@ -25,7 +25,7 @@ const CampusVisitsList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    const [filters, setFilters] = useState({ search: '', startDate: '', endDate: '', country: '', university: '' });
+    const [filters, setFilters] = useState({ search: '', type: '', startDate: '', endDate: '', country: '', university: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
@@ -38,7 +38,7 @@ const CampusVisitsList = () => {
         fetchVisits();
         fetchStats();
         fetchFilterData();
-    }, [currentPage, itemsPerPage, debouncedSearch, filters.startDate, filters.endDate, filters.country, filters.university]);
+    }, [currentPage, itemsPerPage, debouncedSearch, filters.type, filters.startDate, filters.endDate, filters.country, filters.university]);
 
     const fetchStats = async () => {
         try {
@@ -73,6 +73,7 @@ const CampusVisitsList = () => {
                 page: currentPage,
                 limit: itemsPerPage,
                 search: debouncedSearch,
+                type: filters.type,
                 startDate: filters.startDate,
                 endDate: filters.endDate,
                 country: filters.country,
