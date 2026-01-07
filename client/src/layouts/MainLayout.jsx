@@ -304,8 +304,10 @@ const MainLayout = () => {
                 </div>
 
                 {/* Page content */}
-                <div className="p-4 lg:p-6 bg-base-200 min-h-screen">
-                    <Outlet />
+                <div className="bg-base-200 min-h-screen p-6 lg:p-10">
+                    <div className="mx-auto max-w-7xl">
+                        <Outlet />
+                    </div>
                 </div>
             </div>
 
