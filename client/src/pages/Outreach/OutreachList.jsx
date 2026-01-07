@@ -37,8 +37,6 @@ const OutreachList = () => {
 
     useEffect(() => { fetchOutreach(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.partnershipType, filters.outreachType, filters.startDate, filters.endDate]);
 
-    useEffect(() => { fetchOutreach(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
-
     const fetchStats = async () => {
         try {
             const response = await api.get('/outreach/stats');
