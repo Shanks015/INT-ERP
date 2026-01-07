@@ -24,16 +24,16 @@ const ConferencesList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    const [filters, setFilters] = useState({ search: '', country: '', conferenceType: '', startDate: '', endDate: '' });
+    const [filters, setFilters] = useState({ search: '', country: '', campus: '', startDate: '', endDate: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
 
     // Dynamic filter data
     const [countries, setCountries] = useState([]);
-    const [conferenceTypes, setConferenceTypes] = useState([]);
+    const [campuses, setCampuses] = useState([]);
 
-    useEffect(() => { fetchConferences(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.conferenceType, filters.startDate, filters.endDate]);
+    useEffect(() => { fetchConferences(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.campus, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {
@@ -50,8 +50,8 @@ const ConferencesList = () => {
             const uniqueCountries = [...new Set(conferences.map(c => c.country).filter(Boolean))].sort();
             setCountries(uniqueCountries);
 
-            const uniqueTypes = [...new Set(conferences.map(c => c.conferenceType).filter(Boolean))].sort();
-            setConferenceTypes(uniqueTypes);
+            const uniqueCampuses = [...new Set(conferences.map(c => c.campus).filter(Boolean))].sort();
+            setCampuses(uniqueCampuses);
         } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
@@ -72,7 +72,7 @@ const ConferencesList = () => {
                 limit: itemsPerPage,
                 search: debouncedSearch,
                 country: filters.country,
-                conferenceType: filters.conferenceType,
+                campus: filters.campus,
                 startDate: filters.startDate,
                 endDate: filters.endDate
             };
@@ -108,8 +108,7 @@ const ConferencesList = () => {
     };
 
     const handleClearFilters = () => {
-        setSearchInput('');
-        setFilters({ search: '', country: '', conferenceType: '', startDate: '', endDate: '' });
+        setFilters({ search: '', country: '', campus: '', startDate: '', endDate: '' });
         setCurrentPage(1);
     };
 
@@ -158,17 +157,14 @@ const ConferencesList = () => {
                             </select>
                         </div>
 
-                        {/* Conference Type Filter */}
+
+                        {/* Campus Filter */}
                         <div className="form-control">
-                            <label className="label"><span className="label-text">Conference Type</span></label>
-                            <select
-                                className="select select-bordered w-full"
-                                value={filters.conferenceType || ''}
-                                onChange={(e) => setFilters(prev => ({ ...prev, conferenceType: e.target.value }))}
-                            >
-                                <option value="">All Types</option>
-                                {conferenceTypes.map(type => (
-                                    <option key={type} value={type}>{type}</option>
+                            <label className="label"><span className="label-text">Campus</span></label>
+                            <select className="select select-bordered w-full" value={filters.campus || ''} onChange={(e) => setFilters(prev => ({ ...prev, campus: e.target.value }))}>
+                                <option value="">All Campuses</option>
+                                {campuses.map(campus => (
+                                    <option key={campus} value={campus}>{campus}</option>
                                 ))}
                             </select>
                         </div>
