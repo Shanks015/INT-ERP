@@ -24,21 +24,15 @@ const EventsList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [filters, setFilters] = useState({ search: '', type: '', department: '', startDate: '', endDate: '' });
-    const [searchInput, setSearchInput] = useState('');
+
+    // Debounce search to avoid excessive API calls
+    const debouncedSearch = useDebounce(filters.search, 500);
 
     // Dynamic filter data
     const [eventTypes, setEventTypes] = useState([]);
     const [departments, setDepartments] = useState([]);
 
-    useEffect(() => { fetchEvents(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setFilters(prev => ({ ...prev, search: searchInput }));
-            setCurrentPage(1);
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [searchInput]);
+    useEffect(() => { fetchEvents(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.type, filters.department, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {
