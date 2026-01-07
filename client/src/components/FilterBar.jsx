@@ -36,20 +36,19 @@ const FilterBar = ({ filters, onFilterChange, onClearFilters, showCountryFilter 
                         </div>
                     </div>
 
-                    {/* Status Filter */}
+                    {/* Record Status Filter */}
                     <div className="form-control">
                         <label className="label">
                             <span className="label-text">Status</span>
                         </label>
                         <select
                             className="select select-bordered w-full"
-                            value={filters.status || ''}
-                            onChange={(e) => handleChange('status', e.target.value)}
+                            value={filters.recordStatus || ''}
+                            onChange={(e) => handleChange('recordStatus', e.target.value)}
                         >
                             <option value="">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
+                            <option value="active">Active</option>
+                            <option value="expired">Expired</option>
                         </select>
                     </div>
 

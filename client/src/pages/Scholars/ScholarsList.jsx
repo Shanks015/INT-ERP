@@ -24,7 +24,7 @@ const ScholarsList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', country: '', department: '', designation: '', startDate: '', endDate: '' });
+    const [filters, setFilters] = useState({ search: '', country: '', department: '', designation: '', recordStatus: '', startDate: '', endDate: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
@@ -32,7 +32,7 @@ const ScholarsList = () => {
     const [countries, setCountries] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [designations, setDesignations] = useState([]);
-    useEffect(() => { fetchScholars(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.department, filters.designation, filters.startDate, filters.endDate]);
+    useEffect(() => { fetchScholars(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.department, filters.designation, filters.recordStatus, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {
@@ -64,6 +64,7 @@ const ScholarsList = () => {
                 country: filters.country,
                 department: filters.department,
                 designation: filters.designation,
+                recordStatus: filters.recordStatus,
                 startDate: filters.startDate,
                 endDate: filters.endDate
             };
@@ -99,7 +100,7 @@ const ScholarsList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', country: '', department: '', designation: '', startDate: '', endDate: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', country: '', department: '', designation: '', recordStatus: '', startDate: '', endDate: '' }); setCurrentPage(1); };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
