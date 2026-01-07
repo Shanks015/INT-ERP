@@ -57,7 +57,16 @@ const ScholarsList = () => {
     const fetchScholars = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = {
+                page: currentPage,
+                limit: itemsPerPage,
+                search: debouncedSearch,
+                country: filters.country,
+                department: filters.department,
+                designation: filters.designation,
+                startDate: filters.startDate,
+                endDate: filters.endDate
+            };
             const response = await api.get('/scholars-in-residence', { params });
             setScholars(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
