@@ -67,7 +67,15 @@ const ConferencesList = () => {
     const fetchConferences = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = {
+                page: currentPage,
+                limit: itemsPerPage,
+                search: debouncedSearch,
+                country: filters.country,
+                conferenceType: filters.conferenceType,
+                startDate: filters.startDate,
+                endDate: filters.endDate
+            };
             const response = await api.get('/conferences', { params });
             setConferences(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -184,20 +192,16 @@ const ConferencesList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Conference Name</th><th>Country</th><th>Date</th><th>Department</th><th>Campus</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Conference Name</th><th>Country</th><th>Date</th><th>Department</th><th>Campus</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {conferences.length === 0 ? <tr><td colSpan={7} className="text-center py-8">No conferences found</td></tr> : conferences.map((conf) => (
+                                {conferences.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No conferences found</td></tr> : conferences.map((conf) => (
                                     <tr key={conf._id}>
                                         <td className="max-w-xs" title={conf.conferenceName}>{conf.conferenceName}</td>
                                         <td>{conf.country}</td>
                                         <td>{new Date(conf.date).toLocaleDateString()}</td>
                                         <td>{conf.department || '-'}</td>
                                         <td>{conf.campus || '-'}</td>
-                                        <td>
-                                            {conf.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
-                                            {conf.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
-                                            {conf.status === 'active' && <span className="badge badge-success badge-sm">Active</span>}
-                                        </td>
+
                                         <td>
                                             <div className="flex gap-2 justify-end">
                                                 {conf.driveLink && (
