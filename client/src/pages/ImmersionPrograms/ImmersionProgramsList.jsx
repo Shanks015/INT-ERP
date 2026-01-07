@@ -194,10 +194,13 @@ const ImmersionProgramsList = () => {
                                         <td>{program.numberOfPax}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
-                                                <span className={`badge badge-sm ${program.programStatus === 'Completed' ? 'badge-success' : 'badge-info'}`}>{program.programStatus}</span>
+                                                {/* Record Status Badge */}
+                                                {program.recordStatus === 'active' && <span className="badge badge-success badge-sm">Active</span>}
+                                                {program.recordStatus === 'expired' && <span className="badge badge-error badge-sm">Expired</span>}
+
+                                                {/* Approval Workflow Badges */}
                                                 {program.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
                                                 {program.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
-                                                {program.status === 'active' && <span className="badge badge-success badge-sm">Active</span>}
                                             </div>
                                         </td>
                                         <td>{program.arrivalDate ? `${new Date(program.arrivalDate).toLocaleDateString()} - ${new Date(program.departureDate).toLocaleDateString()}` : '-'}</td>
