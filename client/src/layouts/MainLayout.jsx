@@ -237,7 +237,6 @@ const MainLayout = () => {
                         <label
                             htmlFor="main-drawer"
                             className="btn btn-square btn-ghost"
-                            onClick={() => setDrawerOpen(true)}
                         >
                             <Menu size={24} />
                         </label>
@@ -322,14 +321,14 @@ const MainLayout = () => {
                     <div className="flex items-center justify-between mb-4 lg:mb-6">
                         <h2 className="text-lg font-bold">Menu</h2>
                         <button
-                            className="btn btn-ghost btn-sm btn-circle lg:hidden"
+                            className="btn btn-ghost btn-sm btn-circle"
                             onClick={() => setDrawerOpen(false)}
                         >
                             <X size={20} />
                         </button>
                     </div>
 
-                    <ul className="menu p-0">
+                    <ul className="menu p-0" onClick={() => setDrawerOpen(false)}>
                         {sidebarContent}
                     </ul>
 
