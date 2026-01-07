@@ -26,8 +26,9 @@ const CampusVisitsList = () => {
     const [totalPages, setTotalPages] = useState(0);
 
     const [filters, setFilters] = useState({ search: '', startDate: '', endDate: '', country: '', university: '' });
-    // Debounced search to prevent refresh on every keystroke
-    const [searchInput, setSearchInput] = useState('');
+
+    // Debounce search to avoid excessive API calls
+    const debouncedSearch = useDebounce(filters.search, 500);
 
     // Dynamic countries list from database
     const [countries, setCountries] = useState([]);
@@ -37,17 +38,7 @@ const CampusVisitsList = () => {
         fetchVisits();
         fetchStats();
         fetchFilterData();
-    }, [currentPage, itemsPerPage, filters]);
-
-    // Debounce search input - only update filters after user stops typing for 500ms
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setFilters(prev => ({ ...prev, search: searchInput }));
-            setCurrentPage(1);
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }, [searchInput]);
+    }, [currentPage, itemsPerPage, debouncedSearch, filters.startDate, filters.endDate, filters.country, filters.university]);
 
     const fetchStats = async () => {
         try {
