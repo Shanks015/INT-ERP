@@ -387,13 +387,13 @@ const PartnersList = () => {
 
                                                     {/* Approval Workflow Badges */}
                                                     {partner.status === 'pending_edit' && (
-                                                        <span className="badge badge-warning badge-sm gap-1">
+                                                        <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap">
                                                             <Clock size={12} />
                                                             Edit Pending
                                                         </span>
                                                     )}
                                                     {partner.status === 'pending_delete' && (
-                                                        <span className="badge badge-error badge-sm gap-1">
+                                                        <span className="badge badge-error badge-sm gap-1 whitespace-nowrap">
                                                             <Clock size={12} />
                                                             Delete Pending
                                                         </span>
