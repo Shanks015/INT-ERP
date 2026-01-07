@@ -25,10 +25,13 @@ const MembershipsList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [filters, setFilters] = useState({ search: '', membershipType: '', country: '', startDate: '', endDate: '' });
-    const [searchInput, setSearchInput] = useState('');
+
+    // Debounce search to avoid excessive API calls
+    const debouncedSearch = useDebounce(filters.search, 500);
+
     const [membershipTypes, setMembershipTypes] = useState([]);
     const [countries, setCountries] = useState([]);
-    useEffect(() => { fetchMemberships(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
+    useEffect(() => { fetchMemberships(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.membershipType, filters.country, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {

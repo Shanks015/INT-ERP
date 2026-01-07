@@ -18,7 +18,10 @@ const OutreachList = () => {
     const [stats, setStats] = useState({ total: 0, responses: 0, nonResponses: 0 });
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({ search: '', country: '', partnershipType: '', outreachType: '', startDate: '', endDate: '' });
-    const [searchInput, setSearchInput] = useState('');
+
+    // Debounce search to avoid excessive API calls
+    const debouncedSearch = useDebounce(filters.search, 500);
+
     const [countries, setCountries] = useState([]);
     const [partnershipTypes, setPartnershipTypes] = useState([]);
     const [outreachTypes, setOutreachTypes] = useState([]);
@@ -32,17 +35,7 @@ const OutreachList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    // Filter state
-    // This state is now redundant as `filters` above covers it. Keeping it for context of the original change.
-    // The instruction implies `filters` should be updated, and new states added.
-    // The original `filters` state was:
-    // const [filters, setFilters] = useState({
-    //     search: '',
-    //     status: '',
-    //     startDate: '',
-    //     endDate: '',
-    //     country: ''
-    // });
+    useEffect(() => { fetchOutreach(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.partnershipType, filters.outreachType, filters.startDate, filters.endDate]);
 
     useEffect(() => { fetchOutreach(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
 
