@@ -104,7 +104,7 @@ const MainLayout = () => {
             <li><Link to="/events" className={location.pathname.includes('/events') ? 'active' : ''}><Calendar size={18} /> Events</Link></li>
             <li><Link to="/conferences" className={location.pathname.includes('/conferences') ? 'active' : ''}><Globe size={18} /> Conferences</Link></li>
             <li><Link to="/mou-signing-ceremonies" className={location.pathname.includes('/mou-signing-ceremonies') ? 'active' : ''}><FileText size={18} /> MoU Signing</Link></li>
-            <li><Link to="/scholars-in-residence" className={location.pathname.includes('/scholars-in-residence') ? 'active' : ''}><GraduationCap size={18} /> Scholars</Link></li>
+            <li><Link to="/scholars-in-residence" className={location.pathname.includes('/scholars-in-residence') ? 'active' : ''}><GraduationCap size={18} /> Scholars In Residence</Link></li>
             <li><Link to="/mou-updates" className={location.pathname.includes('/mou-updates') ? 'active' : ''}><FileEdit size={18} /> MoU Updates</Link></li>
             <li><Link to="/immersion-programs" className={location.pathname.includes('/immersion-programs') ? 'active' : ''}><Plane size={18} /> Immersion Programs</Link></li>
             <li><Link to="/student-exchange" className={location.pathname.includes('/student-exchange') ? 'active' : ''}><UserCheck size={18} /> Student Exchange</Link></li>
