@@ -132,8 +132,8 @@ const MembershipsList = () => {
                                                 {membership.recordStatus === 'expired' && <span className="badge badge-error badge-sm">Expired</span>}
 
                                                 {/* Approval Workflow Badges */}
-                                                {membership.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1"><Clock size={12} />Edit Pending</span>}
-                                                {membership.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-1"><Clock size={12} />Delete Pending</span>}
+                                                {membership.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
+                                                {membership.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
                                             </div>
                                         </td>
                                         <td>

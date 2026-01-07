@@ -135,8 +135,8 @@ const MouSigningCeremoniesList = () => {
                                                 {ceremony.recordStatus === 'expired' && <span className="badge badge-error badge-sm">Expired</span>}
 
                                                 {/* Approval Workflow Badges */}
-                                                {ceremony.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1"><Clock size={12} />Edit Pending</span>}
-                                                {ceremony.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-1"><Clock size={12} />Delete Pending</span>}
+                                                {ceremony.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
+                                                {ceremony.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
                                             </div>
                                         </td>
                                         <td>
