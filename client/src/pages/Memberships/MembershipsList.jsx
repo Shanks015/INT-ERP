@@ -24,14 +24,14 @@ const MembershipsList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', membershipType: '', country: '', startDate: '', endDate: '' });
+    const [filters, setFilters] = useState({ search: '', membershipType: '', country: '', startDate: '', endDate: '', recordStatus: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
 
     const [membershipTypes, setMembershipTypes] = useState([]);
     const [countries, setCountries] = useState([]);
-    useEffect(() => { fetchMemberships(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.membershipType, filters.country, filters.startDate, filters.endDate]);
+    useEffect(() => { fetchMemberships(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.membershipType, filters.country, filters.startDate, filters.endDate, filters.recordStatus]);
 
     const fetchStats = async () => {
         try {
@@ -85,7 +85,7 @@ const MembershipsList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', membershipType: '', country: '', startDate: '', endDate: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', membershipType: '', country: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 

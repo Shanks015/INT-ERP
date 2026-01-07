@@ -22,7 +22,7 @@ const MastersAbroadList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', country: '', university: '', courseType: '', startDate: '', endDate: '' });
+    const [filters, setFilters] = useState({ search: '', country: '', university: '', courseType: '', startDate: '', endDate: '', recordStatus: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
@@ -31,7 +31,7 @@ const MastersAbroadList = () => {
     const [universities, setUniversities] = useState([]);
     const [courseTypes, setCourseTypes] = useState([]);
 
-    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.university, filters.courseType, filters.startDate, filters.endDate]);
+    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.university, filters.courseType, filters.startDate, filters.endDate, filters.recordStatus]);
 
     const fetchStats = async () => {
         try {
@@ -86,7 +86,7 @@ const MastersAbroadList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', country: '', university: '', courseType: '', startDate: '', endDate: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', country: '', university: '', courseType: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
@@ -126,9 +126,15 @@ const MastersAbroadList = () => {
                                         <td>{program.country}</td>
                                         <td>{program.duration || '-'}</td>
                                         <td>
-                                            {program.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2"><Clock size={14} />Edit Pending</span>}
-                                            {program.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2"><Clock size={14} />Delete Pending</span>}
-                                            {program.status === 'active' && <span className="badge badge-success">Active</span>}
+                                            <div className="flex flex-col gap-1">
+                                                {/* Record Status Badge */}
+                                                {program.recordStatus === 'active' && <span className="badge badge-success badge-sm">Active</span>}
+                                                {program.recordStatus === 'expired' && <span className="badge badge-error badge-sm">Expired</span>}
+
+                                                {/* Approval Workflow Badges */}
+                                                {program.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
+                                                {program.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
+                                            </div>
                                         </td>
                                         <td>
                                             <div className="flex gap-2 justify-end">

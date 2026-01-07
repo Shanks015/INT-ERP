@@ -33,7 +33,8 @@ const PartnersList = () => {
         activeStatus: '',
         school: '',
         agreementType: '',
-        country: ''
+        country: '',
+        recordStatus: ''
     });
 
     // Debounce search to avoid excessive API calls
@@ -49,7 +50,7 @@ const PartnersList = () => {
         fetchPartners();
         fetchStats();
         fetchFilterData();
-    }, [currentPage, itemsPerPage, debouncedSearch, filters.mouStatus, filters.activeStatus, filters.school, filters.agreementType, filters.country]);
+    }, [currentPage, itemsPerPage, debouncedSearch, filters.mouStatus, filters.activeStatus, filters.school, filters.agreementType, filters.country, filters.recordStatus]);
 
     const fetchStats = async () => {
         try {
@@ -93,7 +94,8 @@ const PartnersList = () => {
                 activeStatus: filters.activeStatus,
                 school: filters.school,
                 agreementType: filters.agreementType,
-                country: filters.country
+                country: filters.country,
+                recordStatus: filters.recordStatus
             };
 
             const response = await api.get('/partners', { params });
@@ -159,7 +161,8 @@ const PartnersList = () => {
             activeStatus: '',
             school: '',
             agreementType: '',
-            country: ''
+            country: '',
+            recordStatus: ''
         });
         setCurrentPage(1);
     };
@@ -229,7 +232,7 @@ const PartnersList = () => {
             {/* Custom Filter UI for Partners */}
             <div className="card bg-base-100 shadow-sm mb-6">
                 <div className="card-body">
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
                         {/* Search */}
                         <input
                             type="text"
@@ -296,6 +299,17 @@ const PartnersList = () => {
                             {agreementTypes.map(type => (
                                 <option key={type} value={type}>{type}</option>
                             ))}
+                        </select>
+
+                        {/* Record Status */}
+                        <select
+                            className="select select-bordered w-full"
+                            value={filters.recordStatus}
+                            onChange={(e) => handleFilterChange('recordStatus', e.target.value)}
+                        >
+                            <option value="">All Record Status</option>
+                            <option value="active">Active</option>
+                            <option value="expired">Expired</option>
                         </select>
                     </div>
 

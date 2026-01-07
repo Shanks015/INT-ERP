@@ -23,7 +23,7 @@ const DigitalMediaList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', mediaType: '', platformType: '', startDate: '', endDate: '', channel: '' });
+    const [filters, setFilters] = useState({ search: '', startDate: '', endDate: '', channel: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
@@ -32,7 +32,7 @@ const DigitalMediaList = () => {
     const [platformTypes, setPlatformTypes] = useState([]);
     const [channels, setChannels] = useState([]);
 
-    useEffect(() => { fetchMedia(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.mediaType, filters.platformType, filters.startDate, filters.endDate, filters.channel]);
+    useEffect(() => { fetchMedia(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.startDate, filters.endDate, filters.channel]);
 
     const fetchStats = async () => {
         try {
@@ -45,18 +45,8 @@ const DigitalMediaList = () => {
         try {
             const response = await api.get('/digital-media', { params: { limit: 1000 } });
             const media = response.data.data || [];
-            setMediaTypes([...new Set(media.map(m => m.mediaType).filter(Boolean))].sort());
-            setPlatformTypes([...new Set(media.map(m => m.platformType).filter(Boolean))].sort());
+            setChannels([...new Set(media.map(m => m.channel).filter(Boolean))].sort());
         } catch (error) { console.error('Error fetching filter data:', error); }
-    };
-
-    const fetchChannels = async () => {
-        try {
-            const response = await api.get('/digital-media', { params: { limit: 1000 } });
-            const mediaItems = response.data.data || [];
-            const uniqueChannels = [...new Set(mediaItems.map(m => m.channel).filter(Boolean))].sort();
-            setChannels(uniqueChannels);
-        } catch (error) { console.error('Error fetching channels:', error); }
     };
 
     const fetchMedia = async () => {
@@ -95,8 +85,7 @@ const DigitalMediaList = () => {
     };
 
     const handleClearFilters = () => {
-        setSearchInput('');
-        setFilters({ search: '', mediaType: '', platformType: '', startDate: '', endDate: '', channel: '' });
+        setFilters({ search: '', startDate: '', endDate: '', channel: '' });
         setCurrentPage(1);
     };
 
@@ -142,22 +131,6 @@ const DigitalMediaList = () => {
                         </div>
 
                         <div className="form-control">
-                            <label className="label"><span className="label-text">Media Type</span></label>
-                            <select className="select select-bordered w-full" value={filters.mediaType || ''} onChange={(e) => setFilters(prev => ({ ...prev, mediaType: e.target.value }))}>
-                                <option value="">All Media Types</option>
-                                {mediaTypes.map(type => <option key={type} value={type}>{type}</option>)}
-                            </select>
-                        </div>
-
-                        <div className="form-control">
-                            <label className="label"><span className="label-text">Platform Type</span></label>
-                            <select className="select select-bordered w-full" value={filters.platformType || ''} onChange={(e) => setFilters(prev => ({ ...prev, platformType: e.target.value }))}>
-                                <option value="">All Platforms</option>
-                                {platformTypes.map(platform => <option key={platform} value={platform}>{platform}</option>)}
-                            </select>
-                        </div>
-
-                        <div className="form-control">
                             <label className="label"><span className="label-text">From Date</span></label>
                             <input type="date" className="input input-bordered w-full" value={filters.startDate || ''} onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))} />
                         </div>
@@ -174,19 +147,14 @@ const DigitalMediaList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Article Topic</th><th>Channel</th><th>Date</th><th>Amount Paid</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Article Topic</th><th>Channel</th><th>Date</th><th>Amount Paid</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {media.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No media found</td></tr> : media.map((item) => (
+                                {media.length === 0 ? <tr><td colSpan={5} className="text-center py-8">No media found</td></tr> : media.map((item) => (
                                     <tr key={item._id}>
                                         <td className="max-w-md" title={item.articleTopic}>{item.articleTopic}</td>
                                         <td>{item.channel}</td>
                                         <td>{new Date(item.date).toLocaleDateString()}</td>
                                         <td>{item.amountPaid || 'Zero'}</td>
-                                        <td>
-                                            {item.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
-                                            {item.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
-                                            {item.status === 'active' && <span className="badge badge-success badge-sm">Active</span>}
-                                        </td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
                                                 {item.articleLink && (
