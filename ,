@@ -1,0 +1,21 @@
+At line:1 char:388
++ ... gitalMediaList.jsx', 
+'Outreach\\OutreachList.jsx'); foreach ( in 
+) {  ...
++                                           
+                       ~
+Missing variable name after foreach.
+At line:1 char:392
++ ... MediaList.jsx', 
+'Outreach\\OutreachList.jsx'); foreach ( in 
+) {  = Jo ...
++                                           
+                      ~
+Unexpected token ')' in expression or 
+statement.
+    + CategoryInfo          : ParserError:  
+   (:) [], ParentContainsErrorRecordExcept  
+  ion
+    + FullyQualifiedErrorId : MissingVariab 
+   leNameAfterForeach
+ 
