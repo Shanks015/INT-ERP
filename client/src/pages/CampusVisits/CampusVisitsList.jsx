@@ -185,8 +185,8 @@ const CampusVisitsList = () => {
                                     type="text"
                                     placeholder="Search university, visitor..."
                                     className="input input-bordered w-full pr-10"
-                                    value={searchInput}
-                                    onChange={(e) => setSearchInput(e.target.value)}
+                                    value={filters.search}
+                                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                                 />
                                 <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
                             </div>
