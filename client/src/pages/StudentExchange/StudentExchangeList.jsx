@@ -53,7 +53,16 @@ const StudentExchangeList = () => {
     const fetchExchanges = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = {
+                page: currentPage,
+                limit: itemsPerPage,
+                search: debouncedSearch,
+                country: filters.country,
+                exchangeType: filters.exchangeType,
+                direction: filters.direction,
+                startDate: filters.startDate,
+                endDate: filters.endDate
+            };
             const response = await api.get('/student-exchange', { params });
             setExchanges(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
