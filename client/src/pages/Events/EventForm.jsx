@@ -16,10 +16,24 @@ const EventForm = () => {
     });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
+    const [eventTypes, setEventTypes] = useState([]);
 
     useEffect(() => {
         if (isEdit) fetchEvent();
+        fetchEventTypes();
     }, [id]);
+
+    const fetchEventTypes = async () => {
+        try {
+            const response = await api.get('/events', { params: { limit: 1000 } });
+            const events = response.data.data || [];
+            // Extract unique event types
+            const uniqueTypes = [...new Set(events.map(e => e.type).filter(Boolean))].sort();
+            setEventTypes(uniqueTypes);
+        } catch (error) {
+            console.error('Error fetching event types:', error);
+        }
+    };
 
     const fetchEvent = async () => {
         try {
@@ -80,7 +94,28 @@ const EventForm = () => {
                     <form onSubmit={handleSubmit}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="form-control w-full"><label className="label"><span className="label-text">Date *</span></label><input type="date" name="date" className="input input-bordered w-full" value={formData.date} onChange={handleChange} required /></div>
-                            <div className="form-control w-full"><label className="label"><span className="label-text">Type</span></label><input type="text" name="type" placeholder="Event type" className="input input-bordered w-full" value={formData.type} onChange={handleChange} /></div>
+                            <div className="form-control w-full">
+                                <label className="label">
+                                    <span className="label-text">Type</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="type"
+                                    list="event-types-list"
+                                    placeholder="Select or enter event type"
+                                    className="input input-bordered w-full"
+                                    value={formData.type}
+                                    onChange={handleChange}
+                                />
+                                <datalist id="event-types-list">
+                                    {eventTypes.map(type => (
+                                        <option key={type} value={type} />
+                                    ))}
+                                </datalist>
+                                <label className="label">
+                                    <span className="label-text-alt text-base-content/60">Select existing or type new</span>
+                                </label>
+                            </div>
                             <div className="form-control w-full md:col-span-2"><label className="label"><span className="label-text">Title *</span></label><input type="text" name="title" placeholder="Event title" className="input input-bordered w-full" value={formData.title} onChange={handleChange} required /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Dignitaries</span></label><input type="text" name="dignitaries" placeholder="Dignitaries present" className="input input-bordered w-full" value={formData.dignitaries} onChange={handleChange} /></div>
                             <div className="form-control w-full"><label className="label"><span className="label-text">Department</span></label><input type="text" name="department" placeholder="Department" className="input input-bordered w-full" value={formData.department} onChange={handleChange} /></div>
