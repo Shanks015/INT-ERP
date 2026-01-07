@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useDebounce } from '../../hooks/useDebounce';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Eye, Globe, CheckCircle } from 'lucide-react';
@@ -35,6 +36,9 @@ const PartnersList = () => {
         country: ''
     });
 
+    // Debounce search to avoid excessive API calls
+    const debouncedSearch = useDebounce(filters.search, 500);
+
     // Dynamic filter data
     const [countries, setCountries] = useState([]);
     const [agreementTypes, setAgreementTypes] = useState([]);
@@ -45,7 +49,7 @@ const PartnersList = () => {
         fetchPartners();
         fetchStats();
         fetchFilterData();
-    }, [currentPage, itemsPerPage, filters]);
+    }, [currentPage, itemsPerPage, debouncedSearch, filters.mouStatus, filters.activeStatus, filters.school, filters.agreementType, filters.country]);
 
     const fetchStats = async () => {
         try {
@@ -84,7 +88,12 @@ const PartnersList = () => {
             const params = {
                 page: currentPage,
                 limit: itemsPerPage,
-                ...filters
+                search: debouncedSearch,
+                mouStatus: filters.mouStatus,
+                activeStatus: filters.activeStatus,
+                school: filters.school,
+                agreementType: filters.agreementType,
+                country: filters.country
             };
 
             const response = await api.get('/partners', { params });
