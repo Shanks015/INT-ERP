@@ -179,7 +179,7 @@ const EventsList = () => {
                                 {events.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No events found</td></tr> : events.map((event) => (
                                     <tr key={event._id}>
                                         <td className="max-w-md" title={event.title}>{event.title}</td>
-                                        <td><span className="badge badge-info badge-sm whitespace-nowrap">{event.type || '-'}</span></td>
+                                        <td><span className="badge badge-info badge-sm whitespace-nowrap">{event.type ? event.type.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\s*\/\s*/g, ' / ') : '-'}</span></td>
                                         <td>
                                             <div className="flex flex-col">
                                                 <span className="font-medium">{event.universityCountry}</span>
