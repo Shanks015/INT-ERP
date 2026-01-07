@@ -23,12 +23,15 @@ const MastersAbroadList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [filters, setFilters] = useState({ search: '', country: '', university: '', courseType: '', startDate: '', endDate: '' });
-    const [searchInput, setSearchInput] = useState('');
+
+    // Debounce search to avoid excessive API calls
+    const debouncedSearch = useDebounce(filters.search, 500);
+
     const [countries, setCountries] = useState([]);
     const [universities, setUniversities] = useState([]);
     const [courseTypes, setCourseTypes] = useState([]);
 
-    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
+    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.university, filters.courseType, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {

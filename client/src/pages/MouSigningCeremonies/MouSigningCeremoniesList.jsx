@@ -25,10 +25,13 @@ const MouSigningCeremoniesList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [filters, setFilters] = useState({ search: '', country: '', agreementType: '', startDate: '', endDate: '' });
-    const [searchInput, setSearchInput] = useState('');
+
+    // Debounce search to avoid excessive API calls
+    const debouncedSearch = useDebounce(filters.search, 500);
+
     const [countries, setCountries] = useState([]);
     const [agreementTypes, setAgreementTypes] = useState([]);
-    useEffect(() => { fetchCeremonies(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
+    useEffect(() => { fetchCeremonies(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.agreementType, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {
