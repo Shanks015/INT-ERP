@@ -23,7 +23,7 @@ const ImmersionProgramsList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', direction: '', activeStatus: '', country: '', startDate: '', endDate: '' });
+    const [filters, setFilters] = useState({ search: '', direction: '', activeStatus: '', country: '', startDate: '', endDate: '', recordStatus: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
@@ -31,7 +31,7 @@ const ImmersionProgramsList = () => {
     const [countries, setCountries] = useState([]);
     const [activeStatuses, setActiveStatuses] = useState([]);
 
-    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.direction, filters.activeStatus, filters.country, filters.startDate, filters.endDate]);
+    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.direction, filters.activeStatus, filters.country, filters.startDate, filters.endDate, filters.recordStatus]);
 
     const fetchStats = async () => {
         try {
@@ -92,7 +92,7 @@ const ImmersionProgramsList = () => {
 
     const handleClearFilters = () => {
         setSearchInput('');
-        setFilters({ search: '', direction: '', activeStatus: '', country: '', startDate: '', endDate: '' });
+        setFilters({ search: '', direction: '', activeStatus: '', country: '', startDate: '', endDate: '', recordStatus: '' });
         setCurrentPage(1);
     };
 
@@ -162,18 +162,17 @@ const ImmersionProgramsList = () => {
                             />
                         </div>
 
-                        {/* Active Status Filter */}
+                        {/* Record Status Filter */}
                         <div className="form-control">
                             <label className="label"><span className="label-text">Status</span></label>
                             <select
                                 className="select select-bordered w-full"
-                                value={filters.activeStatus || ''}
-                                onChange={(e) => setFilters(prev => ({ ...prev, activeStatus: e.target.value }))}
+                                value={filters.recordStatus || ''}
+                                onChange={(e) => setFilters(prev => ({ ...prev, recordStatus: e.target.value }))}
                             >
                                 <option value="">All Statuses</option>
-                                {activeStatuses.map(status => (
-                                    <option key={status} value={status}>{status}</option>
-                                ))}
+                                <option value="active">Active</option>
+                                <option value="expired">Expired</option>
                             </select>
                         </div>
                     </div>

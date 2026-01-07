@@ -312,7 +312,6 @@ const MainLayout = () => {
             {/* Sidebar */}
             <div className="drawer-side">
                 <label
-                    htmlFor="main-drawer"
                     className="drawer-overlay"
                     onClick={() => setDrawerOpen(false)}
                 ></label>
@@ -328,7 +327,7 @@ const MainLayout = () => {
                         </button>
                     </div>
 
-                    <ul className="menu p-0" onClick={() => setDrawerOpen(false)}>
+                    <ul className="menu p-0 gap-2" onClick={() => setDrawerOpen(false)}>
                         {sidebarContent}
                     </ul>
 

@@ -24,7 +24,7 @@ const StudentExchangeList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', country: '', exchangeType: '', direction: '', startDate: '', endDate: '' });
+    const [filters, setFilters] = useState({ search: '', country: '', exchangeType: '', direction: '', startDate: '', endDate: '', recordStatus: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
@@ -32,7 +32,7 @@ const StudentExchangeList = () => {
     const [countries, setCountries] = useState([]);
     const [exchangeTypes, setExchangeTypes] = useState([]);
 
-    useEffect(() => { fetchExchanges(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.exchangeType, filters.direction, filters.startDate, filters.endDate]);
+    useEffect(() => { fetchExchanges(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.exchangeType, filters.direction, filters.startDate, filters.endDate, filters.recordStatus]);
 
     const fetchStats = async () => {
         try {
@@ -61,7 +61,8 @@ const StudentExchangeList = () => {
                 exchangeType: filters.exchangeType,
                 direction: filters.direction,
                 startDate: filters.startDate,
-                endDate: filters.endDate
+                endDate: filters.endDate,
+                recordStatus: filters.recordStatus
             };
             const response = await api.get('/student-exchange', { params });
             setExchanges(response.data.data || []);
@@ -95,7 +96,7 @@ const StudentExchangeList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', country: '', exchangeType: '', direction: '', startDate: '', endDate: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', country: '', exchangeType: '', direction: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
