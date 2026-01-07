@@ -69,7 +69,15 @@ const CampusVisitsList = () => {
     const fetchVisits = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = {
+                page: currentPage,
+                limit: itemsPerPage,
+                search: debouncedSearch,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                country: filters.country,
+                university: filters.university
+            };
             const response = await api.get('/campus-visits', { params });
             setCampusVisits(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
