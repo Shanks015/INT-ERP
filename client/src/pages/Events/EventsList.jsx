@@ -133,7 +133,7 @@ const EventsList = () => {
                         <div className="form-control">
                             <label className="label"><span className="label-text">Search</span></label>
                             <div className="relative">
-                                <input type="text" placeholder="Search title, department..." className="input input-bordered w-full pr-10" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
+                                <input type="text" placeholder="Search title, department..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
                                 <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
                             </div>
                         </div>
