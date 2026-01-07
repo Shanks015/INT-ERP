@@ -24,19 +24,14 @@ const ImmersionProgramsList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [filters, setFilters] = useState({ search: '', direction: '', activeStatus: '', country: '', startDate: '', endDate: '' });
-    const [searchInput, setSearchInput] = useState('');
+
+    // Debounce search to avoid excessive API calls
+    const debouncedSearch = useDebounce(filters.search, 500);
+
     const [countries, setCountries] = useState([]);
     const [activeStatuses, setActiveStatuses] = useState([]);
 
-    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setFilters(prev => ({ ...prev, search: searchInput }));
-            setCurrentPage(1);
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [searchInput]);
+    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.direction, filters.activeStatus, filters.country, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {
@@ -130,7 +125,7 @@ const ImmersionProgramsList = () => {
                         <div className="form-control">
                             <label className="label"><span className="label-text">Search</span></label>
                             <div className="relative">
-                                <input type="text" placeholder="Search university..." className="input input-bordered w-full pr-10" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
+                                <input type="text" placeholder="Search university..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
                                 <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
                             </div>
                         </div>
