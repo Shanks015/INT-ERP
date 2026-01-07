@@ -221,7 +221,7 @@ const MainLayout = () => {
         // 'sunset',
     ];
     return (
-        <div className="drawer lg:drawer-open">
+        <div className="drawer">
             <input
                 id="main-drawer"
                 type="checkbox"
@@ -233,7 +233,7 @@ const MainLayout = () => {
             <div className="drawer-content flex flex-col">
                 {/* Navbar */}
                 <div className="navbar bg-base-100 shadow-md px-4">
-                    <div className="flex-none lg:hidden">
+                    <div className="flex-none">
                         <label
                             htmlFor="main-drawer"
                             className="btn btn-square btn-ghost"
