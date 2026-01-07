@@ -25,11 +25,14 @@ const ScholarsList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [filters, setFilters] = useState({ search: '', country: '', department: '', designation: '', startDate: '', endDate: '' });
-    const [searchInput, setSearchInput] = useState('');
+
+    // Debounce search to avoid excessive API calls
+    const debouncedSearch = useDebounce(filters.search, 500);
+
     const [countries, setCountries] = useState([]);
     const [departments, setDepartments] = useState([]);
     const [designations, setDesignations] = useState([]);
-    useEffect(() => { fetchScholars(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
+    useEffect(() => { fetchScholars(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.department, filters.designation, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {

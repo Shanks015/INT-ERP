@@ -25,12 +25,15 @@ const MouUpdatesList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [filters, setFilters] = useState({ search: '', country: '', agreementType: '', mouStatus: '', validityStatus: '', startDate: '', endDate: '' });
-    const [searchInput, setSearchInput] = useState('');
+
+    // Debounce search to avoid excessive API calls
+    const debouncedSearch = useDebounce(filters.search, 500);
+
     const [countries, setCountries] = useState([]);
     const [agreementTypes, setAgreementTypes] = useState([]);
     const [mouStatuses, setMouStatuses] = useState([]);
     const [validityStatuses, setValidityStatuses] = useState([]);
-    useEffect(() => { fetchUpdates(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
+    useEffect(() => { fetchUpdates(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.agreementType, filters.mouStatus, filters.validityStatus, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {

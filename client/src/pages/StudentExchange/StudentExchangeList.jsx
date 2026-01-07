@@ -25,11 +25,14 @@ const StudentExchangeList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [filters, setFilters] = useState({ search: '', country: '', exchangeType: '', direction: '', startDate: '', endDate: '' });
-    const [searchInput, setSearchInput] = useState('');
+
+    // Debounce search to avoid excessive API calls
+    const debouncedSearch = useDebounce(filters.search, 500);
+
     const [countries, setCountries] = useState([]);
     const [exchangeTypes, setExchangeTypes] = useState([]);
 
-    useEffect(() => { fetchExchanges(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, filters]);
+    useEffect(() => { fetchExchanges(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.exchangeType, filters.direction, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {
