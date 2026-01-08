@@ -2,15 +2,20 @@ import axios from 'axios';
 
 // Dynamically determine API URL based on current hostname
 const getApiUrl = () => {
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol; // http: or https:
+    // Check if we are in production build (Vite sets this)
+    if (import.meta.env.PROD) {
+        return '/api'; // Use relative path for Nginx reverse proxy
+    }
 
-    // In production (Render), don't use port number
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+
+    // In development or specific environments
     if (hostname.includes('onrender.com') || hostname.includes('railway.app')) {
         return `${protocol}//${hostname}/api`;
     }
 
-    // In development, use port 5000
+    // Default local development
     return `${protocol}//${hostname}:5000/api`;
 };
 
