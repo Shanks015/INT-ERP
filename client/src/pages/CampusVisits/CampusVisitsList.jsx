@@ -295,9 +295,7 @@ const CampusVisitsList = () => {
                                                         <Eye size={16} />
                                                     </button>
                                                     <Link to={`/campus-visits/edit/${visit._id}`} className="btn btn-warning btn-sm"><Edit size={16} /></Link>
-                                                    {isAdmin && (
-                                                        <button onClick={() => setDeleteModal({ isOpen: true, item: visit })} className="btn btn-error btn-sm"><Trash2 size={16} /></button>
-                                                    )}
+                                                    <button onClick={() => setDeleteModal({ isOpen: true, item: visit })} className="btn btn-error btn-sm"><Trash2 size={16} /></button>
                                                 </div>
                                             </td>
                                         </tr>

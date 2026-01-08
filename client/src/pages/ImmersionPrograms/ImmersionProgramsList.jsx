@@ -214,7 +214,7 @@ const ImmersionProgramsList = () => {
                                                     <Eye size={16} />
                                                 </button>
                                                 <Link to={`/immersion-programs/edit/${program._id}`} className="btn btn-warning btn-sm"><Edit size={16} /></Link>
-                                                {isAdmin && <button onClick={() => setDeleteModal({ isOpen: true, item: program })} className="btn btn-error btn-sm"><Trash2 size={16} /></button>}
+                                                <button onClick={() => setDeleteModal({ isOpen: true, item: program })} className="btn btn-error btn-sm"><Trash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>
