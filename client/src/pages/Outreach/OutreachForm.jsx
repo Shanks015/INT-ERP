@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft, Globe, User, MessageSquare } from 'lucide-react';
 
 const OutreachForm = () => {
     const navigate = useNavigate();
@@ -92,181 +92,206 @@ const OutreachForm = () => {
     if (fetchLoading) {
         return (
             <div className="flex justify-center items-center h-64">
-                <span className="loading loading-spinner loading-lg"></span>
+                <span className="loading loading-spinner loading-lg text-primary"></span>
             </div>
         );
     }
 
     return (
-        <div>
-            <div className="mb-6">
-                <button onClick={() => navigate('/outreach')} className="btn btn-ghost btn-sm mb-4">
-                    <ArrowLeft size={18} />
-                    Back to Outreach
-                </button>
-                <h1 className="text-3xl font-bold">
-                    {isEdit ? 'Edit Outreach' : 'Add New Outreach'}
-                </h1>
-            </div>
+        <div className="min-h-screen bg-base-200 p-4 md:p-8">
+            <div className="max-w-5xl mx-auto">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+                    <div>
+                        <h1 className="text-4xl font-bold text-base-content mb-2">
+                            {isEdit ? 'Edit Outreach' : 'New Outreach'}
+                        </h1>
+                        <p className="text-base-content/60">
+                            {isEdit ? 'Update outreach activity details' : 'Log a new outreach initiative'}
+                        </p>
+                    </div>
+                    <button onClick={() => navigate('/outreach')} className="btn btn-ghost gap-2">
+                        <ArrowLeft size={20} />
+                        Back to List
+                    </button>
+                </div>
 
-            <div className="card bg-base-100 shadow-xl max-w-2xl">
-                <div className="card-body">
-                    <form onSubmit={handleSubmit}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Name *</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    placeholder="Enter name"
-                                    className="input input-bordered w-full"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    required
-                                />
+                <div className="card bg-base-100 shadow-xl rounded-2xl border border-base-content/5 overflow-hidden">
+                    {/* Decorative Header Bar */}
+                    <div className="h-2 bg-primary w-full"></div>
+
+                    <div className="card-body p-6 md:p-10 gap-8">
+                        <form onSubmit={handleSubmit} className="space-y-8">
+
+                            {/* Section 1: Institution Details */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3 border-b border-base-200 pb-4">
+                                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                        <Globe size={24} />
+                                    </div>
+                                    <h3 className="text-xl font-bold">Institution Details</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Name *</span></label>
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            placeholder="Institution Name"
+                                            className="input input-bordered w-full focus:input-primary transition-all font-semibold"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Country *</span></label>
+                                        <input
+                                            type="text"
+                                            name="country"
+                                            placeholder="Country"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.country}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">University</span></label>
+                                        <input
+                                            type="text"
+                                            name="university"
+                                            placeholder="University Name"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.university}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full lg:col-span-3">
+                                        <label className="label font-medium"><span className="label-text">Website</span></label>
+                                        <input
+                                            type="url"
+                                            name="website"
+                                            placeholder="https://example.com"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.website}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Country *</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="country"
-                                    placeholder="Enter country"
-                                    className="input input-bordered w-full"
-                                    value={formData.country}
-                                    onChange={handleChange}
-                                    required
-                                />
+                            {/* Section 2: Contact Information */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3 border-b border-base-200 pb-4">
+                                    <div className="p-2 bg-secondary/10 rounded-lg text-secondary">
+                                        <User size={24} />
+                                    </div>
+                                    <h3 className="text-xl font-bold">Contact Information</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Contact Person</span></label>
+                                        <input
+                                            type="text"
+                                            name="contactPerson"
+                                            placeholder="Name"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.contactPerson}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Email</span></label>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            placeholder="email@example.com"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Phone</span></label>
+                                        <input
+                                            type="tel"
+                                            name="phone"
+                                            placeholder="+1 234 567 890"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.phone}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">University</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="university"
-                                    placeholder="Enter university name"
-                                    className="input input-bordered w-full"
-                                    value={formData.university}
-                                    onChange={handleChange}
-                                />
+                            {/* Section 3: Engagement & Notes */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3 border-b border-base-200 pb-4">
+                                    <div className="p-2 bg-accent/10 rounded-lg text-accent">
+                                        <MessageSquare size={24} />
+                                    </div>
+                                    <h3 className="text-xl font-bold">Engagement & Notes</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-6">
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Partnership Type</span></label>
+                                        <input
+                                            type="text"
+                                            name="partnershipType"
+                                            placeholder="e.g. Research, Exchange, Joint Degree"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.partnershipType}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Reply / Status</span></label>
+                                        <textarea
+                                            name="reply"
+                                            placeholder="Outcome or current status..."
+                                            className="textarea textarea-bordered w-full focus:textarea-primary transition-all"
+                                            rows={2}
+                                            value={formData.reply}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Internal Notes</span></label>
+                                        <textarea
+                                            name="notes"
+                                            placeholder="Additional internal notes..."
+                                            className="textarea textarea-bordered w-full h-24 focus:textarea-primary transition-all"
+                                            rows={3}
+                                            value={formData.notes}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Contact Person</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="contactPerson"
-                                    placeholder="Enter contact person"
-                                    className="input input-bordered w-full"
-                                    value={formData.contactPerson}
-                                    onChange={handleChange}
-                                />
+                            <div className="flex justify-end pt-6 border-t border-base-200">
+                                <button
+                                    type="submit"
+                                    className={`btn btn-primary btn-lg px-8 ${loading ? 'loading' : ''}`}
+                                    disabled={loading}
+                                >
+                                    {!loading && <Save size={20} className="mr-2" />}
+                                    {loading ? 'Saving...' : (isEdit ? 'Update Outreach' : 'Create Outreach')}
+                                </button>
                             </div>
-
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Email</span>
-                                </label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    placeholder="Enter email"
-                                    className="input input-bordered w-full"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Phone</span>
-                                </label>
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    placeholder="Enter phone number"
-                                    className="input input-bordered w-full"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="form-control w-full md:col-span-2">
-                                <label className="label">
-                                    <span className="label-text">Website</span>
-                                </label>
-                                <input
-                                    type="url"
-                                    name="website"
-                                    placeholder="Enter website URL"
-                                    className="input input-bordered w-full"
-                                    value={formData.website}
-                                    onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="form-control w-full md:col-span-2">
-                                <label className="label">
-                                    <span className="label-text">Partnership Type</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="partnershipType"
-                                    placeholder="Enter partnership type"
-                                    className="input input-bordered w-full"
-                                    value={formData.partnershipType}
-                                    onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="form-control w-full md:col-span-2">
-                                <label className="label">
-                                    <span className="label-text">Reply</span>
-                                </label>
-                                <textarea
-                                    name="reply"
-                                    placeholder="Enter reply details"
-                                    className="textarea textarea-bordered w-full"
-                                    rows={2}
-                                    value={formData.reply}
-                                    onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="form-control w-full md:col-span-2">
-                                <label className="label">
-                                    <span className="label-text">Notes</span>
-                                </label>
-                                <textarea
-                                    name="notes"
-                                    placeholder="Enter any notes"
-                                    className="textarea textarea-bordered w-full"
-                                    rows={3}
-                                    value={formData.notes}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-control mt-6">
-                            <button
-                                type="submit"
-                                className={`btn btn-primary ${loading ? 'loading' : ''}`}
-                                disabled={loading}
-                            >
-                                {!loading && <Save size={18} className="mr-2" />}
-                                {loading ? 'Saving...' : (isEdit ? 'Update Outreach' : 'Create Outreach')}
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

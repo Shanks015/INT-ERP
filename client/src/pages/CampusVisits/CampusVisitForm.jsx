@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft, User, MapPin, Link as LinkIcon } from 'lucide-react';
 
 const CampusVisitForm = () => {
     const navigate = useNavigate();
@@ -88,182 +88,206 @@ const CampusVisitForm = () => {
     if (fetchLoading) {
         return (
             <div className="flex justify-center items-center h-64">
-                <span className="loading loading-spinner loading-lg"></span>
+                <span className="loading loading-spinner loading-lg text-primary"></span>
             </div>
         );
     }
 
     return (
-        <div>
-            <div className="mb-6">
-                <button onClick={() => navigate('/campus-visits')} className="btn btn-ghost btn-sm mb-4">
-                    <ArrowLeft size={18} />
-                    Back to Campus Visits
-                </button>
-                <h1 className="text-3xl font-bold">
-                    {isEdit ? 'Edit Campus Visit' : 'Add New Campus Visit'}
-                </h1>
-            </div>
+        <div className="min-h-screen bg-base-200 p-4 md:p-8">
+            <div className="max-w-5xl mx-auto">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+                    <div>
+                        <h1 className="text-4xl font-bold text-base-content mb-2">
+                            {isEdit ? 'Edit Campus Visit' : 'New Campus Visit'}
+                        </h1>
+                        <p className="text-base-content/60">
+                            {isEdit ? 'Update visit details' : 'Register a new international campus visit'}
+                        </p>
+                    </div>
+                    <button onClick={() => navigate('/campus-visits')} className="btn btn-ghost gap-2">
+                        <ArrowLeft size={20} />
+                        Back to List
+                    </button>
+                </div>
 
-            <div className="card bg-base-100 shadow-xl max-w-2xl">
-                <div className="card-body">
-                    <form onSubmit={handleSubmit}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Date *</span>
-                                </label>
-                                <input
-                                    type="date"
-                                    name="date"
-                                    className="input input-bordered w-full"
-                                    value={formData.date}
-                                    onChange={handleChange}
-                                    required
-                                />
+                <div className="card bg-base-100 shadow-xl rounded-2xl border border-base-content/5 overflow-hidden">
+                    {/* Decorative Header Bar */}
+                    <div className="h-2 bg-primary w-full"></div>
+
+                    <div className="card-body p-6 md:p-10 gap-8">
+                        <form onSubmit={handleSubmit} className="space-y-8">
+
+                            {/* Section 1: Visit Details */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3 border-b border-base-200 pb-4">
+                                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                        <User size={24} />
+                                    </div>
+                                    <h3 className="text-xl font-bold">Visitor Information</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Date *</span></label>
+                                        <input
+                                            type="date"
+                                            name="date"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.date}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full lg:col-span-2">
+                                        <label className="label font-medium"><span className="label-text">Visitor Name *</span></label>
+                                        <input
+                                            type="text"
+                                            name="visitorName"
+                                            placeholder="Full name of visitor"
+                                            className="input input-bordered w-full focus:input-primary transition-all font-semibold"
+                                            value={formData.visitorName}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">University/Institution *</span></label>
+                                        <input
+                                            type="text"
+                                            name="universityName"
+                                            placeholder="Visitor's institution"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.universityName}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Country *</span></label>
+                                        <input
+                                            type="text"
+                                            name="country"
+                                            placeholder="Country of origin"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.country}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Visit Type</span></label>
+                                        <input
+                                            type="text"
+                                            name="type"
+                                            placeholder="e.g. Collaboration, Inspection"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.type}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Visitor Name *</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="visitorName"
-                                    placeholder="Enter visitor name"
-                                    className="input input-bordered w-full"
-                                    value={formData.visitorName}
-                                    onChange={handleChange}
-                                    required
-                                />
+                            {/* Section 2: Context & Location */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3 border-b border-base-200 pb-4">
+                                    <div className="p-2 bg-secondary/10 rounded-lg text-secondary">
+                                        <MapPin size={24} />
+                                    </div>
+                                    <h3 className="text-xl font-bold">Context & Location</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Hosting Department</span></label>
+                                        <input
+                                            type="text"
+                                            name="department"
+                                            placeholder="Department"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.department}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Campus Location</span></label>
+                                        <input
+                                            type="text"
+                                            name="campus"
+                                            placeholder="Specific campus"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.campus}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full md:col-span-2">
+                                        <label className="label font-medium"><span className="label-text">Purpose of Visit</span></label>
+                                        <input
+                                            type="text"
+                                            name="purpose"
+                                            placeholder="Main objective"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.purpose}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full md:col-span-2">
+                                        <label className="label font-medium"><span className="label-text">Visit Summary</span></label>
+                                        <textarea
+                                            name="summary"
+                                            placeholder="Detailed summary of the visit..."
+                                            className="textarea textarea-bordered w-full h-24 focus:textarea-primary transition-all"
+                                            value={formData.summary}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">University Name *</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="universityName"
-                                    placeholder="Enter university name"
-                                    className="input input-bordered w-full"
-                                    value={formData.universityName}
-                                    onChange={handleChange}
-                                    required
-                                />
+                            {/* Section 3: Resources */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3 border-b border-base-200 pb-4">
+                                    <div className="p-2 bg-accent/10 rounded-lg text-accent">
+                                        <LinkIcon size={24} />
+                                    </div>
+                                    <h3 className="text-xl font-bold">Resources</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-6">
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Drive Link</span></label>
+                                        <input
+                                            type="url"
+                                            name="driveLink"
+                                            placeholder="https://drive.google.com/..."
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.driveLink}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Country *</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="country"
-                                    placeholder="Enter country"
-                                    className="input input-bordered w-full"
-                                    value={formData.country}
-                                    onChange={handleChange}
-                                    required
-                                />
+                            <div className="flex justify-end pt-6 border-t border-base-200">
+                                <button
+                                    type="submit"
+                                    className={`btn btn-primary btn-lg px-8 ${loading ? 'loading' : ''}`}
+                                    disabled={loading}
+                                >
+                                    {!loading && <Save size={20} className="mr-2" />}
+                                    {loading ? 'Saving...' : (isEdit ? 'Update Campus Visit' : 'Create Campus Visit')}
+                                </button>
                             </div>
-
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Type</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="type"
-                                    placeholder="Visit type (e.g., Collaboration)"
-                                    className="input input-bordered w-full"
-                                    value={formData.type}
-                                    onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="form-control w-full">
-                                <label className="label">
-                                    <span className="label-text">Department</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="department"
-                                    placeholder="Enter department"
-                                    className="input input-bordered w-full"
-                                    value={formData.department}
-                                    onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="form-control w-full md:col-span-2">
-                                <label className="label">
-                                    <span className="label-text">Campus</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="campus"
-                                    placeholder="Enter campus"
-                                    className="input input-bordered w-full"
-                                    value={formData.campus}
-                                    onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="form-control w-full md:col-span-2">
-                                <label className="label">
-                                    <span className="label-text">Purpose</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="purpose"
-                                    placeholder="Purpose of visit"
-                                    className="input input-bordered w-full"
-                                    value={formData.purpose}
-                                    onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="form-control w-full md:col-span-2">
-                                <label className="label">
-                                    <span className="label-text">Summary</span>
-                                </label>
-                                <textarea
-                                    name="summary"
-                                    placeholder="Visit summary"
-                                    className="textarea textarea-bordered w-full"
-                                    rows="4"
-                                    value={formData.summary}
-                                    onChange={handleChange}
-                                />
-                            </div>
-
-                            <div className="form-control w-full md:col-span-2">
-                                <label className="label">
-                                    <span className="label-text">Drive Link</span>
-                                </label>
-                                <input
-                                    type="url"
-                                    name="driveLink"
-                                    placeholder="https://drive.google.com/..."
-                                    className="input input-bordered w-full"
-                                    value={formData.driveLink}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-control mt-6">
-                            <button
-                                type="submit"
-                                className={`btn btn-primary ${loading ? 'loading' : ''}`}
-                                disabled={loading}
-                            >
-                                {!loading && <Save size={18} className="mr-2" />}
-                                {loading ? 'Saving...' : (isEdit ? 'Update Campus Visit' : 'Create Campus Visit')}
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
