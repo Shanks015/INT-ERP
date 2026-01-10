@@ -72,7 +72,7 @@ const MembershipsList = () => {
 
     const handleExportCSV = async () => {
         try {
-            const response = await api.get('/memberships/export', { responseType: 'blob' });
+            const response = await api.get('/memberships/export-csv', { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;

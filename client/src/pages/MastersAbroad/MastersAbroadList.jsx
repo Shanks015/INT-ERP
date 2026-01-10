@@ -73,7 +73,7 @@ const MastersAbroadList = () => {
 
     const handleExportCSV = async () => {
         try {
-            const response = await api.get('/masters-abroad/export', { responseType: 'blob' });
+            const response = await api.get('/masters-abroad/export-csv', { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;

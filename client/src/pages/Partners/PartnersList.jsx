@@ -131,7 +131,7 @@ const PartnersList = () => {
 
     const handleExportCSV = async () => {
         try {
-            const response = await api.get('/partners/export', {
+            const response = await api.get('/partners/export-csv', {
                 responseType: 'blob'
             });
 
