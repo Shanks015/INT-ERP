@@ -97,7 +97,7 @@ const OutreachList = () => {
 
     const handleExportCSV = async () => {
         try {
-            const response = await api.get('/outreach/export', {
+            const response = await api.get('/outreach/export-csv', {
                 responseType: 'blob'
             });
 

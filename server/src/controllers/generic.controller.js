@@ -1,4 +1,5 @@
 import { Parser } from 'json2csv';
+import fs from 'fs';
 
 // Generic CRUD controller factory for all modules with approval workflow
 
@@ -399,10 +400,17 @@ export const exportCSV = (Model) => async (req, res) => {
         res.header('Content-Disposition', `attachment; filename="${Model.modelName.toLowerCase()}-export.csv"`);
         res.send(csv);
     } catch (error) {
+        console.error('EXPORT_CSV_CRASH:', error);
+        try {
+            fs.appendFileSync('error.log', `${new Date().toISOString()} - EXPORT ERROR: ${error.stack}\n`);
+        } catch (e) {
+            console.error('Failed to write to error log', e);
+        }
         res.status(500).json({
             success: false,
             message: 'Error exporting to CSV',
-            error: error.message
+            error: error.message,
+            stack: error.stack
         });
     }
 };

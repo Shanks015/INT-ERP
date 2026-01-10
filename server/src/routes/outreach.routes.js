@@ -11,7 +11,7 @@ router.use(authenticate);
 router.get('/stats', outreachController.getOutreachStats);
 
 // Export to CSV
-router.get('/export', outreachController.exportOutreachCSV);
+router.get('/export-csv', outreachController.exportOutreachCSV);
 
 // Get pending items (admin only) - MUST BE BEFORE /:id
 router.get('/pending/all', authorize(['admin']), outreachController.getOutreachPending);
@@ -25,7 +25,7 @@ router.post('/pending/:id/reject', authorize(['admin']), outreachController.reje
 // Get all outreach data
 router.get('/', outreachController.getAllOutreach);
 
-// Get single outreach by ID
+// Get single outreach by ID - MUST BE AFTER specific routes
 router.get('/:id', outreachController.getOutreachById);
 
 // Create new outreach

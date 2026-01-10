@@ -6,15 +6,17 @@ import Conference from '../models/Conference.js';
 
 const router = express.Router();
 
-router.get('/', authenticate, ctrl.getAll(Conference));
+// Specific routes MUST come before /:id
 router.get('/stats', authenticate, enhancedCtrl.getEnhancedStats(Conference));
+router.get('/export-csv', authenticate, ctrl.exportCSV(Conference));
+router.get('/pending/count', authenticate, authorize(['admin']), ctrl.getPendingCount(Conference));
+router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPending(Conference));
+
+router.get('/', authenticate, ctrl.getAll(Conference));
 router.get('/:id', authenticate, ctrl.getById(Conference));
 router.post('/', authenticate, ctrl.create(Conference));
 router.put('/:id', authenticate, ctrl.update(Conference));
 router.delete('/:id', authenticate, ctrl.remove(Conference));
-router.post('/export-csv', authenticate, ctrl.exportCSV(Conference));
-router.get('/pending/count', authenticate, authorize(['admin']), ctrl.getPendingCount(Conference));
-router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPending(Conference));
 router.post('/pending/:id/approve', authenticate, authorize(['admin']), ctrl.approve(Conference));
 router.post('/pending/:id/reject', authenticate, authorize(['admin']), ctrl.reject(Conference));
 

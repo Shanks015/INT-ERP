@@ -6,15 +6,17 @@ import Membership from '../models/Membership.js';
 
 const router = express.Router();
 
-router.get('/', authenticate, ctrl.getAll(Membership));
+// Specific routes MUST come before /:id
 router.get('/stats', authenticate, enhancedCtrl.getEnhancedStats(Membership));
+router.get('/export-csv', authenticate, ctrl.exportCSV(Membership));
+router.get('/pending/count', authenticate, authorize(['admin']), ctrl.getPendingCount(Membership));
+router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPending(Membership));
+
+router.get('/', authenticate, ctrl.getAll(Membership));
 router.get('/:id', authenticate, ctrl.getById(Membership));
 router.post('/', authenticate, ctrl.create(Membership));
 router.put('/:id', authenticate, ctrl.update(Membership));
 router.delete('/:id', authenticate, ctrl.remove(Membership));
-router.post('/export-csv', authenticate, ctrl.exportCSV(Membership));
-router.get('/pending/count', authenticate, authorize(['admin']), ctrl.getPendingCount(Membership));
-router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPending(Membership));
 router.post('/pending/:id/approve', authenticate, authorize(['admin']), ctrl.approve(Membership));
 router.post('/pending/:id/reject', authenticate, authorize(['admin']), ctrl.reject(Membership));
 

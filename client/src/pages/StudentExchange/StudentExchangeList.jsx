@@ -83,7 +83,7 @@ const StudentExchangeList = () => {
 
     const handleExportCSV = async () => {
         try {
-            const response = await api.get('/student-exchange/export', { responseType: 'blob' });
+            const response = await api.get('/student-exchange/export-csv', { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;

@@ -4,6 +4,7 @@ import cors from 'cors';
 import compression from 'compression';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 // Get __dirname equivalent in ES modules
@@ -107,6 +108,11 @@ app.get('/api/health', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
+    try {
+        fs.appendFileSync('error.log', `${new Date().toISOString()} - GLOBAL ERROR: ${err.stack}\n`);
+    } catch (e) {
+        console.error('Failed to write to error log', e);
+    }
     res.status(500).json({
         success: false,
         message: 'Something went wrong!',
@@ -126,6 +132,11 @@ mongoose
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📡 Local: http://localhost:${PORT}/api`);
             console.log(`🌐 Network: http://192.168.12.14:${PORT}/api`);
+            try {
+                fs.appendFileSync('error.log', `${new Date().toISOString()} - SERVER STARTED\n`);
+            } catch (e) {
+                console.error('Failed to write startup log', e);
+            }
         });
     })
     .catch((error) => {
