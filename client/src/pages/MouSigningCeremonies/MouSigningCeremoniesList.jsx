@@ -103,33 +103,31 @@ const MouSigningCeremoniesList = () => {
                     <Link to="/mou-signing-ceremonies/new" className="btn btn-primary flex-1 md:flex-none"><Plus size={18} />Add Ceremony</Link>
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <StatsCard title="Total Ceremonies" value={stats.total} icon={FileText} color="primary" />
-                <StatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" />
                 <StatsCard title="Departments" value={stats.departments} icon={Building2} color="info" />
             </div>
             <FilterBar
                 filters={filters}
                 onFilterChange={handleFilterChange}
                 onClearFilters={handleClearFilters}
-                showCountryFilter={true}
-                countries={countries}
                 agreementTypes={agreementTypes}
             />
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Title</th><th>Date</th><th>University</th><th>Country</th><th>Department</th><th>Campus</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Visitor Name</th><th>Date</th><th>University</th><th>Type</th><th>Department</th><th>Campus</th><th>Event Summary</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {ceremonies.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No ceremonies found</td></tr> : ceremonies.map((ceremony) => (
+                                {ceremonies.length === 0 ? <tr><td colSpan={9} className="text-center py-8">No ceremonies found</td></tr> : ceremonies.map((ceremony) => (
                                     <tr key={ceremony._id}>
-                                        <td>{ceremony.title || ceremony.university}</td>
+                                        <td>{ceremony.visitorName || '-'}</td>
                                         <td>{formatDate(ceremony.date)}</td>
                                         <td>{ceremony.university || '-'}</td>
-                                        <td>{ceremony.country || '-'}</td>
+                                        <td>{ceremony.type || '-'}</td>
                                         <td>{ceremony.department || '-'}</td>
                                         <td>{ceremony.campus || '-'}</td>
+                                        <td className="max-w-xs truncate">{ceremony.eventSummary || '-'}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Record Status Badge */}
