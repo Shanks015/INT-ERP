@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, GraduationCap, TrendingUp, Clock, Eye, FileText, Globe, Building2 } from 'lucide-react';
@@ -14,6 +15,7 @@ import Pagination from '../../components/Pagination';
 
 const ScholarsList = () => {
     const { isAdmin } = useAuth();
+    const formatDate = useDateFormat();
     const [scholars, setScholars] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, departments: 0 });
     const [loading, setLoading] = useState(true);
@@ -143,7 +145,7 @@ const ScholarsList = () => {
                                         <td>
                                             {scholar.fromDate ? (
                                                 <span className="text-xs">
-                                                    {new Date(scholar.fromDate).toLocaleDateString()} - {scholar.toDate ? new Date(scholar.toDate).toLocaleDateString() : 'Present'}
+                                                    {formatDate(scholar.fromDate)} - {scholar.toDate ? formatDate(scholar.toDate) : 'Present'}
                                                 </span>
                                             ) : '-'}
                                         </td>

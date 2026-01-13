@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, Radio, TrendingUp, Clock, Eye, Hash, X, Search, ExternalLink, FileText } from 'lucide-react';
@@ -13,6 +14,7 @@ import Pagination from '../../components/Pagination';
 
 const DigitalMediaList = () => {
     const { isAdmin } = useAuth();
+    const formatDate = useDateFormat();
     const [media, setMedia] = useState([]);
     const [stats, setStats] = useState({ total: 0, channels: 0 });
     const [loading, setLoading] = useState(true);
@@ -153,18 +155,18 @@ const DigitalMediaList = () => {
                                     <tr key={item._id}>
                                         <td className="max-w-md" title={item.articleTopic}>{item.articleTopic}</td>
                                         <td>{item.channel}</td>
-                                        <td>{new Date(item.date).toLocaleDateString()}</td>
+                                        <td>{formatDate(item.date)}</td>
                                         <td>{item.amountPaid || 'Zero'}</td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
-                                                {item.articleLink && (
-                                                    <a href={item.articleLink} target="_blank" rel="noopener noreferrer" className="btn btn-info btn-sm text-white" title="Read Article">
-                                                        <ExternalLink size={16} />
-                                                    </a>
-                                                )}
                                                 {item.driveLink && (
                                                     <a href={item.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="View Documents">
                                                         <FileText size={16} />
+                                                    </a>
+                                                )}
+                                                {item.articleLink && (
+                                                    <a href={item.articleLink} target="_blank" rel="noopener noreferrer" className="btn btn-info btn-sm text-white" title="Read Article">
+                                                        <ExternalLink size={16} />
                                                     </a>
                                                 )}
                                                 <button onClick={() => setDetailModal({ isOpen: true, item })} className="btn btn-info btn-sm" title="View Details">

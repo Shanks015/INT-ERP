@@ -65,6 +65,10 @@ const MembershipForm = lazy(() => import('./pages/Memberships/MembershipForm'));
 const DigitalMediaList = lazy(() => import('./pages/DigitalMedia/DigitalMediaList'));
 const DigitalMediaForm = lazy(() => import('./pages/DigitalMedia/DigitalMediaForm'));
 
+// Social Media
+const SocialMediaList = lazy(() => import('./pages/SocialMedia/SocialMediaList'));
+const SocialMediaForm = lazy(() => import('./pages/SocialMedia/SocialMediaForm'));
+
 // Outreach
 const OutreachList = lazy(() => import('./pages/Outreach/OutreachList'));
 const OutreachForm = lazy(() => import('./pages/Outreach/OutreachForm'));
@@ -141,6 +145,10 @@ function App() {
                         <Route path="digital-media" element={<DigitalMediaList />} />
                         <Route path="digital-media/new" element={<DigitalMediaForm />} />
                         <Route path="digital-media/edit/:id" element={<DigitalMediaForm />} />
+
+                        <Route path="social-media" element={<SocialMediaList />} />
+                        <Route path="social-media/new" element={<SocialMediaForm />} />
+                        <Route path="social-media/:id" element={<SocialMediaForm />} />
 
                         <Route path="outreach" element={<OutreachList />} />
                         <Route path="outreach/new" element={<OutreachForm />} />

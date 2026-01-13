@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, Users2, TrendingUp, Clock, Eye, FileText, Globe, CheckCircle } from 'lucide-react';
@@ -14,6 +15,7 @@ import Pagination from '../../components/Pagination';
 
 const MembershipsList = () => {
     const { isAdmin } = useAuth();
+    const formatDate = useDateFormat();
     const [memberships, setMemberships] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, active: 0 });
     const [loading, setLoading] = useState(true);
@@ -123,8 +125,8 @@ const MembershipsList = () => {
                                         <td>{membership.name}</td>
                                         <td>{membership.country || '-'}</td>
                                         <td>{membership.membershipStatus || '-'}</td>
-                                        <td>{membership.startDate ? new Date(membership.startDate).toLocaleDateString() : '-'}</td>
-                                        <td>{membership.endDate ? new Date(membership.endDate).toLocaleDateString() : '-'}</td>
+                                        <td>{membership.startDate ? formatDate(membership.startDate) : '-'}</td>
+                                        <td>{membership.endDate ? formatDate(membership.endDate) : '-'}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Record Status Badge */}

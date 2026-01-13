@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, Calendar, TrendingUp, Clock, Search, X, Eye, MapPin, FileText, Tag, Building2 } from 'lucide-react';
@@ -13,6 +14,7 @@ import Pagination from '../../components/Pagination';
 
 const EventsList = () => {
     const { isAdmin } = useAuth();
+    const formatDate = useDateFormat();
     const [events, setEvents] = useState([]);
     const [stats, setStats] = useState({ total: 0, eventTypes: 0, departments: 0 });
     const [loading, setLoading] = useState(true);
@@ -185,7 +187,7 @@ const EventsList = () => {
                                                 <span className="font-medium">{event.universityCountry}</span>
                                             </div>
                                         </td>
-                                        <td>{new Date(event.date).toLocaleDateString()}</td>
+                                        <td>{formatDate(event.date)}</td>
                                         <td>{event.department || '-'}</td>
                                         <td>{event.campus || '-'}</td>
                                         <td>

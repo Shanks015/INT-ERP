@@ -21,7 +21,8 @@ import {
     LogOut,
     Menu,
     X,
-    Database
+    Database,
+    ChevronDown
 } from 'lucide-react';
 
 const MainLayout = () => {
@@ -31,6 +32,15 @@ const MainLayout = () => {
     const [pendingCount, setPendingCount] = useState(0);
     const [pendingUsersCount, setPendingUsersCount] = useState(0);
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [openDropdowns, setOpenDropdowns] = useState(['mou', 'campusVisits', 'product', 'media']); // Dropdowns open by default
+
+    const toggleDropdown = (dropdownName) => {
+        setOpenDropdowns(prev =>
+            prev.includes(dropdownName)
+                ? prev.filter(d => d !== dropdownName)
+                : [...prev, dropdownName]
+        );
+    };
 
     const modules = [
         { name: 'partners', endpoint: '/partners' },
@@ -45,6 +55,7 @@ const MainLayout = () => {
         { name: 'masters-abroad', endpoint: '/masters-abroad' },
         { name: 'memberships', endpoint: '/memberships' },
         { name: 'digital-media', endpoint: '/digital-media' },
+        { name: 'social-media', endpoint: '/social-media' },
         { name: 'outreach', endpoint: '/outreach' },
     ];
 
@@ -100,18 +111,111 @@ const MainLayout = () => {
             </li>
 
             <li><Link to="/partners" className={location.pathname.includes('/partners') ? 'active' : ''}><Users size={18} /> Partners</Link></li>
-            <li><Link to="/campus-visits" className={location.pathname.includes('/campus-visits') ? 'active' : ''}><Building2 size={18} /> Campus Visits</Link></li>
+
+            {/* Campus Visits Dropdown Group */}
+            <li>
+                <div
+                    className={`flex items-center gap-3 cursor-pointer ${location.pathname.includes('/campus-visits') || location.pathname.includes('/scholars') ? 'active' : ''}`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDropdown('campusVisits');
+                    }}
+                >
+                    <Building2 size={18} />
+                    <span className="flex-1">Campus Visits</span>
+                    <ChevronDown
+                        size={16}
+                        className={`transition-transform duration-200 ${openDropdowns.includes('campusVisits') ? 'rotate-180' : ''}`}
+                    />
+                </div>
+                {openDropdowns.includes('campusVisits') && (
+                    <ul className="ml-4 mt-2 space-y-1">
+                        <li><Link to="/campus-visits?type=guest-lecture" className={location.pathname.includes('/campus-visits') && location.search.includes('guest-lecture') ? 'active' : ''}><UserCheck size={16} /> Guest Lecture</Link></li>
+                        <li><Link to="/scholars-in-residence" className={location.pathname.includes('/scholars-in-residence') ? 'active' : ''}><GraduationCap size={16} /> Scholars in Residence</Link></li>
+                        <li><Link to="/campus-visits" className={location.pathname.includes('/campus-visits') && !location.search ? 'active' : ''}><Building2 size={16} /> Campus Visit</Link></li>
+                        <li><Link to="/campus-visits?type=Consultant Visit" className={location.pathname.includes('/campus-visits') && location.search.includes('Consultant') ? 'active' : ''}><UserCheck size={16} /> Consultant Visit</Link></li>
+                    </ul>
+                )}
+            </li>
+
             <li><Link to="/events" className={location.pathname.includes('/events') ? 'active' : ''}><Calendar size={18} /> Events</Link></li>
             <li><Link to="/conferences" className={location.pathname.includes('/conferences') ? 'active' : ''}><Globe size={18} /> Conferences</Link></li>
-            <li><Link to="/mou-signing-ceremonies" className={location.pathname.includes('/mou-signing-ceremonies') ? 'active' : ''}><FileText size={18} /> MoU Signing</Link></li>
-            <li><Link to="/scholars-in-residence" className={location.pathname.includes('/scholars-in-residence') ? 'active' : ''}><GraduationCap size={18} /> Scholars In Residence</Link></li>
-            <li><Link to="/mou-updates" className={location.pathname.includes('/mou-updates') ? 'active' : ''}><FileEdit size={18} /> MoU Updates</Link></li>
-            <li><Link to="/immersion-programs" className={location.pathname.includes('/immersion-programs') ? 'active' : ''}><Plane size={18} /> Immersion Programs</Link></li>
-            <li><Link to="/student-exchange" className={location.pathname.includes('/student-exchange') ? 'active' : ''}><UserCheck size={18} /> Student Exchange</Link></li>
-            <li><Link to="/masters-abroad" className={location.pathname.includes('/masters-abroad') ? 'active' : ''}><BookOpen size={18} /> Masters Abroad</Link></li>
+
+            {/* MoU Dropdown Group */}
+            <li>
+                <div
+                    className={`flex items-center gap-3 cursor-pointer ${location.pathname.includes('/mou') || location.pathname.includes('/outreach') ? 'active' : ''}`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDropdown('mou');
+                    }}
+                >
+                    <FileText size={18} />
+                    <span className="flex-1">MoU</span>
+                    <ChevronDown
+                        size={16}
+                        className={`transition-transform duration-200 ${openDropdowns.includes('mou') ? 'rotate-180' : ''}`}
+                    />
+                </div>
+                {openDropdowns.includes('mou') && (
+                    <ul className="ml-4 mt-2 space-y-1">
+                        <li><Link to="/mou-updates?recordStatus=active" className={location.pathname.includes('/mou-updates') && location.search.includes('active') ? 'active' : ''}><FileEdit size={16} /> Completed MoUs</Link></li>
+                        <li><Link to="/mou-updates?recordStatus=pending" className={location.pathname.includes('/mou-updates') && location.search.includes('pending') ? 'active' : ''}><FileEdit size={16} /> Work in Progress</Link></li>
+                        <li><Link to="/mou-signing-ceremonies" className={location.pathname.includes('/mou-signing-ceremonies') ? 'active' : ''}><FileText size={16} /> MoU Ceremonies</Link></li>
+                        <li><Link to="/outreach" className={location.pathname.includes('/outreach') ? 'active' : ''}><Users size={16} /> Outreach</Link></li>
+                    </ul>
+                )}
+            </li>
+
+            {/* Product Dropdown Group */}
+            <li>
+                <div
+                    className={`flex items-center gap-3 cursor-pointer ${location.pathname.includes('/student-exchange') || location.pathname.includes('/immersion') || location.pathname.includes('/masters') ? 'active' : ''}`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDropdown('product');
+                    }}
+                >
+                    <Plane size={18} />
+                    <span className="flex-1">Product</span>
+                    <ChevronDown
+                        size={16}
+                        className={`transition-transform duration-200 ${openDropdowns.includes('product') ? 'rotate-180' : ''}`}
+                    />
+                </div>
+                {openDropdowns.includes('product') && (
+                    <ul className="ml-4 mt-2 space-y-1">
+                        <li><Link to="/student-exchange" className={location.pathname.includes('/student-exchange') ? 'active' : ''}><UserCheck size={16} /> Student Exchange</Link></li>
+                        <li><Link to="/immersion-programs" className={location.pathname.includes('/immersion-programs') ? 'active' : ''}><Plane size={16} /> Immersion Programs</Link></li>
+                        <li><Link to="/masters-abroad" className={location.pathname.includes('/masters-abroad') ? 'active' : ''}><BookOpen size={16} /> Masters Abroad</Link></li>
+                    </ul>
+                )}
+            </li>
             <li><Link to="/memberships" className={location.pathname.includes('/memberships') ? 'active' : ''}><Users2 size={18} /> Memberships</Link></li>
-            <li><Link to="/digital-media" className={location.pathname.includes('/digital-media') ? 'active' : ''}><Image size={18} /> Digital Media</Link></li>
-            <li><Link to="/outreach" className={location.pathname.includes('/outreach') ? 'active' : ''}><Users size={18} /> Outreach</Link></li>
+
+            {/* Media Dropdown Group */}
+            <li>
+                <div
+                    className={`flex items-center gap-3 cursor-pointer ${location.pathname.includes('/social-media') || location.pathname.includes('/digital-media') ? 'active' : ''}`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleDropdown('media');
+                    }}
+                >
+                    <Image size={18} />
+                    <span className="flex-1">Media</span>
+                    <ChevronDown
+                        size={16}
+                        className={`transition-transform duration-200 ${openDropdowns.includes('media') ? 'rotate-180' : ''}`}
+                    />
+                </div>
+                {openDropdowns.includes('media') && (
+                    <ul className="ml-4 mt-2 space-y-1">
+                        <li><Link to="/social-media" className={location.pathname.includes('/social-media') ? 'active' : ''}><Users size={16} /> Social Media</Link></li>
+                        <li><Link to="/digital-media" className={location.pathname.includes('/digital-media') ? 'active' : ''}><Image size={16} /> Digital Media</Link></li>
+                    </ul>
+                )}
+            </li>
 
             <li>
                 <Link to="/reports" className={location.pathname === '/reports' ? 'active' : ''}>

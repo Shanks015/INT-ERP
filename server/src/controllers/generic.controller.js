@@ -68,14 +68,44 @@ export const getAll = (Model) => async (req, res) => {
             }
         });
 
-        // Date range filter
+        // Date range filter - support model-specific date fields
+        // Configuration is passed via req.locals by route middleware
         if (startDate || endDate) {
-            query.createdAt = {};
-            if (startDate) query.createdAt.$gte = new Date(startDate);
-            if (endDate) {
-                const end = new Date(endDate);
-                end.setHours(23, 59, 59, 999);
-                query.createdAt.$lte = end;
+            const dateFieldConfig = req.locals?.dateFieldConfig || {};
+            const dateField = dateFieldConfig.field || 'createdAt';
+            const hasFromToFields = dateFieldConfig.isRange || false;
+            const arrivalDeparture = dateFieldConfig.arrivalDeparture || false;
+
+            if (arrivalDeparture) {
+                // For Immersion Programs with arrivalDate and departureDate fields
+                if (startDate) {
+                    query.departureDate = { $gte: new Date(startDate) };
+                }
+                if (endDate) {
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999);
+                    query.arrivalDate = { $lte: end };
+                }
+            } else if (hasFromToFields) {
+                // For models with fromDate and toDate fields
+                // Filter records where the date range overlaps with the search range
+                if (startDate) {
+                    query.toDate = { $gte: new Date(startDate) };
+                }
+                if (endDate) {
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999);
+                    query.fromDate = { $lte: end };
+                }
+            } else {
+                // For models with a single date field
+                query[dateField] = {};
+                if (startDate) query[dateField].$gte = new Date(startDate);
+                if (endDate) {
+                    const end = new Date(endDate);
+                    end.setHours(23, 59, 59, 999);
+                    query[dateField].$lte = end;
+                }
             }
         }
 

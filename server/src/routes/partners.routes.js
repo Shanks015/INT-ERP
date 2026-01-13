@@ -20,7 +20,12 @@ router.get('/pending/count', authenticate, authorize(['admin']), ctrl.getPending
 router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPending(Partner));
 
 // Standard CRUD routes
-router.get('/', authenticate, ctrl.getAll(Partner));
+// Add date field config for filtering
+router.get('/', authenticate, (req, res, next) => {
+    req.locals = req.locals || {};
+    req.locals.dateFieldConfig = { field: 'completedOn' };
+    next();
+}, ctrl.getAll(Partner));
 router.get('/:id', authenticate, ctrl.getById(Partner)); // This must come AFTER specific routes
 router.post('/', authenticate, ctrl.create(Partner));
 router.put('/:id', authenticate, ctrl.update(Partner));

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Search, X, Eye, Building2, FileText, Globe } from 'lucide-react';
@@ -14,6 +15,7 @@ import Pagination from '../../components/Pagination';
 
 const CampusVisitsList = () => {
     const { user, isAdmin } = useAuth();
+    const formatDate = useDateFormat();
     const [campusVisits, setCampusVisits] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, universities: 0, trend: null });
     const [loading, setLoading] = useState(true);
@@ -33,6 +35,18 @@ const CampusVisitsList = () => {
     // Dynamic countries list from database
     const [countries, setCountries] = useState([]);
     const [universities, setUniversities] = useState([]);
+
+    // Read URL search params on mount
+    const [searchParams] = useSearchParams();
+
+    useEffect(() => {
+        const typeParam = searchParams.get('type');
+        if (typeParam) {
+            setFilters(prev => ({ ...prev, type: typeParam }));
+        } else {
+            setFilters(prev => ({ ...prev, type: '' }));
+        }
+    }, [searchParams]); // Re-run when URL params change
 
     useEffect(() => {
         fetchVisits();
@@ -271,7 +285,7 @@ const CampusVisitsList = () => {
                                             <td className="font-medium">{visit.universityName}</td>
                                             <td>{visit.country}</td>
                                             <td className="max-w-xs truncate" title={visit.visitorName}>{visit.visitorName || '-'}</td>
-                                            <td>{new Date(visit.date).toLocaleDateString()}</td>
+                                            <td>{formatDate(visit.date)}</td>
                                             <td>
                                                 <span className="badge badge-info badge-sm whitespace-nowrap">
                                                     {visit.type || '-'}

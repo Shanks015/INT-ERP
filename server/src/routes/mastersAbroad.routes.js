@@ -12,6 +12,7 @@ router.get('/export-csv', authenticate, ctrl.exportCSV(MastersAbroad));
 router.get('/pending/count', authenticate, authorize(['admin']), ctrl.getPendingCount(MastersAbroad));
 router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPending(MastersAbroad));
 
+// Masters Abroad has no date fields - uses default createdAt
 router.get('/', authenticate, ctrl.getAll(MastersAbroad));
 router.get('/:id', authenticate, ctrl.getById(MastersAbroad));
 router.post('/', authenticate, ctrl.create(MastersAbroad));

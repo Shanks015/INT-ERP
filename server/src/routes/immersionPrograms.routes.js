@@ -12,7 +12,12 @@ router.get('/export-csv', authenticate, ctrl.exportCSV(ImmersionProgram));
 router.get('/pending/count', authenticate, authorize(['admin']), ctrl.getPendingCount(ImmersionProgram));
 router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPending(ImmersionProgram));
 
-router.get('/', authenticate, ctrl.getAll(ImmersionProgram));
+// Add date field config for filtering (uses arrivalDate/departureDate)
+router.get('/', authenticate, (req, res, next) => {
+    req.locals = req.locals || {};
+    req.locals.dateFieldConfig = { arrivalDeparture: true };
+    next();
+}, ctrl.getAll(ImmersionProgram));
 router.get('/:id', authenticate, ctrl.getById(ImmersionProgram));
 router.post('/', authenticate, ctrl.create(ImmersionProgram));
 router.put('/:id', authenticate, ctrl.update(ImmersionProgram));

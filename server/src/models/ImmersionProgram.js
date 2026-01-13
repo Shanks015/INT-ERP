@@ -80,14 +80,20 @@ const immersionProgramSchema = new mongoose.Schema({
 
 immersionProgramSchema.virtual('isExpired').get(function () {
     if (!this.departureDate) return false;
-    return new Date() > new Date(this.departureDate);
+    const endOfDepartureDate = new Date(this.departureDate);
+    endOfDepartureDate.setHours(23, 59, 59, 999);
+    return new Date() > endOfDepartureDate;
 });
 
 immersionProgramSchema.pre('save', function (next) {
-    if (this.departureDate && new Date() > new Date(this.departureDate)) {
-        this.recordStatus = 'expired';
-    } else {
-        this.recordStatus = 'active';
+    if (this.departureDate) {
+        const endOfDepartureDate = new Date(this.departureDate);
+        endOfDepartureDate.setHours(23, 59, 59, 999);
+        if (new Date() > endOfDepartureDate) {
+            this.recordStatus = 'expired';
+        } else {
+            this.recordStatus = 'active';
+        }
     }
     next();
 });
