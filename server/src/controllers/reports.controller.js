@@ -92,14 +92,16 @@ const getDisplayFields = (moduleName) => {
             };
         case 'mou-signing-ceremonies':
             return {
-                headers: ['Date', 'Title', 'University', 'Country', 'Department', 'Venue'],
+                headers: ['Date', 'Type', 'Visitor Name', 'University', 'Department', 'Event Summary', 'Campus', 'Drive Link'],
                 extractor: (item) => [
                     item.date ? new Date(item.date).toLocaleDateString() : '-',
-                    item.title || '-',
+                    item.type || '-',
+                    item.visitorName || '-',
                     item.university || '-',
-                    item.country || '-',
                     item.department || '-',
-                    item.venue || '-'
+                    item.eventSummary || '-',
+                    item.campus || '-',
+                    item.driveLink || '-'
                 ]
             };
         case 'scholars-in-residence':
@@ -119,13 +121,19 @@ const getDisplayFields = (moduleName) => {
             };
         case 'mou-updates':
             return {
-                headers: ['Date', 'University', 'Country', 'Agreement Type', 'Department'],
+                headers: ['Date', 'Country', 'University', 'Department', 'Contact Person', 'MoU Status', 'Contact Email', 'Agreement Type', 'Term', 'Validity Status', 'Drive Link'],
                 extractor: (item) => [
                     item.date ? new Date(item.date).toLocaleDateString() : '-',
-                    item.university || '-',
                     item.country || '-',
+                    item.university || '-',
+                    item.department || '-',
+                    item.contactPerson || '-',
+                    item.mouStatus || '-',
+                    item.contactEmail || '-',
                     item.agreementType || '-',
-                    item.department || '-'
+                    item.term || '-',
+                    item.validityStatus || '-',
+                    item.driveLink || '-'
                 ]
             };
         case 'immersion-programs':
@@ -318,12 +326,12 @@ export const generateReport = async (req, res) => {
                 for (const [moduleName, moduleData] of Object.entries(moduleGroups)) {
                     // Check if we need a new page
                     if (doc.y > 700) doc.addPage();
-                    
+
                     doc.fontSize(12).text(`${moduleName.toUpperCase()}`, { underline: true });
                     doc.moveDown(0.3);
 
                     const fieldConfig = getDisplayFields(moduleName);
-                    
+
                     // Calculate column widths
                     const columnWidth = 800 / fieldConfig.headers.length;
                     const columnsSize = fieldConfig.headers.map(() => columnWidth);
@@ -337,7 +345,7 @@ export const generateReport = async (req, res) => {
                         ...tableConfig,
                         columnsSize
                     });
-                    
+
                     doc.moveDown(0.3);
                 }
             } else {

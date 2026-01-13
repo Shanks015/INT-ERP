@@ -19,9 +19,6 @@ const mouUpdateSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    completedDate: {
-        type: Date
-    },
     contactPerson: {
         type: String,
         trim: true
