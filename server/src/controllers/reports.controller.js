@@ -12,6 +12,7 @@ import StudentExchange from '../models/StudentExchange.js';
 import MastersAbroad from '../models/MastersAbroad.js';
 import Membership from '../models/Membership.js';
 import DigitalMedia from '../models/DigitalMedia.js';
+import Outreach from '../models/Outreach.js';
 
 const getModel = (moduleName) => {
     switch (moduleName) {
@@ -27,19 +28,191 @@ const getModel = (moduleName) => {
         case 'masters-abroad': return MastersAbroad;
         case 'memberships': return Membership;
         case 'digital-media': return DigitalMedia;
+        case 'outreach': return Outreach;
         default: return null;
     }
 };
 
 const getDisplayFields = (moduleName) => {
-    // Define columns for PDF/DOCX tables
+    // Define columns for each module - returns { headers: [], extractor: (item) => [] }
     switch (moduleName) {
-        case 'partners': return ['partnerName', 'country', 'university', 'status'];
-        case 'campus-visits': return ['date', 'visitorName', 'universityName', 'campus'];
-        case 'events': return ['date', 'name', 'type', 'campus'];
-        case 'conferences': return ['date', 'conferenceName', 'country', 'campus'];
-        case 'all': return ['module', 'date', 'title', 'details']; // Generic for combined
-        default: return ['_id'];
+        case 'partners':
+            return {
+                headers: ['University', 'Country', 'School', 'MoU Status', 'Contact Person', 'Email', 'Phone', 'Agreement Type', 'Completed On', 'Department', 'Record Status'],
+                extractor: (item) => [
+                    item.university || '-',
+                    item.country || '-',
+                    item.school || '-',
+                    item.mouStatus || '-',
+                    item.contactPerson || '-',
+                    item.email || '-',
+                    item.phoneNumber || '-',
+                    item.agreementType || '-',
+                    item.completedOn ? new Date(item.completedOn).toLocaleDateString() : '-',
+                    item.department || '-',
+                    item.recordStatus || 'active'
+                ]
+            };
+        case 'campus-visits':
+            return {
+                headers: ['Date', 'University', 'Country', 'Visitor Name', 'Type', 'Department', 'Campus'],
+                extractor: (item) => [
+                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    item.universityName || '-',
+                    item.country || '-',
+                    item.visitorName || '-',
+                    item.type || '-',
+                    item.department || '-',
+                    item.campus || '-'
+                ]
+            };
+        case 'events':
+            return {
+                headers: ['Date', 'Title', 'Type', 'Dignitaries', 'Department', 'Campus', 'University Country'],
+                extractor: (item) => [
+                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    item.title || '-',
+                    item.type || '-',
+                    item.dignitaries || '-',
+                    item.department || '-',
+                    item.campus || '-',
+                    item.universityCountry || '-'
+                ]
+            };
+        case 'conferences':
+            return {
+                headers: ['Date', 'Conference Name', 'Country', 'Department', 'Campus'],
+                extractor: (item) => [
+                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    item.conferenceName || '-',
+                    item.country || '-',
+                    item.department || '-',
+                    item.campus || '-'
+                ]
+            };
+        case 'mou-signing-ceremonies':
+            return {
+                headers: ['Date', 'Title', 'University', 'Country', 'Department', 'Venue'],
+                extractor: (item) => [
+                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    item.title || '-',
+                    item.university || '-',
+                    item.country || '-',
+                    item.department || '-',
+                    item.venue || '-'
+                ]
+            };
+        case 'scholars-in-residence':
+            return {
+                headers: ['Scholar Name', 'University', 'Country', 'From Date', 'To Date', 'Category', 'Department', 'Campus', 'Record Status'],
+                extractor: (item) => [
+                    item.scholarName || '-',
+                    item.university || '-',
+                    item.country || '-',
+                    item.fromDate ? new Date(item.fromDate).toLocaleDateString() : '-',
+                    item.toDate ? new Date(item.toDate).toLocaleDateString() : '-',
+                    item.category || '-',
+                    item.department || '-',
+                    item.campus || '-',
+                    item.recordStatus || 'active'
+                ]
+            };
+        case 'mou-updates':
+            return {
+                headers: ['Date', 'University', 'Country', 'Agreement Type', 'Department'],
+                extractor: (item) => [
+                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    item.university || '-',
+                    item.country || '-',
+                    item.agreementType || '-',
+                    item.department || '-'
+                ]
+            };
+        case 'immersion-programs':
+            return {
+                headers: ['Direction', 'University', 'Country', 'Arrival Date', 'Departure Date', 'Number of Pax', 'Department', 'Record Status'],
+                extractor: (item) => [
+                    item.direction || '-',
+                    item.university || '-',
+                    item.country || '-',
+                    item.arrivalDate ? new Date(item.arrivalDate).toLocaleDateString() : '-',
+                    item.departureDate ? new Date(item.departureDate).toLocaleDateString() : '-',
+                    item.numberOfPax || '-',
+                    item.department || '-',
+                    item.recordStatus || 'active'
+                ]
+            };
+        case 'student-exchange':
+            return {
+                headers: ['Direction', 'Student Name', 'University', 'Country', 'From Date', 'To Date', 'Department', 'Program Name', 'Record Status'],
+                extractor: (item) => [
+                    item.direction || '-',
+                    item.studentName || '-',
+                    item.university || '-',
+                    item.country || '-',
+                    item.fromDate ? new Date(item.fromDate).toLocaleDateString() : '-',
+                    item.toDate ? new Date(item.toDate).toLocaleDateString() : '-',
+                    item.department || '-',
+                    item.programName || '-',
+                    item.recordStatus || 'active'
+                ]
+            };
+        case 'masters-abroad':
+            return {
+                headers: ['Student Name', 'University', 'Country', 'Course', 'Tenure', 'USN', 'CGPA', 'School'],
+                extractor: (item) => [
+                    item.studentName || '-',
+                    item.university || '-',
+                    item.country || '-',
+                    item.courseStudying || '-',
+                    item.courseTenure || '-',
+                    item.usnNumber || '-',
+                    item.cgpa || '-',
+                    item.schoolOfStudy || '-'
+                ]
+            };
+        case 'memberships':
+            return {
+                headers: ['Name', 'Country', 'Membership Status', 'Start Date', 'End Date', 'Record Status'],
+                extractor: (item) => [
+                    item.name || '-',
+                    item.country || '-',
+                    item.membershipStatus || '-',
+                    item.startDate ? new Date(item.startDate).toLocaleDateString() : '-',
+                    item.endDate ? new Date(item.endDate).toLocaleDateString() : '-',
+                    item.recordStatus || 'active'
+                ]
+            };
+        case 'digital-media':
+            return {
+                headers: ['Date', 'Article Topic', 'Channel', 'Amount Paid'],
+                extractor: (item) => [
+                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    item.articleTopic || '-',
+                    item.channel || '-',
+                    item.amountPaid || 'Zero'
+                ]
+            };
+        case 'outreach':
+            return {
+                headers: ['Program Name', 'Country', 'Partnership Type', 'Department'],
+                extractor: (item) => [
+                    item.programName || item.name || '-',
+                    item.country || '-',
+                    item.partnershipType || '-',
+                    item.department || '-'
+                ]
+            };
+        default:
+            return {
+                headers: ['Module', 'Date', 'Name', 'Details'],
+                extractor: (item) => [
+                    item.module || '-',
+                    item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-',
+                    item.name || item.title || '-',
+                    item.country || item.department || '-'
+                ]
+            };
     }
 };
 
@@ -54,7 +227,7 @@ const fetchData = async (module, filters) => {
         query[dateField] = { $gte: new Date(filters.startDate), $lte: new Date(filters.endDate) };
     }
 
-    // Status filtering
+    // Status filtering - only filter if a specific status is selected
     if (filters.status && filters.status !== 'all') {
         query.status = filters.status;
     }
@@ -114,78 +287,182 @@ export const generateReport = async (req, res) => {
         }
 
         if (format === 'pdf') {
-            const doc = new PDFDocument({ margin: 30, size: 'A4' });
+            const doc = new PDFDocument({ margin: 20, size: 'A4', layout: 'landscape' });
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', `attachment; filename=report-${Date.now()}.pdf`);
             doc.pipe(res);
 
             // Header
-            doc.fontSize(20).text('International Affairs Report', { align: 'center' });
-            doc.fontSize(12).text(`Generated on: ${new Date().toLocaleDateString()}`, { align: 'center' });
-            doc.moveDown();
+            doc.fontSize(16).text('International Affairs Report', { align: 'center' });
+            doc.fontSize(10).text(`Generated on: ${new Date().toLocaleDateString()}`, { align: 'center' });
+            doc.fontSize(9).text(`Module: ${modules === 'all' ? 'All Modules' : modules}`, { align: 'center' });
+            doc.moveDown(0.5);
 
-            // Table Data Preparation
-            const tableData = {
-                headers: ['Module', 'Date', 'Name/Title', 'Details', 'Status'],
-                rows: allData.map(item => [
-                    item.module,
-                    item.date ? new Date(item.date).toLocaleDateString() : (item.fromDate ? new Date(item.fromDate).toLocaleDateString() : '-'),
-                    item.partnerName || item.visitorName || item.name || item.conferenceName || item.studentName || item.title || 'N/A',
-                    item.university || item.universityName || item.country || item.department || '-',
-                    item.status
-                ])
+            // Table configuration to prevent empty spaces
+            const tableConfig = {
+                prepareHeader: () => doc.font("Helvetica-Bold").fontSize(7),
+                prepareRow: () => doc.font("Helvetica").fontSize(7),
+                width: 800,
+                padding: 2, // Minimal padding
+                minHeight: 15, // Small row height
+                hideLines: false
             };
 
-            await doc.table(tableData, {
-                prepareHeader: () => doc.font("Helvetica-Bold").fontSize(10),
-                prepareRow: () => doc.font("Helvetica").fontSize(10)
-            });
+            if (modules === 'all') {
+                const moduleGroups = {};
+                allData.forEach(item => {
+                    if (!moduleGroups[item.module]) moduleGroups[item.module] = [];
+                    moduleGroups[item.module].push(item);
+                });
+
+                for (const [moduleName, moduleData] of Object.entries(moduleGroups)) {
+                    // Check if we need a new page
+                    if (doc.y > 700) doc.addPage();
+                    
+                    doc.fontSize(12).text(`${moduleName.toUpperCase()}`, { underline: true });
+                    doc.moveDown(0.3);
+
+                    const fieldConfig = getDisplayFields(moduleName);
+                    
+                    // Calculate column widths
+                    const columnWidth = 800 / fieldConfig.headers.length;
+                    const columnsSize = fieldConfig.headers.map(() => columnWidth);
+
+                    const tableData = {
+                        headers: fieldConfig.headers,
+                        rows: moduleData.map(item => fieldConfig.extractor(item))
+                    };
+
+                    await doc.table(tableData, {
+                        ...tableConfig,
+                        columnsSize
+                    });
+                    
+                    doc.moveDown(0.3);
+                }
+            } else {
+                const fieldConfig = getDisplayFields(modules);
+                const columnWidth = 800 / fieldConfig.headers.length;
+                const columnsSize = fieldConfig.headers.map(() => columnWidth);
+
+                const tableData = {
+                    headers: fieldConfig.headers,
+                    rows: allData.map(item => fieldConfig.extractor(item))
+                };
+
+                await doc.table(tableData, {
+                    ...tableConfig,
+                    columnsSize
+                });
+            }
 
             doc.end();
 
         } else if (format === 'docx') {
-            const tableRows = allData.map(item =>
-                new TableRow({
-                    children: [
-                        new TableCell({ children: [new Paragraph(item.module)] }),
-                        new TableCell({ children: [new Paragraph(item.date ? new Date(item.date).toLocaleDateString() : '-')] }),
-                        new TableCell({ children: [new Paragraph(item.partnerName || item.visitorName || item.name || item.title || 'N/A')] }),
-                        new TableCell({ children: [new Paragraph(item.university || item.country || '-')] }),
-                        new TableCell({ children: [new Paragraph(item.status || '-')] }),
-                    ],
-                })
-            );
+            let allTableRows = [];
 
-            const doc = new Document({
-                sections: [{
-                    properties: {},
-                    children: [
-                        new Paragraph({ text: "International Affairs Report", heading: HeadingLevel.HEADING_1 }),
-                        new Paragraph({ text: `Generated on: ${new Date().toLocaleDateString()}` }),
-                        new Paragraph({ text: "" }), // Spacer
-                        new Table({
-                            rows: [
-                                new TableRow({
-                                    children: [
-                                        new TableCell({ children: [new Paragraph({ text: "Module", bold: true })] }),
-                                        new TableCell({ children: [new Paragraph({ text: "Date", bold: true })] }),
-                                        new TableCell({ children: [new Paragraph({ text: "Name/Title", bold: true })] }),
-                                        new TableCell({ children: [new Paragraph({ text: "Details", bold: true })] }),
-                                        new TableCell({ children: [new Paragraph({ text: "Status", bold: true })] }),
-                                    ],
-                                }),
-                                ...tableRows
-                            ],
-                            width: { size: 100, type: WidthType.PERCENTAGE }
-                        }),
-                    ],
-                }],
-            });
+            if (modules === 'all') {
+                // For "all modules", create sections for each module
+                const moduleGroups = {};
+                allData.forEach(item => {
+                    if (!moduleGroups[item.module]) moduleGroups[item.module] = [];
+                    moduleGroups[item.module].push(item);
+                });
 
-            const buffer = await Packer.toBuffer(doc);
-            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-            res.setHeader('Content-Disposition', `attachment; filename=report-${Date.now()}.docx`);
-            res.send(buffer);
+                const sections = [];
+                for (const [moduleName, moduleData] of Object.entries(moduleGroups)) {
+                    const fieldConfig = getDisplayFields(moduleName);
+
+                    // Add module heading
+                    sections.push(new Paragraph({
+                        text: moduleName.toUpperCase(),
+                        heading: HeadingLevel.HEADING_2
+                    }));
+                    sections.push(new Paragraph({ text: "" })); // Spacer
+
+                    // Create header row
+                    const headerRow = new TableRow({
+                        children: fieldConfig.headers.map(header =>
+                            new TableCell({ children: [new Paragraph({ text: header, bold: true })] })
+                        )
+                    });
+
+                    // Create data rows
+                    const dataRows = moduleData.map(item =>
+                        new TableRow({
+                            children: fieldConfig.extractor(item).map(value =>
+                                new TableCell({ children: [new Paragraph(String(value))] })
+                            )
+                        })
+                    );
+
+                    // Add table
+                    sections.push(new Table({
+                        rows: [headerRow, ...dataRows],
+                        width: { size: 100, type: WidthType.PERCENTAGE }
+                    }));
+                    sections.push(new Paragraph({ text: "" })); // Spacer
+                }
+
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new Paragraph({ text: "International Affairs Report", heading: HeadingLevel.HEADING_1 }),
+                            new Paragraph({ text: `Generated on: ${new Date().toLocaleDateString()}` }),
+                            new Paragraph({ text: "Module: All Modules" }),
+                            new Paragraph({ text: "" }), // Spacer
+                            ...sections
+                        ],
+                    }],
+                });
+
+                const buffer = await Packer.toBuffer(doc);
+                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+                res.setHeader('Content-Disposition', `attachment; filename=report-${Date.now()}.docx`);
+                res.send(buffer);
+
+            } else {
+                // For single module, use module-specific columns
+                const fieldConfig = getDisplayFields(modules);
+
+                // Create header row
+                const headerRow = new TableRow({
+                    children: fieldConfig.headers.map(header =>
+                        new TableCell({ children: [new Paragraph({ text: header, bold: true })] })
+                    )
+                });
+
+                // Create data rows
+                const tableRows = allData.map(item =>
+                    new TableRow({
+                        children: fieldConfig.extractor(item).map(value =>
+                            new TableCell({ children: [new Paragraph(String(value))] })
+                        )
+                    })
+                );
+
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new Paragraph({ text: "International Affairs Report", heading: HeadingLevel.HEADING_1 }),
+                            new Paragraph({ text: `Generated on: ${new Date().toLocaleDateString()}` }),
+                            new Paragraph({ text: `Module: ${modules}` }),
+                            new Paragraph({ text: "" }), // Spacer
+                            new Table({
+                                rows: [headerRow, ...tableRows],
+                                width: { size: 100, type: WidthType.PERCENTAGE }
+                            }),
+                        ],
+                    }],
+                });
+
+                const buffer = await Packer.toBuffer(doc);
+                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+                res.setHeader('Content-Disposition', `attachment; filename=report-${Date.now()}.docx`);
+                res.send(buffer);
+            }
         } else {
             res.status(400).json({ message: 'Invalid format' });
         }

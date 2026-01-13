@@ -12,7 +12,12 @@ router.get('/export-csv', authenticate, ctrl.exportCSV(StudentExchange));
 router.get('/pending/count', authenticate, authorize(['admin']), ctrl.getPendingCount(StudentExchange));
 router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPending(StudentExchange));
 
-router.get('/', authenticate, ctrl.getAll(StudentExchange));
+// Add date range fields config for filtering
+router.get('/', authenticate, (req, res, next) => {
+    req.locals = req.locals || {};
+    req.locals.dateFieldConfig = { isRange: true };
+    next();
+}, ctrl.getAll(StudentExchange));
 router.get('/:id', authenticate, ctrl.getById(StudentExchange));
 router.post('/', authenticate, ctrl.create(StudentExchange));
 router.put('/:id', authenticate, ctrl.update(StudentExchange));

@@ -12,7 +12,12 @@ router.get('/export-csv', authenticate, ctrl.exportCSV(Event));
 router.get('/pending/count', authenticate, authorize(['admin']), ctrl.getPendingCount(Event));
 router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPending(Event));
 
-router.get('/', authenticate, ctrl.getAll(Event));
+// Add date field config for filtering
+router.get('/', authenticate, (req, res, next) => {
+    req.locals = req.locals || {};
+    req.locals.dateFieldConfig = { field: 'date' };
+    next();
+}, ctrl.getAll(Event));
 router.get('/:id', authenticate, ctrl.getById(Event));
 router.post('/', authenticate, ctrl.create(Event));
 router.put('/:id', authenticate, ctrl.update(Event));

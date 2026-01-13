@@ -1,0 +1,563 @@
+Reading Excel file...
+
+=== WORKBOOK INFO ===
+Sheet Names: [
+  'Dashboard',
+  'Form Responses 1',
+  'Campus Visit',
+  'MoU Signing Ceremony',
+  'Events',
+  'Conference',
+  'Scholars in Residence',
+  'MoU Update',
+  'Immersion program',
+  'Student Exchange',
+  'Masters Abroad',
+  'Memberships',
+  'Digital Media'
+]
+Total Sheets: 13
+
+=== SHEET 1: Dashboard ===
+Rows: 3
+Columns: [ '__EMPTY', '__EMPTY_3', '__EMPTY_6', '__EMPTY_9' ]
+First row sample: {
+  "__EMPTY": "Campus Visit",
+  "__EMPTY_3": "MoU Signing Ceremony",
+  "__EMPTY_6": "Events",
+  "__EMPTY_9": "Conference"
+}
+
+=== SHEET 2: Form Responses 1 ===
+Rows: 292
+Columns: [
+  'Timestamp',
+  'Email Address',
+  'Particulars',
+  'Status ',
+  '  Category  ',
+  'Scholars Name',
+  'University  2',
+  'Country 3',
+  'From Date 2',
+  'To Date 2',
+  'Department  2',
+  'Summary 4',
+  'Campus',
+  'Scholars in Residence -  Upload Zip FIle'
+]
+First row sample: {
+  "Timestamp": 45981.65802949074,
+  "Email Address": "vicepresident-internationaloffice@dsu.edu.in",
+  "Particulars": "Scholars in Residence",
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Prof. Al -Khoury, Professor",
+  "University  2": "Lebanon University",
+  "Country 3": "Lebanon ",
+  "From Date 2": 45145,
+  "To Date 2": 45152,
+  "Department  2": "SCMS-PG",
+  "Summary 4": "Prof. Al-Khoury, Professor, visited Dayananda Sagar University for introductory discussions and academic engagement. During the visit, he interacted with university leadership and faculty to explore potential areas of collaboration, including joint academic activities, research opportunities, and future partnerships. The meeting provided a valuable opportunity to understand mutual interests and identify possible pathways for academic cooperation.",
+  "Campus": "Kudlu Gate",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/19Q3RZIoCw-1ehQpQ8xLaS8tTDP7w2pRp?usp=sharing"
+}
+
+=== SHEET 3: Campus Visit ===
+Rows: 100
+Columns: [
+  'Date',
+  'Type',
+  "Visitor's Name & Details",
+  'Country ',
+  'University Name',
+  'Summary',
+  'Department ',
+  'Campus',
+  'Campus Visit-  Upload Zip FIle'
+]
+First row sample: {
+  "Date": 45982,
+  "Type": "University Visit",
+  "Visitor's Name & Details": "Prof Dr. Alex Wilson, Prof Dr. Julie McCandless",
+  "Country ": "UK",
+  "University Name": "Queen's University Belfast",
+  "Summary": "On 21st November 2025, we had the pleasure of hosting Prof. Dr. Alex Wilson and Prof. Dr. Julie McCandless from QueenΓÇÖs University Belfast, UK (#199 Qs Ranking) for a guest lecture at the School of Management Studies. The session focused on Global Careers for Business Graduates and offered valuable guidance on developing international career pathways. The professors also introduced their MBA program, sharing details on admission requirements, curriculum structure, career prospects, and student life at QueenΓÇÖs University Belfast, which was highly informative for our students.\n\nFollowing the lecture, the professors met with the Dean of the School of Management Studies for a focused discussion on strengthening academic ties between our institutions. The conversation covered several potential areas of collaboration, including student exchange programs, scholar-in-residence opportunities, and short-term immersion programs.",
+  "Department ": "School of Management Studies",
+  "Campus": "Kudlu gate",
+  "Campus Visit-  Upload Zip FIle": "https://drive.google.com/open?id=1fuzo5ZPatD3ZplYzKuQ0fevjg_BOK2i4"
+}
+
+=== SHEET 4: MoU Signing Ceremony ===
+Rows: 7
+Columns: [
+  'Date',
+  'Type',
+  "Visitor's Name & Details",
+  'University Name',
+  'Department ',
+  'Event Summary',
+  'Campus',
+  'MoU Signing Ceremony    Upload Zip FIle'
+]
+First row sample: {
+  "Date": 45008,
+  "Type": "University",
+  "Visitor's Name & Details": "Dr. Dan Heimmermann,Chancellor",
+  "University Name": "University of South Carolina Aiken, USA",
+  "Department ": "SCMS-PG",
+  "Event Summary": "Dayananda Sagar University, International Affairs Department organized an event ΓÇ£Welcome - Meet and Greet and Partnership ProgramΓÇ¥ on March 23, 2023. The program started with a welcome dance organised by Ms. Shyamantha Surya Prakash and Team, followed by Meet and Greet.\n \n \nWelcome with Dr. Dan Heimmermann and Mr. Ani Agnihotri\n\nThe program then followed with a welcome address by Dr. Amit Bhatt, Pro Vice Chancellor, DSU. The dignitaries on the Dias were Dr. Dan Heimmermann, Chancellor, University of South Carolina Aiken, USA, Mr. Ani Agnihotri, Co-Founder and CEO at Marshall Automation America, Inc, Dr. K N Balasubrmanya Murthy, Vice Chancellor, DSU, Dr. Puttamadappa C, Registrar, DSU, Ms. Supriya Mathew, Vice president of International affairs & Admissions DSU, Dr. Uday Kumar Reddy, Dean SoE, CSE, Dr.Girisha G S, Chairperson, CSE, Dr. Pramod Naik, Associate Prof, CSE, Dr. M K Banga, Dean, CSE, Dr. Basavaraj N Hiremath, Prof, DSU, Dr. Niranjan Appaswamy, Associate Prof, DSU, Dr. Shaila S.G, Chairperson, DS, DSU , Dr. M Shahina Parveen, Chairperson, CST, DSU.\n",
+  "Campus": "Kudlu Gate",
+  "MoU Signing Ceremony    Upload Zip FIle": "https://drive.google.com/open?id=1Tku65075BPt66QbeZjYqPRyK1YbveU22"
+}
+
+=== SHEET 5: Events ===
+Rows: 52
+Columns: [
+  'Date',
+  'Type ',
+  'Name & Details ',
+  'Department ',
+  'University, Country',
+  'Dignitaries ',
+  'Event Summary',
+  'Campus',
+  'Events -   Upload Zip FIle'
+]
+First row sample: {
+  "Date": 44957,
+  "Type ": "Seminar",
+  "Name & Details ": "Dr. Deena Gibbons, Professor KingΓÇÖs College London. Dr. Sanjukta Deb, Associate Dean of PGT Education Faculty of Life Sciences and Medicine,",
+  "Department ": "1st year School of Basic & Applied Sciences",
+  "University, Country": "Kings college, London",
+  "Dignitaries ": "Dr. Sunil Moore,Ms. Supriya Mathew,Ms. Jessica Moule,Ms. Andreea Mihaila",
+  "Event Summary": "https://drive.google.com/file/d/1uWkBeslpRL2XJ8yIRV63fMBm1wPwibKU/view?usp=sharing",
+  "Campus": "Dayananda Sagar Institution, Campus 1,MCA Seminar Hall",
+  "Events -   Upload Zip FIle": "31-1-2023 Kings college London"
+}
+
+=== SHEET 6: Conference ===
+Rows: 4
+Columns: [
+  'Date',
+  'Conference Name',
+  'Country',
+  'Department ',
+  'Event Summary',
+  'Campus',
+  'Conference -   Upload Zip FIle'
+]
+First row sample: {
+  "Date": 45098,
+  "Conference Name": "Srilanka Education Minister and delegates from Sri Lanka",
+  "Country": "Sri Lanka",
+  "Department ": "International Affairs ",
+  "Event Summary": "International Delegates from Srilanka,Bangladesh, Bhutan",
+  "Campus": "Harohalli",
+  "Conference -   Upload Zip FIle": "https://drive.google.com/open?id=1TjJ8wzPR-92w96a56yMNc5eaSsddtucf"
+}
+
+=== SHEET 7: Scholars in Residence ===
+Rows: 18
+Columns: [
+  'Status ',
+  '  Category  ',
+  'Scholars Name',
+  'University ',
+  'Country',
+  'From Date',
+  'To Date',
+  'Department ',
+  'Summary',
+  'Campus',
+  'Scholars in Residence -  Upload Zip FIle'
+]
+First row sample: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Prof. Al -Khoury, Professor",
+  "University ": "Lebanon University",
+  "Country": "Lebanon ",
+  "From Date": 45145,
+  "To Date": "8/14/2023",
+  "Department ": "SCMS-PG",
+  "Summary": "Prof. Al-Khoury, Professor, visited Dayananda Sagar University for introductory discussions and academic engagement. During the visit, he interacted with university leadership and faculty to explore potential areas of collaboration, including joint academic activities, research opportunities, and future partnerships. The meeting provided a valuable opportunity to understand mutual interests and identify possible pathways for academic cooperation.",
+  "Campus": "Kudlu Gate",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/19Q3RZIoCw-1ehQpQ8xLaS8tTDP7w2pRp?usp=sharing"
+}
+
+=== SHEET 8: MoU Update ===
+Rows: 70
+Columns: [
+  'Date',
+  'Country ',
+  'University',
+  'Department',
+  'Completed Date',
+  'MoU Status ',
+  'Contact Person ',
+  'Contact Email',
+  'Agreement Type',
+  'Term',
+  'Validity Status ',
+  'MoU Update  Upload Zip FIle'
+]
+First row sample: {
+  "Date": 45685,
+  "Country ": "USA",
+  "University": "Illinois Tech",
+  "Department": "Enginerring",
+  "Completed Date": 46414,
+  "MoU Status ": "Completed",
+  "Contact Person ": "Dr. Mariamma",
+  "Contact Email": "mthomas29@iit.edu",
+  "Agreement Type": "MoU",
+  "Term": "2 years ",
+  "Validity Status ": "Active",
+  "MoU Update  Upload Zip FIle": "https://drive.google.com/open?id=1C5C3EQ-6pumrBp_q66BiZWwSoUFS2lAL"
+}
+
+=== SHEET 9: Immersion program ===
+Rows: 5
+Columns: [
+  'Status',
+  'Incoming/Outgoing',
+  'Country ',
+  'University ',
+  'No of Pax',
+  'Summary',
+  'Arrival Date',
+  'Departure Date',
+  'Fees Per Pax',
+  'Department ',
+  'Immersion Program -  Upload Zip FIle'
+]
+First row sample: {
+  "Status": "Completed",
+  "Incoming/Outgoing": "Outgoing",
+  "Country ": "Malaysia ",
+  "University ": "Limkokwing University",
+  "No of Pax": 14,
+  "Summary": "Introduction to Limkokwing University of Creative Technology(LUCT): Limkokwing University of Creative Technology, located in Cyberjaya, Malaysia, is a global leader in innovative education, fostering creativity, entrepreneurship, and cultural diversity. Through dynamic programs and state-of-the-art facilities, we empower students to thrive in today's interconnected world. Our collaborations with esteemed institutions like Partner Institute provide unique opportunities for students to engage in cross-cultural exchanges and immersive learning experiences, enhancing their global perspective and academic journey.",
+  "Arrival Date": 45488,
+  "Departure Date": 45494,
+  "Fees Per Pax": 520,
+  "Department ": "SCMS-UG",
+  "Immersion Program -  Upload Zip FIle": "https://drive.google.com/open?id=1mnW-DP6jHacAuptkkVU6y7vzZ-qVP9xF"
+}
+
+=== SHEET 10: Student Exchange ===
+Rows: 12
+Columns: [
+  'Incoming / Outgoing',
+  'Students Name',
+  'Course ',
+  'Semester /Year',
+  'USN NO',
+  'Exchange University',
+  'From Date',
+  'To Date',
+  'Status',
+  'Student Exchange -  Upload Zip FIle'
+]
+First row sample: {
+  "Incoming / Outgoing": "Incoming",
+  "Students Name": "Mr. Maxim Skobelev",
+  "Course ": "Engineering - ECE",
+  "Semester /Year": 2024,
+  "USN NO": "-",
+  "Exchange University": "MIET - Russia",
+  "From Date": 45301,
+  "To Date": 45443,
+  "Status": "Completed",
+  "Student Exchange -  Upload Zip FIle": "https://drive.google.com/open?id=1bMPfWG4mDFNCSFkmMHpoinJVr3_NkF86"
+}
+
+=== SHEET 11: Masters Abroad ===
+Rows: 0
+
+=== SHEET 12: Memberships ===
+Rows: 4
+Columns: [
+  'Date',
+  'Status',
+  'Name',
+  'Summary',
+  'Country',
+  'Start Date',
+  'End Date',
+  'Memberships -   Upload Zip FIle'
+]
+First row sample: {
+  "Date": 45117,
+  "Status": "Completed",
+  "Name": "ACU- The Association of Commonwealth Universities",
+  "Summary": "https://www.acu.ac.uk/about-us/work-with-us/",
+  "Country": "UK",
+  "Start Date": 45117,
+  "End Date": 45482,
+  "Memberships -   Upload Zip FIle": "https://drive.google.com/open?id=1wwk5OStg4wgWB_KwJJZon3ojWgG6QoWt"
+}
+
+=== SHEET 13: Digital Media ===
+Rows: 20
+Columns: [
+  'Date',
+  'Channel',
+  'Link of the Article',
+  'Article Topic',
+  'Amount Paid',
+  'Summary',
+  'Digital Media -  Upload Zip FIle'
+]
+First row sample: {
+  "Date": 45967,
+  "Channel": "Telegraph India(Edugraph)",
+  "Link of the Article": "https://www.telegraphindia.com/edugraph/campus/dayananda-sagar-university-celebrates-academic-excellence-at-convocation-with-over-2500-graduates/cid/2131581#goog_rewarded",
+  "Article Topic": "DSUΓÇÖs 9th Convocation Highlights Innovation, Global Vision and Student Success",
+  "Amount Paid": "Zero",
+  "Summary": "Dayananda Sagar University (DSU) celebrated a landmark moment as it hosted its 9th Annual Convocation Ceremony.\nThe event was a vibrant reflection of DSUΓÇÖs mission to foster academic excellence, innovation, and holistic growth.",
+  "Digital Media -  Upload Zip FIle": "https://drive.google.com/open?id=16MYaO138Gk-BlmX6q611Aa8McImWXZYp"
+}
+
+=== DETAILED SCHOLARS DATA (Scholars in Residence) ===
+Total Scholars in Excel: 18
+
+Row 1: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Prof. Al -Khoury, Professor",
+  "University ": "Lebanon University",
+  "Country": "Lebanon ",
+  "From Date": 45145,
+  "To Date": "8/14/2023",
+  "Department ": "SCMS-PG",
+  "Summary": "Prof. Al-Khoury, Professor, visited Dayananda Sagar University for introductory discussions and academic engagement. During the visit, he interacted with university leadership and faculty to explore potential areas of collaboration, including joint academic activities, research opportunities, and future partnerships. The meeting provided a valuable opportunity to understand mutual interests and identify possible pathways for academic cooperation.",
+  "Campus": "Kudlu Gate",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/19Q3RZIoCw-1ehQpQ8xLaS8tTDP7w2pRp?usp=sharing"
+}
+
+Row 2: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Mr. Steve Mckenna, Associate Professor",
+  "University ": "Curtin University",
+  "Country": "Australia",
+  "From Date": 45178,
+  "To Date": "25-09-2023",
+  "Department ": "SCMS",
+  "Summary": "NA",
+  "Campus": "Kudlu Gate",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/1qS3xjREw7yP6sNEKwt1_ICL1kLh7Au7q?usp=drive_link"
+}
+
+Row 3: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Dr. Stefano Rinaldi, Professor",
+  "University ": "University of Brescia",
+  "Country": "Italy",
+  "From Date": 45294,
+  "To Date": "15-03-2024",
+  "Department ": "SOE",
+  "Summary": "NA",
+  "Campus": "Harohalli",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/10u2Jk17HNMvYAp01gilR_2BkZSizqGrI?usp=drive_link"
+}
+
+Row 4: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Dr. Pavel, Professor",
+  "University ": "Mendel in Brno",
+  "Country": "Czech Republic",
+  "To Date": "30-03-2024",
+  "Department ": "SOE",
+  "Summary": "NA",
+  "Campus": "Harohalli",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/10Rl-cBDtfP-tm9veAlfFNMzkf0txHGgs?usp=drive_link"
+}
+
+Row 5: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Prof. Ramanayake Chaminda Dilhanake Hettiarachchi, Professor",
+  "University ": "Sri Lanka",
+  "Country": "Sri Lanka",
+  "To Date": "27-05-2024",
+  "Department ": "SCMS",
+  "Summary": "NA",
+  "Campus": "Kudlu Gate",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/1KtjKDSYPB7MKZM-0coCqF6V2hV9oSdJh?usp=drive_link"
+}
+
+Row 6: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Prof. Svatopluk Kapounek, Professor",
+  "University ": "Mendel University in Brno",
+  "Country": "Czech Republic",
+  "To Date": "9/3/2024",
+  "Department ": "SCMS",
+  "Summary": "NA",
+  "Campus": "Kudlu Gate"
+}
+
+Row 7: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Mr. Steve Mckenna, Associate Professor",
+  "University ": "Curtin University",
+  "Country": "Australia",
+  "From Date": 45631,
+  "To Date": "17-05-2024",
+  "Department ": "SCMS",
+  "Summary": "NA",
+  "Campus": "Kudlu Gate",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/1plkAM48E5Hndvk5d3-OFTFh4iT0LRBKd?usp=drive_link"
+}
+
+Row 8: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Dr. Andreas Hermanutz Professor",
+  "University ": "TUM University",
+  "Country": "Singapore",
+  "To Date": "5/10/2024",
+  "Department ": "SCMS",
+  "Summary": "NA",
+  "Campus": "Kudlu Gate",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/1b5910AFWfNGcNP-EnKEgjiw80EI4hbBa?usp=drive_link"
+}
+
+Row 9: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Dr. Sandeep Patil",
+  "University ": "RWTH Achen",
+  "Country": "Germany",
+  "To Date": "19-10-2024",
+  "Department ": "SOE",
+  "Summary": "NA",
+  "Campus": "Harohalli"
+}
+
+Row 10: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Prof. Vlamider Pavelyev",
+  "University ": "Samara National Research University",
+  "Country": "Russia",
+  "From Date": 45362,
+  "To Date": "17-11-2024",
+  "Department ": "SOE",
+  "Summary": "NA",
+  "Campus": "Harohalli",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/1ZSlxc9fvbpSkXdgYtlS4zJAfXcHIphTO?usp=drive_link"
+}
+
+Row 11: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Dr. Kennt Rouse",
+  "University ": "LeTourneau",
+  "Country": "US",
+  "From Date": 45516,
+  "To Date": "14-12-2024",
+  "Department ": "SOE",
+  "Summary": "NA",
+  "Campus": "Harohalli",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/1ZexcNblZgEfgvTyz6lmjt7fygoNmW1SX?usp=drive_link"
+}
+
+Row 12: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Prof. Florian Holzapfel",
+  "University ": "TUM",
+  "Country": "Germany",
+  "From Date": 45902,
+  "To Date": "14-02-2025",
+  "Department ": "SOE",
+  "Summary": "NA",
+  "Campus": "Harohalli",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/1M81KKk8X_Nh4wkvSBXDAApOFo87MRRWJ?usp=drive_link"
+}
+
+Row 13: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Pawan Kumar Mishra,",
+  "University ": "Mendel University",
+  "Country": "Czech Republic",
+  "From Date": 45932,
+  "To Date": "15-02-2025",
+  "Department ": "SOE",
+  "Summary": "NA",
+  "Campus": "Harohalli",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/1ub-L8bi7zwx45dhn-eFDlOLfmh-1-rjG?usp=drive_link"
+}
+
+Row 14: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Dr. Kalaivani Chellappan",
+  "University ": "University Kebangsaan",
+  "Country": "Malaysia",
+  "From Date": 45750,
+  "To Date": "6/3/2025",
+  "Department ": "SOE",
+  "Summary": "NA",
+  "Campus": "Harohalli",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/1s5zYuWW0-xaxxwlrixYGZbB62PHq2eqG?usp=drive_link"
+}
+
+Row 15: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Dr. Sc. Prof. Mikhail N. Rychagov",
+  "University ": "MIET",
+  "Country": "Russia",
+  "To Date": "25-03-2025",
+  "Department ": "SOE",
+  "Summary": "NA",
+  "Campus": "Harohalli",
+  "Scholars in Residence -  Upload Zip FIle": "https://drive.google.com/drive/folders/1iKaGTEuCi0zH3muBpezuGcSn2UwYV4Hx?usp=drive_link"
+}
+
+Row 16: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Prof. Ramanayake Chaminda Dilhanake Hettiarachchi, Professor",
+  "University ": "Sri Lanka",
+  "Country": "Sri Lanka",
+  "To Date": "29-06-2025",
+  "Department ": "SCMS",
+  "Summary": "NA",
+  "Campus": "Kudlu Gate"
+}
+
+Row 17: {
+  "Status ": "Completed",
+  "  Category  ": "Sabbatical Scholar",
+  "Scholars Name": "Prof. Ashok Kaushal",
+  "University ": "Concordia University",
+  "Country": "CANADA",
+  "To Date": "15-09-2025",
+  "Department ": "SOE",
+  "Summary": "NA",
+  "Campus": "Harohalli"
+}
+
+Row 18: {
+  "Status ": "Completed",
+  "  Category  ": "Visiting Scholar",
+  "Scholars Name": "Dr. Sc. Prof. Mikhail N. Rychagov",
+  "University ": "MIET",
+  "Country": "Russia",
+  "From Date": 45847,
+  "To Date": "18-09-2025",
+  "Department ": "SOE",
+  "Summary": "NA",
+  "Campus": "Harohalli"
+}

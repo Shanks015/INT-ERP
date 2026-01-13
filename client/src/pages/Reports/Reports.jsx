@@ -414,21 +414,6 @@ const Reports = () => {
                             </div>
                         </div>
                     </div>
-
-                    {/* Tips Card */}
-                    <div className="card bg-info/10 border border-info">
-                        <div className="card-body p-4">
-                            <h4 className="font-semibold text-sm flex items-center gap-2">
-                                💡 Tips
-                            </h4>
-                            <ul className="text-xs space-y-1 text-base-content/80">
-                                <li>• Use quick date buttons for faster selection</li>
-                                <li>• Module-specific filters appear after selecting a module</li>
-                                <li>• Leave filters empty to include all records</li>
-                                <li>• PDF is best for printing, DOCX for editing</li>
-                            </ul>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

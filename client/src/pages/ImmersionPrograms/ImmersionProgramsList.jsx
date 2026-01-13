@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, Plane, TrendingUp, Clock, Eye, Globe, CheckCircle, X, Search, FileText } from 'lucide-react';
@@ -13,6 +14,7 @@ import Pagination from '../../components/Pagination';
 
 const ImmersionProgramsList = () => {
     const { isAdmin } = useAuth();
+    const formatDate = useDateFormat();
     const [programs, setPrograms] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, active: 0 });
     const [loading, setLoading] = useState(true);
@@ -202,7 +204,7 @@ const ImmersionProgramsList = () => {
                                                 {program.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
                                             </div>
                                         </td>
-                                        <td>{program.arrivalDate ? `${new Date(program.arrivalDate).toLocaleDateString()} - ${new Date(program.departureDate).toLocaleDateString()}` : '-'}</td>
+                                        <td>{program.arrivalDate ? `${formatDate(program.arrivalDate)} - ${formatDate(program.departureDate)}` : '-'}</td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
                                                 {program.driveLink && (

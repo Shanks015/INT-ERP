@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, UserCheck, TrendingUp, Clock, Eye, FileText, Building2, CheckCircle } from 'lucide-react';
@@ -14,6 +15,7 @@ import Pagination from '../../components/Pagination';
 
 const StudentExchangeList = () => {
     const { isAdmin } = useAuth();
+    const formatDate = useDateFormat();
     const [exchanges, setExchanges] = useState([]);
     const [stats, setStats] = useState({ total: 0, universities: 0, active: 0 });
     const [loading, setLoading] = useState(true);
@@ -141,7 +143,7 @@ const StudentExchangeList = () => {
                                         </td>
                                         <td>
                                             {exchange.fromDate && exchange.toDate
-                                                ? `${new Date(exchange.fromDate).toLocaleDateString()} - ${new Date(exchange.toDate).toLocaleDateString()}`
+                                                ? `${formatDate(exchange.fromDate)} - ${formatDate(exchange.toDate)}`
                                                 : '-'}
                                         </td>
                                         <td>

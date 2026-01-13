@@ -73,15 +73,21 @@ const membershipSchema = new mongoose.Schema({
 // Virtual field to check if membership has expired
 membershipSchema.virtual('isExpired').get(function () {
     if (!this.endDate) return false;
-    return new Date() > new Date(this.endDate);
+    const endOfEndDate = new Date(this.endDate);
+    endOfEndDate.setHours(23, 59, 59, 999);
+    return new Date() > endOfEndDate;
 });
 
 // Pre-save middleware to auto-update recordStatus based on endDate
 membershipSchema.pre('save', function (next) {
-    if (this.endDate && new Date() > new Date(this.endDate)) {
-        this.recordStatus = 'expired';
-    } else {
-        this.recordStatus = 'active';
+    if (this.endDate) {
+        const endOfEndDate = new Date(this.endDate);
+        endOfEndDate.setHours(23, 59, 59, 999);
+        if (new Date() > endOfEndDate) {
+            this.recordStatus = 'expired';
+        } else {
+            this.recordStatus = 'active';
+        }
     }
     next();
 });

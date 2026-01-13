@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, RefreshCw, TrendingUp, Clock, Eye, Globe, CheckCircle, FileText, X, Search } from 'lucide-react';
@@ -14,6 +15,7 @@ import Pagination from '../../components/Pagination';
 
 const MouUpdatesList = () => {
     const { isAdmin } = useAuth();
+    const formatDate = useDateFormat();
     const [updates, setUpdates] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, active: 0 });
     const [loading, setLoading] = useState(true);
@@ -148,7 +150,7 @@ const MouUpdatesList = () => {
                                     <tr key={update._id}>
                                         <td className="font-medium">{update.university}</td>
                                         <td>{update.country || '-'}</td>
-                                        <td>{update.date ? new Date(update.date).toLocaleDateString() : '-'}</td>
+                                        <td>{update.date ? formatDate(update.date) : '-'}</td>
                                         <td>{update.agreementType || '-'}</td>
                                         <td>{update.department || '-'}</td>
                                         <td>

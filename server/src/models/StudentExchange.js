@@ -81,14 +81,20 @@ const studentExchangeSchema = new mongoose.Schema({
 
 studentExchangeSchema.virtual('isExpired').get(function () {
     if (!this.toDate) return false;
-    return new Date() > new Date(this.toDate);
+    const endOfToDate = new Date(this.toDate);
+    endOfToDate.setHours(23, 59, 59, 999);
+    return new Date() > endOfToDate;
 });
 
 studentExchangeSchema.pre('save', function (next) {
-    if (this.toDate && new Date() > new Date(this.toDate)) {
-        this.recordStatus = 'expired';
-    } else {
-        this.recordStatus = 'active';
+    if (this.toDate) {
+        const endOfToDate = new Date(this.toDate);
+        endOfToDate.setHours(23, 59, 59, 999);
+        if (new Date() > endOfToDate) {
+            this.recordStatus = 'expired';
+        } else {
+            this.recordStatus = 'active';
+        }
     }
     next();
 });

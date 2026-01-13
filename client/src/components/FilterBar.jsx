@@ -1,6 +1,6 @@
 import { Search, X } from 'lucide-react';
 
-const FilterBar = ({ filters, onFilterChange, onClearFilters, showCountryFilter = false }) => {
+const FilterBar = ({ filters, onFilterChange, onClearFilters, showCountryFilter = false, countries = [] }) => {
     const handleChange = (field, value) => {
         onFilterChange({ [field]: value });
     };
@@ -84,13 +84,18 @@ const FilterBar = ({ filters, onFilterChange, onClearFilters, showCountryFilter 
                             <label className="label">
                                 <span className="label-text">Country</span>
                             </label>
-                            <input
-                                type="text"
-                                placeholder="Filter by country..."
-                                className="input input-bordered w-full"
+                            <select
+                                className="select select-bordered w-full"
                                 value={filters.country || ''}
                                 onChange={(e) => handleChange('country', e.target.value)}
-                            />
+                            >
+                                <option value="">All Countries</option>
+                                {countries.map((country) => (
+                                    <option key={country} value={country}>
+                                        {country}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     )}
                 </div>

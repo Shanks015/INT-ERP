@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Eye, Globe, CheckCircle } from 'lucide-react';
@@ -14,6 +15,7 @@ import Pagination from '../../components/Pagination';
 
 const PartnersList = () => {
     const { user, isAdmin } = useAuth();
+    const formatDate = useDateFormat();
     const [partners, setPartners] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, active: 0 });
     const [loading, setLoading] = useState(true);
@@ -391,8 +393,8 @@ const PartnersList = () => {
                                                     </span>
                                                 ) : '-'}
                                             </td>
-                                            <td>{partner.signingDate ? new Date(partner.signingDate).toLocaleDateString() : '-'}</td>
-                                            <td>{partner.expiringDate ? new Date(partner.expiringDate).toLocaleDateString() : '-'}</td>
+                                            <td>{partner.signingDate ? formatDate(partner.signingDate) : '-'}</td>
+                                            <td>{partner.expiringDate ? formatDate(partner.expiringDate) : '-'}</td>
                                             <td>
                                                 <div className="flex flex-col gap-1">
                                                     {/* Record Status Badge */}

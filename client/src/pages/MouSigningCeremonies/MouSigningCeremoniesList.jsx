@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, FileText, TrendingUp, Clock, Eye, Globe, Building2 } from 'lucide-react';
@@ -14,6 +15,7 @@ import Pagination from '../../components/Pagination';
 
 const MouSigningCeremoniesList = () => {
     const { isAdmin } = useAuth();
+    const formatDate = useDateFormat();
     const [ceremonies, setCeremonies] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, departments: 0 });
     const [loading, setLoading] = useState(true);
@@ -123,7 +125,7 @@ const MouSigningCeremoniesList = () => {
                                 {ceremonies.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No ceremonies found</td></tr> : ceremonies.map((ceremony) => (
                                     <tr key={ceremony._id}>
                                         <td>{ceremony.title || ceremony.university}</td>
-                                        <td>{new Date(ceremony.date).toLocaleDateString()}</td>
+                                        <td>{formatDate(ceremony.date)}</td>
                                         <td>{ceremony.university || '-'}</td>
                                         <td>{ceremony.country || '-'}</td>
                                         <td>{ceremony.department || '-'}</td>

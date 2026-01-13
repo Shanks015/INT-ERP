@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide default details/summary marker */
+summary {
+  list-style: none !important;
+}
+
+summary::-webkit-details-marker {
+  display: none !important;
+}
+
+summary::marker {
+  display: none !important;
+  content: '' !important;
+}
+
+details summary::-webkit-details-marker {
+  display: none !important;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

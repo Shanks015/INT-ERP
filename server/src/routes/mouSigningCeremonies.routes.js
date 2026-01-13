@@ -12,7 +12,12 @@ router.get('/export-csv', authenticate, ctrl.exportCSV(MouSigningCeremony));
 router.get('/pending/count', authenticate, authorize(['admin']), ctrl.getPendingCount(MouSigningCeremony));
 router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPending(MouSigningCeremony));
 
-router.get('/', authenticate, ctrl.getAll(MouSigningCeremony));
+// Add date field config for filtering
+router.get('/', authenticate, (req, res, next) => {
+    req.locals = req.locals || {};
+    req.locals.dateFieldConfig = { field: 'date' };
+    next();
+}, ctrl.getAll(MouSigningCeremony));
 router.get('/:id', authenticate, ctrl.getById(MouSigningCeremony));
 router.post('/', authenticate, ctrl.create(MouSigningCeremony));
 router.put('/:id', authenticate, ctrl.update(MouSigningCeremony));
