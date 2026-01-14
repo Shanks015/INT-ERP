@@ -208,18 +208,27 @@ const PartnersList = () => {
                     value={stats.total}
                     icon={Users}
                     color="primary"
+                    onClick={() => document.getElementById('partners-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 />
                 <StatsCard
                     title="Countries"
                     value={stats.countries}
                     icon={Globe}
                     color="secondary"
+                    onClick={() => {
+                        document.getElementById('country-filter')?.focus();
+                        document.getElementById('partners-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }}
                 />
                 <StatsCard
                     title="Active"
                     value={stats.active}
                     icon={CheckCircle}
                     color="success"
+                    onClick={() => {
+                        handleFilterChange('recordStatus', 'active');
+                        document.getElementById('partners-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }}
                 />
             </div>
 
@@ -238,6 +247,7 @@ const PartnersList = () => {
 
                         {/* Country */}
                         <select
+                            id="country-filter"
                             className="select select-bordered w-full"
                             value={filters.country}
                             onChange={(e) => handleFilterChange('country', e.target.value)}
@@ -302,7 +312,7 @@ const PartnersList = () => {
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">
-                        <table className="table table-zebra">
+                        <table className="table table-sm table-zebra" id="partners-table">
                             <thead>
                                 <tr>
                                     <th>Country</th>
