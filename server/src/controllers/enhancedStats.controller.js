@@ -26,10 +26,10 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 dateField = 'date'; // event date
                 break;
             case 'Partner':
-                dateField = 'signingDate'; // when partnership was signed
+                dateField = 'completedOn'; // when partnership was completed (use completedOn instead of signingDate)
                 break;
             case 'Outreach':
-                dateField = 'date'; // outreach date
+                dateField = 'createdAt'; // outreach doesn't have a date field, use createdAt
                 break;
             case 'Conference':
                 dateField = 'date'; // conference date
@@ -63,14 +63,23 @@ export const getEnhancedStats = (Model) => async (req, res) => {
         }
 
         // Calculate trend - compare this month to last month using the appropriate date field
+        // Use $or to include records where the date field exists OR fall back to createdAt
         const thisMonthQuery = {
             status: 'active',
-            [dateField]: { $gte: startOfThisMonth }
+            $or: [
+                { [dateField]: { $gte: startOfThisMonth } },
+                { [dateField]: { $exists: false }, createdAt: { $gte: startOfThisMonth } },
+                { [dateField]: null, createdAt: { $gte: startOfThisMonth } }
+            ]
         };
 
         const lastMonthQuery = {
             status: 'active',
-            [dateField]: { $gte: startOfLastMonth, $lte: endOfLastMonth }
+            $or: [
+                { [dateField]: { $gte: startOfLastMonth, $lte: endOfLastMonth } },
+                { [dateField]: { $exists: false }, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } },
+                { [dateField]: null, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } }
+            ]
         };
 
         const thisMonthCount = await Model.countDocuments(thisMonthQuery);
