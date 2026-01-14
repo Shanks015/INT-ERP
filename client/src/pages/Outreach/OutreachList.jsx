@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
+import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, Mail, TrendingUp, Clock, Eye, MessageSquare, XCircle } from 'lucide-react';
@@ -49,8 +50,8 @@ const OutreachList = () => {
             const response = await api.get('/outreach', { params: { limit: 1000 } });
             const outreach = response.data.data || [];
             setCountries([...new Set(outreach.map(o => o.country).filter(Boolean))].sort());
-            setPartnershipTypes([...new Set(outreach.map(o => o.partnershipType).filter(Boolean))].sort());
-            setOutreachTypes([...new Set(outreach.map(o => o.outreachType).filter(Boolean))].sort());
+            setPartnershipTypes(getCaseInsensitiveUnique(outreach, 'partnershipType'));
+            setOutreachTypes(getCaseInsensitiveUnique(outreach, 'outreachType'));
         } catch (error) { console.error('Error fetching filter data:', error); }
     };
 

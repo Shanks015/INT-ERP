@@ -46,7 +46,7 @@ const MastersAbroadList = () => {
             const masters = response.data.data || [];
             setCountries([...new Set(masters.map(m => m.country).filter(Boolean))].sort());
             setUniversities([...new Set(masters.map(m => m.university).filter(Boolean))].sort());
-            setCourseTypes([...new Set(masters.map(m => m.courseType).filter(Boolean))].sort());
+            setCourseTypes(getCaseInsensitiveUnique(masters, 'courseType'));
         } catch (error) { console.error('Error fetching filter data:', error); }
     };
 

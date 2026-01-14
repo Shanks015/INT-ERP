@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useDateFormat } from '../../utils/dateFormat';
+import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, RefreshCw, TrendingUp, Clock, Eye, Globe, CheckCircle, FileText, X, Search } from 'lucide-react';
@@ -49,9 +50,9 @@ const MouUpdatesList = () => {
             const response = await api.get('/mou-updates', { params: { limit: 1000 } });
             const updates = response.data.data || [];
             setCountries([...new Set(updates.map(u => u.country).filter(Boolean))].sort());
-            setAgreementTypes([...new Set(updates.map(u => u.agreementType).filter(Boolean))].sort());
-            setMouStatuses([...new Set(updates.map(u => u.mouStatus).filter(Boolean))].sort());
-            setValidityStatuses([...new Set(updates.map(u => u.validityStatus).filter(Boolean))].sort());
+            setAgreementTypes(getCaseInsensitiveUnique(updates, 'agreementType'));
+            setMouStatuses(getCaseInsensitiveUnique(updates, 'mouStatus'));
+            setValidityStatuses(getCaseInsensitiveUnique(updates, 'validityStatus'));
         } catch (error) { console.error('Error fetching filter data:', error); }
     };
 

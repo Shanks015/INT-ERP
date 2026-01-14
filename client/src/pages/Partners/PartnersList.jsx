@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useDateFormat } from '../../utils/dateFormat';
+import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Eye, Globe, CheckCircle } from 'lucide-react';
@@ -32,8 +33,6 @@ const PartnersList = () => {
     const [filters, setFilters] = useState({
         search: '',
         mouStatus: '',
-        activeStatus: '',
-        school: '',
         agreementType: '',
         country: '',
         recordStatus: ''
@@ -46,13 +45,12 @@ const PartnersList = () => {
     const [countries, setCountries] = useState([]);
     const [agreementTypes, setAgreementTypes] = useState([]);
     const [mouStatuses, setMouStatuses] = useState([]);
-    const [schools, setSchools] = useState([]);
 
     useEffect(() => {
         fetchPartners();
         fetchStats();
         fetchFilterData();
-    }, [currentPage, itemsPerPage, debouncedSearch, filters.mouStatus, filters.activeStatus, filters.school, filters.agreementType, filters.country, filters.recordStatus]);
+    }, [currentPage, itemsPerPage, debouncedSearch, filters.mouStatus, filters.agreementType, filters.country, filters.recordStatus]);
 
     const fetchStats = async () => {
         try {
@@ -72,14 +70,12 @@ const PartnersList = () => {
             const uniqueCountries = [...new Set(partners.map(p => p.country).filter(Boolean))].sort();
             setCountries(uniqueCountries);
 
-            const uniqueAgreementTypes = [...new Set(partners.map(p => p.agreementType).filter(Boolean))].sort();
+            // Normalize agreement types to prevent case duplicates (e.g., "MoU" vs "mou")
+            const uniqueAgreementTypes = getCaseInsensitiveUnique(partners, 'agreementType');
             setAgreementTypes(uniqueAgreementTypes);
 
             const uniqueMouStatuses = [...new Set(partners.map(p => p.mouStatus).filter(Boolean))].sort();
             setMouStatuses(uniqueMouStatuses);
-
-            const uniqueSchools = [...new Set(partners.map(p => p.school).filter(Boolean))].sort();
-            setSchools(uniqueSchools);
         } catch (error) {
             console.error('Error fetching filter data:', error);
         }
@@ -93,8 +89,6 @@ const PartnersList = () => {
                 limit: itemsPerPage,
                 search: debouncedSearch,
                 mouStatus: filters.mouStatus,
-                activeStatus: filters.activeStatus,
-                school: filters.school,
                 agreementType: filters.agreementType,
                 country: filters.country,
                 recordStatus: filters.recordStatus
@@ -160,8 +154,6 @@ const PartnersList = () => {
         setFilters({
             search: '',
             mouStatus: '',
-            activeStatus: '',
-            school: '',
             agreementType: '',
             country: '',
             recordStatus: ''
@@ -268,36 +260,13 @@ const PartnersList = () => {
                             ))}
                         </select>
 
-                        {/* Active Status */}
-                        <select
-                            className="select select-bordered w-full"
-                            value={filters.activeStatus}
-                            onChange={(e) => handleFilterChange('activeStatus', e.target.value)}
-                        >
-                            <option value="">All Status</option>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                        </select>
-
-                        {/* School */}
-                        <select
-                            className="select select-bordered w-full"
-                            value={filters.school}
-                            onChange={(e) => handleFilterChange('school', e.target.value)}
-                        >
-                            <option value="">All Schools</option>
-                            {schools.map(school => (
-                                <option key={school} value={school}>{school}</option>
-                            ))}
-                        </select>
-
                         {/* Agreement Type */}
                         <select
                             className="select select-bordered w-full"
                             value={filters.agreementType}
                             onChange={(e) => handleFilterChange('agreementType', e.target.value)}
                         >
-                            <option value="">All Agreements</option>
+                            <option value="">All Agreement Types</option>
                             {agreementTypes.map(type => (
                                 <option key={type} value={type}>{type}</option>
                             ))}
@@ -309,7 +278,7 @@ const PartnersList = () => {
                             value={filters.recordStatus}
                             onChange={(e) => handleFilterChange('recordStatus', e.target.value)}
                         >
-                            <option value="">All Record Status</option>
+                            <option value="">All Records</option>
                             <option value="active">Active</option>
                             <option value="expired">Expired</option>
                         </select>

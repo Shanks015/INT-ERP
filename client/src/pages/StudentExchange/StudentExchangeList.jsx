@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useDateFormat } from '../../utils/dateFormat';
+import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, UserCheck, TrendingUp, Clock, Eye, FileText, Building2, CheckCircle } from 'lucide-react';
@@ -48,7 +49,7 @@ const StudentExchangeList = () => {
             const response = await api.get('/student-exchange', { params: { limit: 1000 } });
             const exchanges = response.data.data || [];
             setCountries([...new Set(exchanges.map(e => e.country).filter(Boolean))].sort());
-            setExchangeTypes([...new Set(exchanges.map(e => e.exchangeType).filter(Boolean))].sort());
+            setExchangeTypes(getCaseInsensitiveUnique(exchanges, 'exchangeType'));
         } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
