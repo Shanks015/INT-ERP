@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useDateFormat } from '../../utils/dateFormat';
+import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, GraduationCap, TrendingUp, Clock, Eye, FileText, Globe, Building2 } from 'lucide-react';
@@ -49,9 +50,9 @@ const ScholarsList = () => {
             const scholars = response.data.data || [];
             const uniqueCountries = [...new Set(scholars.map(s => s.country).filter(Boolean))].sort();
             setCountries(uniqueCountries);
-            const uniqueDepts = [...new Set(scholars.map(s => s.department).filter(Boolean))].sort();
+            const uniqueDepts = getCaseInsensitiveUnique(scholars, 'department');
             setDepartments(uniqueDepts);
-            const uniqueDesigs = [...new Set(scholars.map(s => s.designation).filter(Boolean))].sort();
+            const uniqueDesigs = getCaseInsensitiveUnique(scholars, 'designation');
             setDesignations(uniqueDesigs);
         } catch (error) { console.error('Error fetching filter data:', error); }
     };

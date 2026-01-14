@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useDateFormat } from '../../utils/dateFormat';
+import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, Radio, TrendingUp, Clock, Eye, Hash, X, Search, ExternalLink, FileText } from 'lucide-react';
@@ -47,7 +48,7 @@ const DigitalMediaList = () => {
         try {
             const response = await api.get('/digital-media', { params: { limit: 1000 } });
             const media = response.data.data || [];
-            setChannels([...new Set(media.map(m => m.channel).filter(Boolean))].sort());
+            setChannels(getCaseInsensitiveUnique(media, 'channel'));
         } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
