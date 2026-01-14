@@ -71,7 +71,13 @@ const DistributionPieChart = ({ data, title }) => {
                         </Pie>
                         <Tooltip
                             formatter={(value, name, props) => [value, props.payload.name]}
-                            contentStyle={{ backgroundColor: 'oklch(var(--b1))', border: '1px solid oklch(var(--bc) / 0.2)' }}
+                            contentStyle={{
+                                backgroundColor: 'oklch(var(--b1))',
+                                border: '1px solid oklch(var(--bc) / 0.2)',
+                                color: 'oklch(var(--bc))'
+                            }}
+                            labelStyle={{ color: 'oklch(var(--bc))' }}
+                            itemStyle={{ color: 'oklch(var(--bc))' }}
                         />
                         <Legend
                             formatter={(value, entry) => `${entry.payload.name} (${entry.payload.value})`}

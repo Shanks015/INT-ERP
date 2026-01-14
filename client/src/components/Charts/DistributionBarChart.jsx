@@ -43,7 +43,13 @@ const DistributionBarChart = ({ data, title, dataKey = 'value', nameKey = 'name'
                         />
                         <YAxis />
                         <Tooltip
-                            contentStyle={{ backgroundColor: 'oklch(var(--b1))', border: '1px solid oklch(var(--bc) / 0.2)' }}
+                            contentStyle={{
+                                backgroundColor: 'oklch(var(--b1))',
+                                border: '1px solid oklch(var(--bc) / 0.2)',
+                                color: 'oklch(var(--bc))'
+                            }}
+                            labelStyle={{ color: 'oklch(var(--bc))' }}
+                            itemStyle={{ color: 'oklch(var(--bc))' }}
                         />
                         <Legend />
                         <Bar dataKey={dataKey} name="Count">
