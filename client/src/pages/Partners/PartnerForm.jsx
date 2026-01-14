@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, Globe, Link as LinkIcon, Calendar } from 'lucide-react';
+import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 
 const PartnerForm = () => {
     const navigate = useNavigate();
@@ -29,12 +30,25 @@ const PartnerForm = () => {
     });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
+    const [agreementTypes, setAgreementTypes] = useState([]);
 
     useEffect(() => {
         if (isEdit) {
             fetchPartner();
         }
+        fetchAgreementTypes();
     }, [id]);
+
+    const fetchAgreementTypes = async () => {
+        try {
+            const response = await api.get('/partners', { params: { limit: 1000 } });
+            const partners = response.data.data || [];
+            const types = getCaseInsensitiveUnique(partners, 'agreementType');
+            setAgreementTypes(types);
+        } catch (error) {
+            console.error('Error fetching agreement types:', error);
+        }
+    };
 
     const fetchPartner = async () => {
         try {
@@ -189,11 +203,9 @@ const PartnerForm = () => {
                                             onChange={handleChange}
                                         >
                                             <option value="">Select Agreement Type</option>
-                                            <option value="MoU">MoU</option>
-                                            <option value="MoA">MoA</option>
-                                            <option value="Bilateral Agreement">Bilateral Agreement</option>
-                                            <option value="Student Exchange">Student Exchange</option>
-                                            <option value="Faculty Exchange">Faculty Exchange</option>
+                                            {agreementTypes.map(type => (
+                                                <option key={type} value={type}>{type}</option>
+                                            ))}
                                         </select>
                                     </div>
                                 </div>
