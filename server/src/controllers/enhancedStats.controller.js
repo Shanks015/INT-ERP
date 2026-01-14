@@ -16,16 +16,65 @@ export const getEnhancedStats = (Model) => async (req, res) => {
 
         let stats = { total };
 
-        // Calculate trend - compare this month to last month
-        const thisMonthCount = await Model.countDocuments({
-            status: 'active',
-            createdAt: { $gte: startOfThisMonth }
-        });
+        // Determine the date field to use for trend calculation based on model
+        let dateField = 'createdAt'; // fallback
+        switch (modelName) {
+            case 'CampusVisit':
+                dateField = 'date'; // visitDate field is called 'date'
+                break;
+            case 'Event':
+                dateField = 'date'; // event date
+                break;
+            case 'Partner':
+                dateField = 'signingDate'; // when partnership was signed
+                break;
+            case 'Outreach':
+                dateField = 'date'; // outreach date
+                break;
+            case 'Conference':
+                dateField = 'date'; // conference date
+                break;
+            case 'MouSigningCeremony':
+                dateField = 'date'; // ceremony date
+                break;
+            case 'ScholarInResidence':
+                dateField = 'arrivalDate'; // when scholar arrived
+                break;
+            case 'MouUpdate':
+                dateField = 'date'; // update date
+                break;
+            case 'ImmersionProgram':
+                dateField = 'arrivalDate'; // program start
+                break;
+            case 'StudentExchange':
+                dateField = 'arrivalDate'; // exchange start
+                break;
+            case 'MastersAbroad':
+                dateField = 'startDate'; // program start
+                break;
+            case 'Membership':
+                dateField = 'startDate'; // membership start
+                break;
+            case 'DigitalMedia':
+                dateField = 'date'; // post/publication date
+                break;
+            default:
+                dateField = 'createdAt'; // fallback for unknown models
+        }
 
-        const lastMonthCount = await Model.countDocuments({
+        // Calculate trend - compare this month to last month using the appropriate date field
+        const thisMonthQuery = {
             status: 'active',
-            createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth }
-        });
+            [dateField]: { $gte: startOfThisMonth }
+        };
+
+        const lastMonthQuery = {
+            status: 'active',
+            [dateField]: { $gte: startOfLastMonth, $lte: endOfLastMonth }
+        };
+
+        const thisMonthCount = await Model.countDocuments(thisMonthQuery);
+        const lastMonthCount = await Model.countDocuments(lastMonthQuery);
 
         // Calculate trend metrics
         const change = thisMonthCount - lastMonthCount;
