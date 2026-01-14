@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import { Users, Globe, Building2, Calendar, TrendingUp } from 'lucide-react';
@@ -8,6 +9,7 @@ import DistributionBarChart from '../../components/Charts/DistributionBarChart';
 
 const Dashboard = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         campusVisits: null,
@@ -72,6 +74,7 @@ const Dashboard = () => {
                         icon={Users}
                         color="primary"
                         trend={campusVisits?.trend}
+                        onClick={() => navigate('/campus-visits')}
                     />
                     <StatsCard
                         title="Events"
@@ -79,6 +82,7 @@ const Dashboard = () => {
                         icon={Calendar}
                         color="secondary"
                         trend={events?.trend}
+                        onClick={() => navigate('/events')}
                     />
                     <StatsCard
                         title="Partners"
@@ -86,6 +90,7 @@ const Dashboard = () => {
                         icon={Globe}
                         color="info"
                         trend={partners?.trend}
+                        onClick={() => navigate('/partners')}
                     />
                     <StatsCard
                         title="Outreach"
@@ -93,6 +98,7 @@ const Dashboard = () => {
                         icon={TrendingUp}
                         color="accent"
                         trend={outreach?.trend}
+                        onClick={() => navigate('/outreach')}
                     />
                 </div>
             </div>
