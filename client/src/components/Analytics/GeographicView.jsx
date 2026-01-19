@@ -2,7 +2,24 @@ import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 
 const GeographicView = ({ data }) => {
+    console.log('GeographicView received data:', data);
+
     const distributionData = data.countryDistribution || [];
+    console.log('Distribution data:', distributionData);
+
+    // If no distribution data, show message
+    if (!distributionData || distributionData.length === 0) {
+        return (
+            <div className="card bg-base-200 shadow-sm p-8 text-center">
+                <div className="text-4xl mb-4">📊</div>
+                <h3 className="text-lg font-semibold mb-2">No Geographic Data Available</h3>
+                <p className="text-sm text-base-content/70">
+                    Country distribution data is not available for this view.
+                </p>
+            </div>
+        );
+    }
+
     const topCountries = distributionData.slice(0, 10);
 
     // Colors for bars/pie
