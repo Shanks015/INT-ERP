@@ -394,30 +394,6 @@ const PartnersList = () => {
                                                     </span>
                                                 ) : '-'}
                                             </td>
-
-                                            {/* Approval Workflow Badges */}
-                                            {partner.status === 'pending_edit' && (
-                                                <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap">
-                                                    <Clock size={12} />
-                                                    Edit Pending
-                                                </span>
-                                            )}
-                                            {partner.status === 'pending_delete' && (
-                                                <span className="badge badge-error badge-sm gap-1 whitespace-nowrap">
-                                                    <Clock size={12} />
-                                                    Delete Pending
-                                                </span>
-                                            )}
-                                        </div>
-                                            </td>
-                            <td>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => setDetailModal({ isOpen: true, partner })}
-                                        className="btn btn-info btn-sm"
-                                        title="View Details"
-                                    >
-                                        <Eye size={16} />
                                     </button>
                                     <Link
                                         to={`/partners/edit/${partner._id}`}
@@ -433,30 +409,30 @@ const PartnersList = () => {
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
-                            </td>
-                        </tr >
-                        ))
+                        </td>
+                    </tr >
+                    ))
                                 )}
-                    </tbody >
-                </table >
-            </div >
+                </tbody >
+            </table >
+        </div >
 
-            {/* Pagination */}
-            {
-                totalItems > 0 && (
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        totalItems={totalItems}
-                        itemsPerPage={itemsPerPage}
-                        onPageChange={setCurrentPage}
-                        onItemsPerPageChange={(newLimit) => {
-                            setItemsPerPage(newLimit);
-                            setCurrentPage(1);
-                        }}
-                    />
-                )
-            }
+            {/* Pagination */ }
+    {
+        totalItems > 0 && (
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={(newLimit) => {
+                    setItemsPerPage(newLimit);
+                    setCurrentPage(1);
+                }}
+            />
+        )
+    }
         </div >
             </div >
 
