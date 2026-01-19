@@ -16,11 +16,14 @@ export const AnalyticsProvider = ({ children }) => {
     const [activeTab, setActiveTab] = useState('overview');
 
     const openAnalytics = (data) => {
+        console.log('AnalyticsContext: openAnalytics called with:', data);
         setAnalyticsData(data);
         setIsOpen(true);
+        console.log('AnalyticsContext: Modal should be open now');
     };
 
     const closeAnalytics = () => {
+        console.log('AnalyticsContext: closeAnalytics called');
         setIsOpen(false);
         setActiveTab('overview');
         setTimeout(() => setAnalyticsData(null), 300); // Clear after animation
