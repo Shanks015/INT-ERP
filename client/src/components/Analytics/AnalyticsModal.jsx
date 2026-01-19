@@ -74,10 +74,18 @@ const AnalyticsModal = () => {
                             <div>
                                 <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
                                     {analyticsData.icon && <analyticsData.icon className="w-8 h-8" />}
-                                    {analyticsData.title} Analytics
+                                    {analyticsData.title}
+                                    {analyticsData.statType === 'countries' && ' by Country'}
+                                    {analyticsData.statType === 'universities' && ' by University'}
+                                    {analyticsData.statType === 'departments' && ' by Department'}
+                                    {analyticsData.statType === 'types' && ' by Type'}
+                                    {analyticsData.statType === 'channels' && ' by Channel'}
                                 </h2>
                                 <p className="text-sm text-base-content/70 mt-1">
-                                    Detailed insights and trends
+                                    {analyticsData.statType === 'countries' ? 'Geographic distribution and insights' :
+                                        analyticsData.statType === 'total' ? 'Overall statistics and trends' :
+                                            analyticsData.statType === 'active' ? 'Active records analysis' :
+                                                'Detailed insights and trends'}
                                 </p>
                             </div>
                             <button
