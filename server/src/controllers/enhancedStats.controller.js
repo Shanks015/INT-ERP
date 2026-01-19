@@ -149,8 +149,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                                 country: 1,
                                 visitorName: 1,
                                 date: 1,
-                                type: 1,
-                                purpose: 1
+                                type: 1
                             }
                         }
                     ])
