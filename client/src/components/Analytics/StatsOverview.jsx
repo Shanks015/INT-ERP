@@ -117,24 +117,6 @@ const StatsOverview = ({ data }) => {
                     </div>
                 </motion.div>
             )}
-
-            {/* Quick Actions */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="flex flex-wrap gap-2"
-            >
-                <button className="btn btn-primary btn-sm">
-                    View All Records
-                </button>
-                <button className="btn btn-outline btn-sm">
-                    Export Data
-                </button>
-                <button className="btn btn-outline btn-sm">
-                    Compare Periods
-                </button>
-            </motion.div>
         </div>
     );
 };
