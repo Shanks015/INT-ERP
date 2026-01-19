@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps';
 import { motion } from 'framer-motion';
+import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 const WorldMap = ({ data }) => {
     const [tooltipContent, setTooltipContent] = useState('');
     const [hoveredCountry, setHoveredCountry] = useState(null);
+    const [position, setPosition] = useState({ coordinates: [0, 0], zoom: 1 });
 
     // Create a map of country data by country name
     const countryDataMap = {};
@@ -45,6 +47,24 @@ const WorldMap = ({ data }) => {
         }
     };
 
+    const handleZoomIn = () => {
+        if (position.zoom >= 4) return;
+        setPosition(pos => ({ ...pos, zoom: pos.zoom * 1.5 }));
+    };
+
+    const handleZoomOut = () => {
+        if (position.zoom <= 1) return;
+        setPosition(pos => ({ ...pos, zoom: pos.zoom / 1.5 }));
+    };
+
+    const handleReset = () => {
+        setPosition({ coordinates: [0, 0], zoom: 1 });
+    };
+
+    const handleMoveEnd = (position) => {
+        setPosition(position);
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -68,6 +88,33 @@ const WorldMap = ({ data }) => {
                     </div>
                 )}
 
+                {/* Zoom Controls */}
+                <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+                    <button
+                        onClick={handleZoomIn}
+                        className="btn btn-sm btn-circle btn-primary"
+                        title="Zoom In"
+                        disabled={position.zoom >= 4}
+                    >
+                        <ZoomIn size={16} />
+                    </button>
+                    <button
+                        onClick={handleZoomOut}
+                        className="btn btn-sm btn-circle btn-primary"
+                        title="Zoom Out"
+                        disabled={position.zoom <= 1}
+                    >
+                        <ZoomOut size={16} />
+                    </button>
+                    <button
+                        onClick={handleReset}
+                        className="btn btn-sm btn-circle btn-ghost"
+                        title="Reset View"
+                    >
+                        <Maximize2 size={16} />
+                    </button>
+                </div>
+
                 <div className="w-full h-[400px] border border-base-300 rounded-lg overflow-hidden bg-base-100">
                     <ComposableMap
                         projectionConfig={{
@@ -78,7 +125,11 @@ const WorldMap = ({ data }) => {
                             height: '100%'
                         }}
                     >
-                        <ZoomableGroup>
+                        <ZoomableGroup
+                            zoom={position.zoom}
+                            center={position.coordinates}
+                            onMoveEnd={handleMoveEnd}
+                        >
                             <Geographies geography={geoUrl}>
                                 {({ geographies }) =>
                                     geographies.map((geo) => {
