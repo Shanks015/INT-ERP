@@ -10,7 +10,11 @@ const TrendChart = ({ data }) => {
         const currentMonth = new Date().getMonth();
         const baseValue = data.total ? Math.floor(data.total / 12) : 10;
 
-        return months.slice(0, currentMonth + 1).map((month, index) => ({
+        // Always show at least last 6 months, or all months up to current
+        const monthsToShow = Math.max(6, currentMonth + 1);
+        const startMonth = Math.max(0, currentMonth + 1 - monthsToShow);
+
+        return months.slice(startMonth, currentMonth + 1).map((month, index) => ({
             month,
             current: Math.floor(Math.random() * 20) + baseValue + index * 2,
             previous: Math.floor(Math.random() * 15) + Math.max(1, baseValue - 5) + index
@@ -18,7 +22,7 @@ const TrendChart = ({ data }) => {
     };
 
     const trendData = data.trendData || generateTrendData();
-    console.log('Trend data being used:', trendData);
+    console.log('Trend data being used:', trendData, 'Length:', trendData.length);
 
     return (
         <div className="space-y-6">
