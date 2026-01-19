@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
 import { X, TrendingUp, Globe, BarChart3 } from 'lucide-react';
 import { useAnalytics } from '../../context/AnalyticsContext';
 import StatsOverview from './StatsOverview';
@@ -10,10 +11,35 @@ const AnalyticsModal = () => {
 
     console.log('AnalyticsModal render:', { isOpen, hasData: !!analyticsData });
 
+    // Handle ESC key press
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                console.log('ESC key pressed, closing modal');
+                closeAnalytics();
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [isOpen, closeAnalytics]);
+
     if (!analyticsData) {
         console.log('AnalyticsModal: No data, not rendering modal');
         return null;
     }
+
+    const handleBackdropClick = (e) => {
+        // Only close if clicking directly on backdrop, not bubbled events
+        if (e.target === e.currentTarget) {
+            console.log('Backdrop clicked, closing modal');
+            closeAnalytics();
+        } else {
+            console.log('Click on modal content, not closing');
+        }
+    };
 
     const tabs = [
         { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -31,7 +57,7 @@ const AnalyticsModal = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-                        onClick={closeAnalytics}
+                        onClick={handleBackdropClick}
                     />
 
                     {/* Modal */}
