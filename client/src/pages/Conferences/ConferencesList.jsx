@@ -9,7 +9,7 @@ import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Eye, Gl
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import Pagination from '../../components/Pagination';
 
 const ConferencesList = () => {
@@ -128,9 +128,9 @@ const ConferencesList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard title="Total Conferences" value={stats.total} icon={Users} color="primary" />
-                <StatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" />
-                <StatsCard title="Departments" value={stats.departments} icon={Building2} color="info" />
+                <SmartStatsCard title="Total Conferences" value={stats.total} icon={Users} color="primary" moduleType="conferences" statType="total" moduleData={{ total: stats.total, countries: stats.countries, departments: stats.departments }} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="conferences" statType="countries" moduleData={{ total: stats.total, countries: stats.countries, departments: stats.departments }} />
+                <SmartStatsCard title="Departments" value={stats.departments} icon={Building2} color="info" moduleType="conferences" statType="departments" moduleData={{ total: stats.total, countries: stats.countries, departments: stats.departments }} />
             </div>
 
             {/* Custom Filters */}

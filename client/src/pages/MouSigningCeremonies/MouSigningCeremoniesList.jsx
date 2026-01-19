@@ -9,7 +9,7 @@ import { Plus, Edit, Trash2, Download, Upload, FileText, TrendingUp, Clock, Eye,
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
@@ -104,8 +104,8 @@ const MouSigningCeremoniesList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <StatsCard title="Total Ceremonies" value={stats.total} icon={FileText} color="primary" />
-                <StatsCard title="Departments" value={stats.departments} icon={Building2} color="info" />
+                <SmartStatsCard title="Total Ceremonies" value={stats.total} icon={Award} color="primary" moduleType="mou-ceremonies" statType="total" moduleData={{ total: stats.total, countries: stats.countries }} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="mou-ceremonies" statType="countries" moduleData={{ total: stats.total, countries: stats.countries }} />
             </div>
             <FilterBar
                 filters={filters}

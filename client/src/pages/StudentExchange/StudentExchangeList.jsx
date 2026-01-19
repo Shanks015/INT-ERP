@@ -10,7 +10,7 @@ import { Plus, Edit, Trash2, Download, Upload, UserCheck, TrendingUp, Clock, Eye
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
@@ -114,9 +114,9 @@ const StudentExchangeList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard title="Total Exchanges" value={stats.total} icon={UserCheck} color="primary" />
-                <StatsCard title="Universities" value={stats.universities} icon={Building2} color="secondary" />
-                <StatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" />
+                <SmartStatsCard title="Total Exchanges" value={stats.total} icon={Users} color="primary" moduleType="student-exchange" statType="total" moduleData={{ total: stats.total, universities: stats.universities, active: stats.active }} />
+                <SmartStatsCard title="Universities" value={stats.universities} icon={Building2} color="secondary" moduleType="student-exchange" statType="universities" moduleData={{ total: stats.total, universities: stats.universities, active: stats.active }} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="student-exchange" statType="active" moduleData={{ total: stats.total, universities: stats.universities, active: stats.active }} />
             </div>
             <FilterBar
                 filters={filters}

@@ -10,7 +10,7 @@ import { Plus, Edit, Trash2, Download, Upload, RefreshCw, TrendingUp, Clock, Eye
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
@@ -107,9 +107,9 @@ const MouUpdatesList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard title="Total Updates" value={stats.total} icon={RefreshCw} color="primary" />
-                <StatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" />
-                <StatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" />
+                <SmartStatsCard title="Total Updates" value={stats.total} icon={FileText} color="primary" moduleType="mou-updates" statType="total" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="mou-updates" statType="countries" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="mou-updates" statType="active" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <div className="form-control">

@@ -10,7 +10,7 @@ import { Plus, Edit, Trash2, Download, Upload, Users2, TrendingUp, Clock, Eye, F
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
@@ -103,9 +103,9 @@ const MembershipsList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard title="Total Memberships" value={stats.total} icon={Users2} color="primary" />
-                <StatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" />
-                <StatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" />
+                <SmartStatsCard title="Total Memberships" value={stats.total} icon={Users2} color="primary" moduleType="memberships" statType="total" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="memberships" statType="countries" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="memberships" statType="active" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
             </div>
             <FilterBar
                 filters={filters}

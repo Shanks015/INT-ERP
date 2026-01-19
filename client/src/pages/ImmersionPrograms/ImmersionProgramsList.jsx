@@ -9,7 +9,7 @@ import { Plus, Edit, Trash2, Download, Upload, Plane, TrendingUp, Clock, Eye, Gl
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import Pagination from '../../components/Pagination';
 
 const ImmersionProgramsList = () => {
@@ -112,9 +112,9 @@ const ImmersionProgramsList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard title="Total Programs" value={stats.total} icon={Plane} color="primary" />
-                <StatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" />
-                <StatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" />
+                <SmartStatsCard title="Total Programs" value={stats.total} icon={Plane} color="primary" moduleType="immersion" statType="total" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="immersion" statType="countries" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="immersion" statType="active" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
             </div>
 
             <div className="card bg-base-100 shadow-xl mb-6">
