@@ -174,32 +174,6 @@ const UniversityInsightsView = ({ data }) => {
                 </motion.div>
             </div>
 
-            {/* Purpose Distribution */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="card bg-base-200 shadow-sm"
-            >
-                <div className="card-body">
-                    <h3 className="card-title text-lg">Visit Purposes</h3>
-                    {purposeDist.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                            {purposeDist.map((purpose, index) => (
-                                <div key={index} className="flex items-center justify-between p-3 bg-base-100 rounded-lg">
-                                    <span className="text-sm font-medium">{purpose.name}</span>
-                                    <span className="badge badge-primary">{purpose.value}</span>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-8 text-base-content/50">
-                            No purpose data available
-                        </div>
-                    )}
-                </div>
-            </motion.div>
-
             {/* Recent Visits Table */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
