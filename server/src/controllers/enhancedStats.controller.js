@@ -368,6 +368,20 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                         }
                     ]),
 
+                    // Expiring Soon List (Top 10)
+                    Model.aggregate([
+                        {
+                            $match: {
+                                activeStatus: 'Active',
+                                recordStatus: { $ne: 'expired' },
+                                expiringDate: { $exists: true, $ne: null }
+                            }
+                        },
+                        { $sort: { expiringDate: 1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, institutionName: 1, country: 1, expiringDate: 1, agreementType: 1 } }
+                    ]),
+
                     // Agreement Type Distribution
                     Model.aggregate([
                         {
@@ -423,7 +437,8 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     statusDistribution,
                     expiryForecast: forecast,
                     agreementTypes: agreementTypeDist,
-                    avgDurationDays
+                    avgDurationDays,
+                    expiringPartners: expiringPartnersList
                 };
                 break;
 
