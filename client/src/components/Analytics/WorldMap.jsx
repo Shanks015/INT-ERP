@@ -115,10 +115,10 @@ const WorldMap = ({ data }) => {
                     </button>
                 </div>
 
-                <div className="w-full h-[400px] border border-base-300 rounded-lg overflow-hidden bg-base-100">
+                <div className="w-full h-[600px] border border-base-300 rounded-lg overflow-hidden bg-base-100">
                     <ComposableMap
                         projectionConfig={{
-                            scale: 147
+                            scale: 200
                         }}
                         style={{
                             width: '100%',
