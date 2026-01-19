@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
+import WorldMap from './WorldMap';
 
 const GeographicView = ({ data }) => {
     console.log('GeographicView received data:', data);
@@ -243,21 +244,8 @@ const GeographicView = ({ data }) => {
                 </motion.div>
             </div>
 
-            {/* Future Map Placeholder */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="card bg-base-200 shadow-sm"
-            >
-                <div className="card-body text-center py-12">
-                    <div className="text-4xl mb-4">🗺️</div>
-                    <h3 className="text-lg font-semibold mb-2">Interactive World Map</h3>
-                    <p className="text-sm text-base-content/70">
-                        Coming soon: Click on countries to explore detailed statistics
-                    </p>
-                </div>
-            </motion.div>
+            {/* Interactive World Map */}
+            <WorldMap data={data} />
         </div>
     );
 };
