@@ -10,7 +10,7 @@ import { Plus, Edit, Trash2, Download, Upload, Calendar, TrendingUp, Clock, Sear
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import Pagination from '../../components/Pagination';
 
 const EventsList = () => {
@@ -121,9 +121,9 @@ const EventsList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard title="Total Events" value={stats.total} icon={Calendar} color="primary" />
-                <StatsCard title="Event Types" value={stats.eventTypes} icon={Tag} color="secondary" />
-                <StatsCard title="Departments" value={stats.departments} icon={Building2} color="info" />
+                <SmartStatsCard title="Total Events" value={stats.total} icon={Calendar} color="primary" moduleType="events" statType="total" moduleData={{ total: stats.total, types: stats.eventTypes, departments: stats.departments }} />
+                <SmartStatsCard title="Event Types" value={stats.eventTypes} icon={Tag} color="secondary" moduleType="events" statType="types" moduleData={{ total: stats.total, types: stats.eventTypes, departments: stats.departments }} />
+                <SmartStatsCard title="Departments" value={stats.departments} icon={Building2} color="info" moduleType="events" statType="departments" moduleData={{ total: stats.total, types: stats.eventTypes, departments: stats.departments }} />
             </div>
 
             <div className="card bg-base-100 shadow-xl mb-6">
