@@ -37,10 +37,6 @@ const eventSchema = new mongoose.Schema({
     driveLink: {
         type: String,
         trim: true
-    },
-    driveLink: {
-        type: String,
-        trim: true
     }
 }, {
     timestamps: true

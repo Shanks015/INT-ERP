@@ -12,7 +12,12 @@ export const getEnhancedStats = (Model) => async (req, res) => {
         const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
         // Base stats all modules have
-        const total = await Model.countDocuments({ status: 'active' });
+        let total;
+        if (modelName === 'Event') {
+            total = await Model.countDocuments({});
+        } else {
+            total = await Model.countDocuments({ status: 'active' });
+        }
 
         let stats = { total };
 
@@ -168,9 +173,10 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 break;
 
             case 'Event':
-                const [eventTypes, departments, eventTypeDistribution, departmentDistribution, recentEvents] = await Promise.all([
+                const [eventTypes, departments, eventCountries, eventTypeDistribution, departmentDistribution, recentEvents] = await Promise.all([
                     Model.distinct('type').then(arr => arr.filter(Boolean).length),
                     Model.distinct('department').then(arr => arr.filter(Boolean).length),
+                    Model.distinct('universityCountry').then(arr => arr.filter(Boolean).length),
 
                     // Event type distribution
                     Model.aggregate([
@@ -207,7 +213,16 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     ])
                 ]);
 
-                stats = { ...stats, eventTypes, departments, eventTypeDistribution, departmentDistribution, recentEvents };
+                stats = {
+                    ...stats,
+                    active: stats.total, // Since status field was removed, all events are considered active
+                    countries: eventCountries, // Add countries from universityCountry
+                    eventTypes,
+                    departments,
+                    eventTypeDistribution,
+                    departmentDistribution,
+                    recentEvents
+                };
                 break;
 
             case 'Conference':
