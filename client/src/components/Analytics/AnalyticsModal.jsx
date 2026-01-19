@@ -6,6 +6,7 @@ import StatsOverview from './StatsOverview';
 import TrendChart from './TrendChart';
 import GeographicView from './GeographicView';
 import ActivePartnerView from './ActivePartnerView';
+import UniversityInsightsView from './UniversityInsightsView';
 
 const AnalyticsModal = () => {
     const { isOpen, closeAnalytics, analyticsData, activeTab, setActiveTab } = useAnalytics();
@@ -99,14 +100,17 @@ const AnalyticsModal = () => {
                         </div>
 
 
-                        {/* Content - Dedicated View per Stat Type (No Tabs) */}
                         <div className="flex-1 overflow-y-auto p-4 md:p-6">
                             {(() => {
                                 const statType = analyticsData?.statType;
+                                const moduleType = analyticsData?.moduleType;
 
                                 // Dedicated view for each stat type
                                 if (statType === 'active') {
                                     return <ActivePartnerView data={analyticsData} />;
+                                } else if (statType === 'universities' && moduleType === 'campus-visits') {
+                                    // Campus Visits Universities gets dedicated dashboard
+                                    return <UniversityInsightsView data={analyticsData} />;
                                 } else if (statType === 'countries' || statType === 'universities') {
                                     return <GeographicView data={analyticsData} />;
                                 } else if (statType === 'total') {

@@ -107,7 +107,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 ]);
 
                 // Get distributions for charts (top 10)
-                const [countryDistribution, universityDistribution] = await Promise.all([
+                const [countryDistribution, universityDistribution, purposeDistribution, typeDistribution, recentVisits] = await Promise.all([
                     Model.aggregate([
                         { $match: { status: 'active', country: { $exists: true, $ne: '' } } },
                         { $group: { _id: '$country', value: { $sum: 1 } } },
@@ -121,6 +121,38 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                         { $sort: { value: -1 } },
                         { $limit: 10 },
                         { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    // Purpose distribution
+                    Model.aggregate([
+                        { $match: { status: 'active', purpose: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$purpose', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    // Type distribution
+                    Model.aggregate([
+                        { $match: { status: 'active', type: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$type', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    // Recent visits (last 10)
+                    Model.aggregate([
+                        { $match: { status: 'active' } },
+                        { $sort: { date: -1 } },
+                        { $limit: 10 },
+                        {
+                            $project: {
+                                _id: 0,
+                                universityName: 1,
+                                country: 1,
+                                visitorName: 1,
+                                date: 1,
+                                type: 1,
+                                purpose: 1
+                            }
+                        }
                     ])
                 ]);
 
@@ -129,7 +161,10 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     countries,
                     universities,
                     countryDistribution,
-                    universityDistribution
+                    universityDistribution,
+                    purposeDistribution,
+                    typeDistribution,
+                    recentVisits
                 };
                 break;
 
