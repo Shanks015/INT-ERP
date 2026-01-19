@@ -205,7 +205,7 @@ const UniversityInsightsView = ({ data }) => {
                                         <td>{visit.country}</td>
                                         <td>{visit.visitorName || '-'}</td>
                                         <td>
-                                            <span className="badge badge-info badge-sm">
+                                            <span className="badge badge-info badge-sm whitespace-nowrap">
                                                 {visit.type || '-'}
                                             </span>
                                         </td>
