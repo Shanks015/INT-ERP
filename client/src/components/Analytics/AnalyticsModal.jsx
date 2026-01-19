@@ -8,6 +8,7 @@ import GeographicView from './GeographicView';
 import ActivePartnerView from './ActivePartnerView';
 import UniversityInsightsView from './UniversityInsightsView';
 import DepartmentInsightsView from './DepartmentInsightsView';
+import EventTypeInsightsView from './EventTypeInsightsView';
 
 const AnalyticsModal = () => {
     const { isOpen, closeAnalytics, analyticsData, activeTab, setActiveTab } = useAnalytics();
@@ -115,6 +116,9 @@ const AnalyticsModal = () => {
                                 } else if (statType === 'departments' && moduleType === 'scholars') {
                                     // Scholars Departments gets dedicated dashboard
                                     return <DepartmentInsightsView data={analyticsData} />;
+                                } else if ((statType === 'types' || statType === 'departments') && moduleType === 'events') {
+                                    // Events Types and Departments get dedicated dashboard
+                                    return <EventTypeInsightsView data={analyticsData} />;
                                 } else if (statType === 'countries') {
                                     // Countries shows geographic view with world map
                                     return <GeographicView data={analyticsData} />;
