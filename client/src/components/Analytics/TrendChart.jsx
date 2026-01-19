@@ -8,18 +8,22 @@ const TrendChart = ({ data }) => {
     const generateTrendData = () => {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const currentMonth = new Date().getMonth();
+        console.log('Current month:', currentMonth);
+
         const baseValue = data.total ? Math.floor(data.total / 12) : 10;
 
-        // Always show at least last 6 months
-        const monthsToShow = Math.max(6, currentMonth + 1);
-        const endMonth = Math.min(12, monthsToShow);
-        const startMonth = endMonth - monthsToShow;
+        // For now, always show first 6 months for consistency
+        const displayMonths = months.slice(0, 6);
+        console.log('Display months:', displayMonths);
 
-        return months.slice(Math.max(0, startMonth), endMonth).map((month, index) => ({
+        const result = displayMonths.map((month, index) => ({
             month,
             current: Math.floor(Math.random() * 20) + baseValue + index * 2,
             previous: Math.floor(Math.random() * 15) + Math.max(1, baseValue - 5) + index
         }));
+
+        console.log('Generated result:', result);
+        return result;
     };
 
     const trendData = data.trendData || generateTrendData();
