@@ -392,46 +392,47 @@ const PartnersList = () => {
                                                     </span>
                                                 ) : '-'}
                                             </td>
-                                    </button>
-                                    <Link
-                                        to={`/partners/edit/${partner._id}`}
-                                        className={`btn btn-warning btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
-                                    >
-                                        <Edit size={16} />
-                                    </Link>
-                                    <button
-                                        onClick={() => setDeleteModal({ isOpen: true, partner })}
-                                        className={`btn btn-error btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
-                                        disabled={partner.status !== 'active'}
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
-                        </td>
-                    </tr >
-                    ))
+                                            <td>
+                                                <div className="flex gap-2">
+                                                    <Link
+                                                        to={`/partners/edit/${partner._id}`}
+                                                        className={`btn btn-warning btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
+                                                    >
+                                                        <Edit size={16} />
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => setDeleteModal({ isOpen: true, partner })}
+                                                        className={`btn btn-error btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
+                                                        disabled={partner.status !== 'active'}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr >
+                                    ))
                                 )}
-                </tbody >
-            </table >
-        </div >
+                            </tbody >
+                        </table >
+                    </div >
 
-            {/* Pagination */ }
-    {
-        totalItems > 0 && (
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setCurrentPage}
-                onItemsPerPageChange={(newLimit) => {
-                    setItemsPerPage(newLimit);
-                    setCurrentPage(1);
-                }}
-            />
-        )
-    }
-        </div >
+                    {/* Pagination */}
+                    {
+                        totalItems > 0 && (
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalItems={totalItems}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
+                                onItemsPerPageChange={(newLimit) => {
+                                    setItemsPerPage(newLimit);
+                                    setCurrentPage(1);
+                                }}
+                            />
+                        )
+                    }
+                </div >
             </div >
 
             <DeleteConfirmModal
