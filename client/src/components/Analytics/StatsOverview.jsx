@@ -87,32 +87,35 @@ const StatsOverview = ({ data }) => {
                     <div className="card-body">
                         <h3 className="card-title text-lg">Top Regions</h3>
                         <div className="space-y-3 mt-4">
-                            {data.countryDistribution.slice(0, 5).map((item, index) => {
-                                const percentage = ((item.value / data.total) * 100).toFixed(1);
-                                return (
-                                    <div key={item.name} className="space-y-1">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="font-medium">{item.name}</span>
-                                            <span className="text-base-content/70">
-                                                {item.value} ({percentage}%)
-                                            </span>
-                                        </div>
-                                        <motion.div
-                                            className="h-2 bg-base-300 rounded-full overflow-hidden"
-                                            initial={{ width: 0 }}
-                                            animate={{ width: '100%' }}
-                                            transition={{ delay: 0.5 + index * 0.1 }}
-                                        >
+                            {data.countryDistribution
+                                .sort((a, b) => b.value - a.value) // Sort by count descending
+                                .slice(0, 5)
+                                .map((item, index) => {
+                                    const percentage = ((item.value / data.total) * 100).toFixed(1);
+                                    return (
+                                        <div key={item.name} className="space-y-1">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="font-medium">{item.name}</span>
+                                                <span className="text-base-content/70">
+                                                    {item.value} ({percentage}%)
+                                                </span>
+                                            </div>
                                             <motion.div
-                                                className="h-full bg-primary rounded-full"
+                                                className="h-2 bg-base-300 rounded-full overflow-hidden"
                                                 initial={{ width: 0 }}
-                                                animate={{ width: `${percentage}%` }}
-                                                transition={{ delay: 0.6 + index * 0.1, duration: 0.8 }}
-                                            />
-                                        </motion.div>
-                                    </div>
-                                );
-                            })}
+                                                animate={{ width: '100%' }}
+                                                transition={{ delay: 0.5 + index * 0.1 }}
+                                            >
+                                                <motion.div
+                                                    className="h-full bg-primary rounded-full"
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${percentage}%` }}
+                                                    transition={{ delay: 0.6 + index * 0.1, duration: 0.8 }}
+                                                />
+                                            </motion.div>
+                                        </div>
+                                    );
+                                })}
                         </div>
                     </div>
                 </motion.div>

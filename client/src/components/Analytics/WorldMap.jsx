@@ -3,7 +3,7 @@ import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simp
 import { motion } from 'framer-motion';
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 
-const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 
 // Country name normalization map (database name -> TopoJSON name)
 const COUNTRY_NAME_MAP = {
@@ -52,9 +52,10 @@ const WorldMap = ({ data }) => {
 
     // Get color based on value (heat map)
     const getCountryColor = (countryName) => {
-        const value = countryDataMap[countryName];
-        if (!value) return 'oklch(var(--b3))'; // Base color for countries with no data
+        // Check if country exists in our data (use 'in' to handle 0 values)
+        if (!(countryName in countryDataMap)) return 'oklch(var(--b3))'; // Base color for countries with no data
 
+        const value = countryDataMap[countryName];
         const intensity = value / maxValue;
 
         // Generate color from light to dark primary color
@@ -161,7 +162,7 @@ const WorldMap = ({ data }) => {
                                 {({ geographies }) => {
                                     return geographies.map((geo) => {
                                         const countryName = geo.properties.name;
-                                        const hasData = countryDataMap[countryName];
+                                        const hasData = countryName in countryDataMap; // Use 'in' to handle 0 values
 
                                         return (
                                             <Geography
