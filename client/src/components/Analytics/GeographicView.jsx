@@ -89,7 +89,10 @@ const GeographicView = ({ data }) => {
         );
     }
 
-    const topCountries = distributionData.slice(0, 10);
+    // Filter out countries with 0 records and get top 10
+    const topCountries = distributionData
+        .filter(item => item.value > 0)
+        .slice(0, 10);
 
     // Colors for bars/pie
     const COLORS = [
