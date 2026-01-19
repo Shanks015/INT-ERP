@@ -292,10 +292,6 @@ export const getEnhancedStats = (Model) => async (req, res) => {
 
             case 'Partner':
                 const partnerCountries = await Model.distinct('country').then(arr => arr.filter(Boolean).length);
-                const activePartners = await Model.countDocuments({
-                    activeStatus: 'Active',
-                    recordStatus: { $ne: 'expired' }
-                });
 
                 const activePartners = await Model.countDocuments({
                     activeStatus: 'Active',
