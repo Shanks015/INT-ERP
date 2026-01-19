@@ -8,7 +8,12 @@ import GeographicView from './GeographicView';
 const AnalyticsModal = () => {
     const { isOpen, closeAnalytics, analyticsData, activeTab, setActiveTab } = useAnalytics();
 
-    if (!analyticsData) return null;
+    console.log('AnalyticsModal render:', { isOpen, hasData: !!analyticsData });
+
+    if (!analyticsData) {
+        console.log('AnalyticsModal: No data, not rendering modal');
+        return null;
+    }
 
     const tabs = [
         { id: 'overview', label: 'Overview', icon: BarChart3 },

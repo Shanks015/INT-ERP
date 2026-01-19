@@ -15,6 +15,8 @@ const SmartStatsCard = ({
     const { openAnalytics } = useAnalytics();
 
     const handleClick = () => {
+        console.log('SmartStatsCard clicked!', { title, moduleType, statType });
+
         // Prepare analytics data
         const analyticsData = {
             title,
@@ -26,6 +28,7 @@ const SmartStatsCard = ({
             ...moduleData
         };
 
+        console.log('Opening analytics with data:', analyticsData);
         openAnalytics(analyticsData);
     };
 
