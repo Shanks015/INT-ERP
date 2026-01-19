@@ -6,11 +6,11 @@ import { useDateFormat } from '../../utils/dateFormat';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Eye, Globe, CheckCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Users, Eye, Globe, CheckCircle, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
@@ -107,7 +107,7 @@ const PartnersList = () => {
 
     const handleDelete = async (reason) => {
         try {
-            await api.delete(`/partners/${deleteModal.partner._id}`, {
+            await api.delete(`/ partners / ${ deleteModal.partner._id } `, {
                 data: { reason }
             });
 
@@ -203,31 +203,53 @@ const PartnersList = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard
+                <SmartStatsCard
                     title="Total Partners"
                     value={stats.total}
                     icon={Users}
                     color="primary"
-                    onClick={() => document.getElementById('partners-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                    moduleType="partners"
+                    statType="total"
+                    moduleData={{
+                        total: stats.total,
+                        active: stats.active,
+                        countries: stats.countries,
+                        countryDistribution: countries.map(c => ({
+                            name: c,
+                            value: partners.filter(p => p.country === c).length
+                        })),
+                        trend: { change: 5, percentage: 8.3, direction: 'up' } // Replace with real trend data
+                    }}
                 />
-                <StatsCard
+                <SmartStatsCard
                     title="Countries"
                     value={stats.countries}
                     icon={Globe}
                     color="secondary"
-                    onClick={() => {
-                        document.getElementById('country-filter')?.focus();
-                        document.getElementById('partners-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    moduleType="partners"
+                    statType="countries"
+                    moduleData={{
+                        total: stats.total,
+                        active: stats.active,
+                        countries: stats.countries,
+                        countryDistribution: countries.map(c => ({
+                            name: c,
+                            value: partners.filter(p => p.country === c).length
+                        }))
                     }}
                 />
-                <StatsCard
+                <SmartStatsCard
                     title="Active"
                     value={stats.active}
                     icon={CheckCircle}
                     color="success"
-                    onClick={() => {
-                        handleFilterChange('recordStatus', 'active');
-                        document.getElementById('partners-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    moduleType="partners"
+                    statType="active"
+                    moduleData={{
+                        total: stats.total,
+                        active: stats.active,
+                        countries: stats.countries,
+                        trend: { change: 3, percentage: 5.2, direction: 'up' }
                     }}
                 />
             </div>
@@ -346,14 +368,14 @@ const PartnersList = () => {
                                                 {partner.email ? (
                                                     <a
                                                         href={`https://mail.google.com/mail/?view=cm&fs=1&to=${partner.email}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="link link-primary"
-                                                    >
-                                                        {partner.email}
-                                                    </a>
+target = "_blank"
+rel = "noopener noreferrer"
+className = "link link-primary"
+    >
+    { partner.email }
+                                                    </a >
                                                 ) : '-'}
-                                            </td>
+                                            </td >
                                             <td>
                                                 {partner.mouStatus ? (
                                                     <span className={`badge badge-sm whitespace-nowrap ${partner.mouStatus === 'Completed' ? 'badge-success' :
@@ -419,29 +441,31 @@ const PartnersList = () => {
                                                     </button>
                                                 </div>
                                             </td>
-                                        </tr>
+                                        </tr >
                                     ))
                                 )}
-                            </tbody>
-                        </table>
-                    </div>
+                            </tbody >
+                        </table >
+                    </div >
 
-                    {/* Pagination */}
-                    {totalItems > 0 && (
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            totalItems={totalItems}
-                            itemsPerPage={itemsPerPage}
-                            onPageChange={setCurrentPage}
-                            onItemsPerPageChange={(newLimit) => {
-                                setItemsPerPage(newLimit);
-                                setCurrentPage(1);
-                            }}
-                        />
-                    )}
-                </div>
-            </div>
+    {/* Pagination */ }
+{
+    totalItems > 0 && (
+        <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={(newLimit) => {
+                setItemsPerPage(newLimit);
+                setCurrentPage(1);
+            }}
+        />
+    )
+}
+                </div >
+            </div >
 
             <DeleteConfirmModal
                 isOpen={deleteModal.isOpen}

@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { useAuth } from './context/AuthContext';
+import { AnalyticsProvider } from './context/AnalyticsContext';
 import { Toaster } from 'react-hot-toast';
 import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
 import LoadingSpinner from './components/LoadingSpinner';
+import AnalyticsModal from './components/Analytics/AnalyticsModal';
 
 // Auth - Keep login/register eager loaded for faster initial access
 import Login from './pages/Auth/Login';
@@ -87,85 +89,88 @@ function App() {
     }
 
     return (
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <Toaster position="top-right" />
-            <Suspense fallback={<LoadingSpinner />}>
-                <Routes>
-                    <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
-                    <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
+        <AnalyticsProvider>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <Toaster position="top-right" />
+                <AnalyticsModal />
+                <Suspense fallback={<LoadingSpinner />}>
+                    <Routes>
+                        <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+                        <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
 
-                    <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-                        <Route index element={<Navigate to="/dashboard" replace />} />
-                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+                            <Route index element={<Navigate to="/dashboard" replace />} />
+                            <Route path="dashboard" element={<Dashboard />} />
 
-                        <Route path="partners" element={<PartnersList />} />
-                        <Route path="partners/new" element={<PartnerForm />} />
-                        <Route path="partners/edit/:id" element={<PartnerForm />} />
+                            <Route path="partners" element={<PartnersList />} />
+                            <Route path="partners/new" element={<PartnerForm />} />
+                            <Route path="partners/edit/:id" element={<PartnerForm />} />
 
-                        <Route path="campus-visits" element={<CampusVisitsList />} />
-                        <Route path="campus-visits/new" element={<CampusVisitForm />} />
-                        <Route path="campus-visits/edit/:id" element={<CampusVisitForm />} />
+                            <Route path="campus-visits" element={<CampusVisitsList />} />
+                            <Route path="campus-visits/new" element={<CampusVisitForm />} />
+                            <Route path="campus-visits/edit/:id" element={<CampusVisitForm />} />
 
-                        <Route path="events" element={<EventsList />} />
-                        <Route path="events/new" element={<EventForm />} />
-                        <Route path="events/edit/:id" element={<EventForm />} />
+                            <Route path="events" element={<EventsList />} />
+                            <Route path="events/new" element={<EventForm />} />
+                            <Route path="events/edit/:id" element={<EventForm />} />
 
-                        <Route path="conferences" element={<ConferencesList />} />
-                        <Route path="conferences/new" element={<ConferenceForm />} />
-                        <Route path="conferences/edit/:id" element={<ConferenceForm />} />
+                            <Route path="conferences" element={<ConferencesList />} />
+                            <Route path="conferences/new" element={<ConferenceForm />} />
+                            <Route path="conferences/edit/:id" element={<ConferenceForm />} />
 
-                        <Route path="mou-signing-ceremonies" element={<MouSigningCeremoniesList />} />
-                        <Route path="mou-signing-ceremonies/new" element={<MouSigningCeremonyForm />} />
-                        <Route path="mou-signing-ceremonies/edit/:id" element={<MouSigningCeremonyForm />} />
+                            <Route path="mou-signing-ceremonies" element={<MouSigningCeremoniesList />} />
+                            <Route path="mou-signing-ceremonies/new" element={<MouSigningCeremonyForm />} />
+                            <Route path="mou-signing-ceremonies/edit/:id" element={<MouSigningCeremonyForm />} />
 
-                        <Route path="scholars-in-residence" element={<ScholarsList />} />
-                        <Route path="scholars-in-residence/new" element={<ScholarForm />} />
-                        <Route path="scholars-in-residence/edit/:id" element={<ScholarForm />} />
+                            <Route path="scholars-in-residence" element={<ScholarsList />} />
+                            <Route path="scholars-in-residence/new" element={<ScholarForm />} />
+                            <Route path="scholars-in-residence/edit/:id" element={<ScholarForm />} />
 
-                        <Route path="mou-updates" element={<MouUpdatesList />} />
-                        <Route path="mou-updates/new" element={<MouUpdateForm />} />
-                        <Route path="mou-updates/edit/:id" element={<MouUpdateForm />} />
+                            <Route path="mou-updates" element={<MouUpdatesList />} />
+                            <Route path="mou-updates/new" element={<MouUpdateForm />} />
+                            <Route path="mou-updates/edit/:id" element={<MouUpdateForm />} />
 
-                        <Route path="immersion-programs" element={<ImmersionProgramsList />} />
-                        <Route path="immersion-programs/new" element={<ImmersionProgramForm />} />
-                        <Route path="immersion-programs/edit/:id" element={<ImmersionProgramForm />} />
+                            <Route path="immersion-programs" element={<ImmersionProgramsList />} />
+                            <Route path="immersion-programs/new" element={<ImmersionProgramForm />} />
+                            <Route path="immersion-programs/edit/:id" element={<ImmersionProgramForm />} />
 
-                        <Route path="student-exchange" element={<StudentExchangeList />} />
-                        <Route path="student-exchange/new" element={<StudentExchangeForm />} />
-                        <Route path="student-exchange/edit/:id" element={<StudentExchangeForm />} />
+                            <Route path="student-exchange" element={<StudentExchangeList />} />
+                            <Route path="student-exchange/new" element={<StudentExchangeForm />} />
+                            <Route path="student-exchange/edit/:id" element={<StudentExchangeForm />} />
 
-                        <Route path="masters-abroad" element={<MastersAbroadList />} />
-                        <Route path="masters-abroad/new" element={<MastersAbroadForm />} />
-                        <Route path="masters-abroad/edit/:id" element={<MastersAbroadForm />} />
+                            <Route path="masters-abroad" element={<MastersAbroadList />} />
+                            <Route path="masters-abroad/new" element={<MastersAbroadForm />} />
+                            <Route path="masters-abroad/edit/:id" element={<MastersAbroadForm />} />
 
-                        <Route path="memberships" element={<MembershipsList />} />
-                        <Route path="memberships/new" element={<MembershipForm />} />
-                        <Route path="memberships/edit/:id" element={<MembershipForm />} />
+                            <Route path="memberships" element={<MembershipsList />} />
+                            <Route path="memberships/new" element={<MembershipForm />} />
+                            <Route path="memberships/edit/:id" element={<MembershipForm />} />
 
-                        <Route path="digital-media" element={<DigitalMediaList />} />
-                        <Route path="digital-media/new" element={<DigitalMediaForm />} />
-                        <Route path="digital-media/edit/:id" element={<DigitalMediaForm />} />
+                            <Route path="digital-media" element={<DigitalMediaList />} />
+                            <Route path="digital-media/new" element={<DigitalMediaForm />} />
+                            <Route path="digital-media/edit/:id" element={<DigitalMediaForm />} />
 
-                        <Route path="social-media" element={<SocialMediaList />} />
-                        <Route path="social-media/new" element={<SocialMediaForm />} />
-                        <Route path="social-media/:id" element={<SocialMediaForm />} />
+                            <Route path="social-media" element={<SocialMediaList />} />
+                            <Route path="social-media/new" element={<SocialMediaForm />} />
+                            <Route path="social-media/:id" element={<SocialMediaForm />} />
 
-                        <Route path="outreach" element={<OutreachList />} />
-                        <Route path="outreach/new" element={<OutreachForm />} />
-                        <Route path="outreach/edit/:id" element={<OutreachForm />} />
+                            <Route path="outreach" element={<OutreachList />} />
+                            <Route path="outreach/new" element={<OutreachForm />} />
+                            <Route path="outreach/edit/:id" element={<OutreachForm />} />
 
-                        <Route path="pending-actions" element={<ProtectedRoute adminOnly><PendingActions /></ProtectedRoute>} />
-                        <Route path="my-requests" element={<MyRequests />} />
-                        <Route path="reports" element={<Reports />} />
-                        <Route path="user-management" element={<ProtectedRoute adminOnly><UserManagement /></ProtectedRoute>} />
-                        <Route path="settings" element={<Settings />} />
-                        <Route path="activity-logs" element={<ProtectedRoute adminOnly><ActivityLogs /></ProtectedRoute>} />
-                    </Route>
+                            <Route path="pending-actions" element={<ProtectedRoute adminOnly><PendingActions /></ProtectedRoute>} />
+                            <Route path="my-requests" element={<MyRequests />} />
+                            <Route path="reports" element={<Reports />} />
+                            <Route path="user-management" element={<ProtectedRoute adminOnly><UserManagement /></ProtectedRoute>} />
+                            <Route path="settings" element={<Settings />} />
+                            <Route path="activity-logs" element={<ProtectedRoute adminOnly><ActivityLogs /></ProtectedRoute>} />
+                        </Route>
 
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-            </Suspense>
-        </BrowserRouter>
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </Suspense>
+            </BrowserRouter>
+        </AnalyticsProvider>
     );
 }
 
