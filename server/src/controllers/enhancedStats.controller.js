@@ -293,31 +293,141 @@ export const getEnhancedStats = (Model) => async (req, res) => {
             case 'Partner':
                 const partnerCountries = await Model.distinct('country').then(arr => arr.filter(Boolean).length);
                 const activePartners = await Model.countDocuments({
-                    activeStatus: 'Active'
+                    activeStatus: 'Active',
+                    recordStatus: { $ne: 'expired' }
                 });
 
-                // Get country and status distributions
-                const [partnerCountryDist, statusDistribution] = await Promise.all([
+                const activePartners = await Model.countDocuments({
+                    activeStatus: 'Active',
+                    recordStatus: { $ne: 'expired' }
+                });
+
+                // Get Expiry Forecast and detailed distributions
+                const today = new Date();
+                const threeMonths = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
+                const sixMonths = new Date(today.getTime() + 180 * 24 * 60 * 60 * 1000);
+
+                const [
+                    partnerCountryDist,
+                    statusDistribution,
+                    expiryForecast,
+                    agreementTypeDist,
+                    avgDurationResult
+                ] = await Promise.all([
+                    // Country Distribution (Active Only)
                     Model.aggregate([
-                        { $match: { status: 'active', country: { $exists: true, $ne: '' } } },
+                        {
+                            $match: {
+                                activeStatus: 'Active',
+                                recordStatus: { $ne: 'expired' },
+                                country: { $exists: true, $ne: '' }
+                            }
+                        },
                         { $group: { _id: '$country', value: { $sum: 1 } } },
                         { $sort: { value: -1 } },
                         { $limit: 10 },
                         { $project: { _id: 0, name: '$_id', value: 1 } }
                     ]),
+
+                    // Active Status Distribution (for verification)
                     Model.aggregate([
                         { $match: { status: 'active' } },
                         { $group: { _id: '$activeStatus', value: { $sum: 1 } } },
                         { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // Expiry Forecast
+                    Model.aggregate([
+                        {
+                            $match: {
+                                activeStatus: 'Active',
+                                recordStatus: { $ne: 'expired' },
+                                expiringDate: { $exists: true, $ne: null }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                upcoming: {
+                                    $sum: {
+                                        $cond: [{ $lte: ['$expiringDate', threeMonths] }, 1, 0]
+                                    }
+                                },
+                                mediumTerm: {
+                                    $sum: {
+                                        $cond: [{
+                                            $and: [
+                                                { $gt: ['$expiringDate', threeMonths] },
+                                                { $lte: ['$expiringDate', sixMonths] }
+                                            ]
+                                        }, 1, 0]
+                                    }
+                                },
+                                longTerm: {
+                                    $sum: {
+                                        $cond: [{ $gt: ['$expiringDate', sixMonths] }, 1, 0]
+                                    }
+                                }
+                            }
+                        }
+                    ]),
+
+                    // Agreement Type Distribution
+                    Model.aggregate([
+                        {
+                            $match: {
+                                activeStatus: 'Active',
+                                recordStatus: { $ne: 'expired' },
+                                agreementType: { $exists: true, $ne: '' }
+                            }
+                        },
+                        { $group: { _id: '$agreementType', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 5 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // Average Duration (in Days)
+                    Model.aggregate([
+                        {
+                            $match: {
+                                activeStatus: 'Active',
+                                recordStatus: { $ne: 'expired' },
+                                signingDate: { $exists: true, $ne: null } // Use signingDate for start
+                            }
+                        },
+                        {
+                            $project: {
+                                duration: { $subtract: [new Date(), '$signingDate'] }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                avgDurationMs: { $avg: '$duration' }
+                            }
+                        }
                     ])
                 ]);
+
+                // Process Expiry Forecast
+                const forecast = expiryForecast[0] || { upcoming: 0, mediumTerm: 0, longTerm: 0 };
+                delete forecast._id;
+
+                // Process Avg Duration
+                const avgDurationDays = avgDurationResult[0]?.avgDurationMs
+                    ? Math.round(avgDurationResult[0].avgDurationMs / (1000 * 60 * 60 * 24))
+                    : 0;
 
                 stats = {
                     ...stats,
                     countries: partnerCountries,
                     active: activePartners,
                     countryDistribution: partnerCountryDist,
-                    statusDistribution
+                    statusDistribution,
+                    expiryForecast: forecast,
+                    agreementTypes: agreementTypeDist,
+                    avgDurationDays
                 };
                 break;
 
