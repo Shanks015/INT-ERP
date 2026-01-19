@@ -194,7 +194,7 @@ const EventsList = () => {
                                         <td>
                                             {event.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
                                             {event.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
-                                            {event.status === 'active' && <span className="badge badge-success badge-sm">Active</span>}
+                                            {event.status === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
                                         </td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
@@ -241,3 +241,4 @@ const EventsList = () => {
 };
 
 export default EventsList;
+

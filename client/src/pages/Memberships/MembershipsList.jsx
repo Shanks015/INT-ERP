@@ -131,8 +131,8 @@ const MembershipsList = () => {
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Record Status Badge */}
-                                                {membership.recordStatus === 'active' && <span className="badge badge-success badge-sm">Active</span>}
-                                                {membership.recordStatus === 'expired' && <span className="badge badge-error badge-sm">Expired</span>}
+                                                {membership.recordStatus === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
+                                                {membership.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
 
                                                 {/* Approval Workflow Badges */}
                                                 {membership.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
@@ -187,3 +187,4 @@ const MembershipsList = () => {
 };
 
 export default MembershipsList;
+

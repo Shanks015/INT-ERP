@@ -256,7 +256,7 @@ const OutreachList = () => {
                                                     </span>
                                                 )}
                                                 {item.status === 'active' && (
-                                                    <span className="badge badge-success badge-sm">Active</span>
+                                                    <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>
                                                 )}
                                             </td>
                                             <td>
@@ -352,3 +352,4 @@ const OutreachList = () => {
 };
 
 export default OutreachList;
+

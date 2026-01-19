@@ -284,3 +284,4 @@ const ScholarForm = () => {
 };
 
 export default ScholarForm;
+

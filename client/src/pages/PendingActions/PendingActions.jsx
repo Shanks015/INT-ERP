@@ -170,10 +170,10 @@ const PendingActions = () => {
                                             </td>
                                             <td>
                                                 {item.status === 'pending_edit' && (
-                                                    <span className="badge badge-warning badge-sm">Edit Request</span>
+                                                    <span className="badge badge-warning badge-sm whitespace-nowrap">Edit Request</span>
                                                 )}
                                                 {item.status === 'pending_delete' && (
-                                                    <span className="badge badge-error badge-sm">Delete Request</span>
+                                                    <span className="badge badge-error badge-sm whitespace-nowrap">Delete Request</span>
                                                 )}
                                             </td>
                                             <td className="font-medium">{getDisplayValue(item)}</td>
@@ -213,3 +213,4 @@ const PendingActions = () => {
 };
 
 export default PendingActions;
+

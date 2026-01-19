@@ -196,8 +196,8 @@ const ImmersionProgramsList = () => {
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Record Status Badge */}
-                                                {program.recordStatus === 'active' && <span className="badge badge-success badge-sm">Active</span>}
-                                                {program.recordStatus === 'expired' && <span className="badge badge-error badge-sm">Expired</span>}
+                                                {program.recordStatus === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
+                                                {program.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
 
                                                 {/* Approval Workflow Badges */}
                                                 {program.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
@@ -257,3 +257,4 @@ const ImmersionProgramsList = () => {
 };
 
 export default ImmersionProgramsList;
+
