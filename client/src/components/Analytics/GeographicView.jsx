@@ -3,10 +3,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import WorldMap from './WorldMap';
 
 const GeographicView = ({ data }) => {
-    console.log('GeographicView received data:', data);
 
     const distributionData = data.countryDistribution || [];
-    console.log('Distribution data:', distributionData);
 
     // If no distribution data, show message
     if (!distributionData || distributionData.length === 0) {

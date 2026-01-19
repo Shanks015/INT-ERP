@@ -4,8 +4,6 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieCha
 import { AlertCircle, Clock, CheckCircle, FileText, ArrowRight } from 'lucide-react';
 
 const ActivePartnerView = ({ data }) => {
-    console.log('ActivePartnerView received data:', data);
-
     // Colors for different statuses
     const COLORS = {
         upcoming: 'oklch(var(--er))',   // Red for critical
@@ -30,8 +28,6 @@ const ActivePartnerView = ({ data }) => {
     const agreementData = data?.agreementTypes || [];
     const avgDuration = data?.avgDurationDays || 0;
     const totalActive = data?.active || 0;
-
-    console.log('Extracted data:', { expiryData, agreementData, avgDuration, totalActive });
 
     const chartData = [
         { name: '< 3 Months', value: expiryData.upcoming, color: COLORS.upcoming, label: 'Critical' },
