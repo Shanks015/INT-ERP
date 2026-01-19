@@ -7,6 +7,7 @@ import TrendChart from './TrendChart';
 import GeographicView from './GeographicView';
 import ActivePartnerView from './ActivePartnerView';
 import UniversityInsightsView from './UniversityInsightsView';
+import DepartmentInsightsView from './DepartmentInsightsView';
 
 const AnalyticsModal = () => {
     const { isOpen, closeAnalytics, analyticsData, activeTab, setActiveTab } = useAnalytics();
@@ -111,11 +112,14 @@ const AnalyticsModal = () => {
                                 } else if (statType === 'universities' && moduleType === 'campus-visits') {
                                     // Campus Visits Universities gets dedicated dashboard
                                     return <UniversityInsightsView data={analyticsData} />;
+                                } else if (statType === 'departments' && moduleType === 'scholars') {
+                                    // Scholars Departments gets dedicated dashboard
+                                    return <DepartmentInsightsView data={analyticsData} />;
                                 } else if (statType === 'countries') {
                                     // Countries shows geographic view with world map
                                     return <GeographicView data={analyticsData} />;
-                                } else if (statType === 'universities') {
-                                    // Other modules' universities show geographic view
+                                } else if (statType === 'universities' || statType === 'departments') {
+                                    // Other modules' universities/departments show geographic view or overview
                                     return <GeographicView data={analyticsData} />;
                                 } else if (statType === 'total') {
                                     // Total shows Overview + Trends

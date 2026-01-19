@@ -236,11 +236,83 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 break;
 
             case 'ScholarInResidence':
-                const [scholarCountries, scholarDepartments] = await Promise.all([
+                const [scholarCountries, scholarDepartments, countryDist, departmentDist, universityDist, categoryDist, activeScholarsDist, recentScholars] = await Promise.all([
+                    // Basic counts
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
-                    Model.distinct('department').then(arr => arr.filter(Boolean).length)
+                    Model.distinct('department').then(arr => arr.filter(Boolean).length),
+
+                    // Country distribution
+                    Model.aggregate([
+                        { $match: { status: 'active', country: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$country', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // Department distribution (top 10)
+                    Model.aggregate([
+                        { $match: { status: 'active', department: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$department', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // University distribution (top 10)
+                    Model.aggregate([
+                        { $match: { status: 'active', university: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$university', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // Category distribution
+                    Model.aggregate([
+                        { $match: { status: 'active', category: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$category', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // Active vs Expired
+                    Model.aggregate([
+                        { $match: { status: 'active' } },
+                        { $group: { _id: '$recordStatus', value: { $sum: 1 } } },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // Recent scholars (last 10)
+                    Model.aggregate([
+                        { $match: { status: 'active' } },
+                        { $sort: { fromDate: -1 } },
+                        { $limit: 10 },
+                        {
+                            $project: {
+                                _id: 0,
+                                scholarName: 1,
+                                country: 1,
+                                university: 1,
+                                department: 1,
+                                fromDate: 1,
+                                toDate: 1,
+                                recordStatus: 1
+                            }
+                        }
+                    ])
                 ]);
-                stats = { ...stats, countries: scholarCountries, departments: scholarDepartments };
+
+                stats = {
+                    ...stats,
+                    countries: scholarCountries,
+                    departments: scholarDepartments,
+                    countryDistribution: countryDist,
+                    departmentDistribution: departmentDist,
+                    universityDistribution: universityDist,
+                    categoryDistribution: categoryDist,
+                    activeScholars: activeScholarsDist,
+                    recentScholars
+                };
                 break;
 
             case 'MouUpdate':
