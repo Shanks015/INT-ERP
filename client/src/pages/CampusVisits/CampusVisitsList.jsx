@@ -168,12 +168,33 @@ const CampusVisitsList = () => {
 
             {/* Stats Cards with Trends */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <SmartStatsCard
+                    title="Total Visits"
+                    value={stats.total}
+                    icon={Users}
+                    color="primary"
+                    trend={stats.trend}
+                    moduleType="campus-visits"
+                    statType="total"
+                    moduleData={{ total: stats.total, countries: stats.countries, universities: stats.universities }}
                 />
-                <StatsCard
+                <SmartStatsCard
+                    title="Countries"
+                    value={stats.countries}
+                    icon={Globe}
+                    color="secondary"
+                    moduleType="campus-visits"
+                    statType="countries"
+                    moduleData={{ total: stats.total, countries: stats.countries, universities: stats.universities }}
+                />
+                <SmartStatsCard
                     title="Universities"
                     value={stats.universities}
                     icon={Building2}
                     color="info"
+                    moduleType="campus-visits"
+                    statType="universities"
+                    moduleData={{ total: stats.total, countries: stats.countries, universities: stats.universities }}
                 />
             </div>
 
