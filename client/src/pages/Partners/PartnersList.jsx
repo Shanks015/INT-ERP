@@ -246,9 +246,7 @@ const PartnersList = () => {
                     moduleType="partners"
                     statType="active"
                     moduleData={{
-                        total: stats.total,
-                        active: stats.active,
-                        countries: stats.countries,
+                        ...stats, // Spread all stats from backend (including expiryForecast, agreementTypes, etc.)
                         trend: { change: 3, percentage: 5.2, direction: 'up' }
                     }}
                 />

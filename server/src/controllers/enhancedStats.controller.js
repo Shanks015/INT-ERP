@@ -307,6 +307,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     partnerCountryDist,
                     statusDistribution,
                     expiryForecast,
+                    expiringPartnersList,
                     agreementTypeDist,
                     avgDurationResult
                 ] = await Promise.all([
@@ -379,7 +380,15 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                         },
                         { $sort: { expiringDate: 1 } },
                         { $limit: 10 },
-                        { $project: { _id: 0, institutionName: 1, country: 1, expiringDate: 1, agreementType: 1 } }
+                        {
+                            $project: {
+                                _id: 0,
+                                partnerName: { $ifNull: ['$university', '$school'] },
+                                country: 1,
+                                expiringDate: 1,
+                                agreementType: 1
+                            }
+                        }
                     ]),
 
                     // Agreement Type Distribution

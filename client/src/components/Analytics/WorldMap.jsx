@@ -5,6 +5,32 @@ import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
+// Country name normalization map (database name -> TopoJSON name)
+const COUNTRY_NAME_MAP = {
+    'USA': 'United States of America',
+    'UK': 'United Kingdom',
+    'HUNGARY': 'Hungary',
+    'Hungary': 'Hungary',
+    'UKRAINE': 'Ukraine',
+    'Ukraine': 'Ukraine',
+    'South KOREA': 'South Korea',
+    'Crotia': 'Croatia',
+    'Srilanka': 'Sri Lanka',
+    'Malayasia': 'Malaysia',
+    'Newzealand': 'New Zealand',
+    'Russia': 'Russia',
+    'Turkey': 'Turkey'
+};
+
+// Normalize country name for matching
+const normalizeCountryName = (name) => {
+    if (!name) return '';
+    // Check direct mapping first
+    if (COUNTRY_NAME_MAP[name]) return COUNTRY_NAME_MAP[name];
+    // Return trimmed name
+    return name.trim();
+};
+
 const WorldMap = ({ data }) => {
     const [tooltipContent, setTooltipContent] = useState('');
     const [hoveredCountry, setHoveredCountry] = useState(null);
@@ -14,7 +40,8 @@ const WorldMap = ({ data }) => {
     const countryDataMap = {};
     if (data.countryDistribution) {
         data.countryDistribution.forEach(item => {
-            countryDataMap[item.name] = item.value;
+            const normalizedName = normalizeCountryName(item.name);
+            countryDataMap[normalizedName] = item.value;
         });
     }
 
@@ -118,7 +145,7 @@ const WorldMap = ({ data }) => {
 
                     <ComposableMap
                         projectionConfig={{
-                            scale: 200
+                            scale: 147
                         }}
                         style={{
                             width: '100%',
@@ -131,8 +158,8 @@ const WorldMap = ({ data }) => {
                             onMoveEnd={handleMoveEnd}
                         >
                             <Geographies geography={geoUrl}>
-                                {({ geographies }) =>
-                                    geographies.map((geo) => {
+                                {({ geographies }) => {
+                                    return geographies.map((geo) => {
                                         const countryName = geo.properties.name;
                                         const hasData = countryDataMap[countryName];
 
@@ -169,8 +196,8 @@ const WorldMap = ({ data }) => {
                                                 }}
                                             />
                                         );
-                                    })
-                                }
+                                    });
+                                }}
                             </Geographies>
                         </ZoomableGroup>
                     </ComposableMap>
