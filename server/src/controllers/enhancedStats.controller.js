@@ -168,30 +168,46 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 break;
 
             case 'Event':
-                const [eventTypes, departments] = await Promise.all([
+                const [eventTypes, departments, eventTypeDistribution, departmentDistribution, recentEvents] = await Promise.all([
                     Model.distinct('type').then(arr => arr.filter(Boolean).length),
-                    Model.distinct('department').then(arr => arr.filter(Boolean).length)
-                ]);
+                    Model.distinct('department').then(arr => arr.filter(Boolean).length),
 
-                // Get distributions for charts
-                const [eventTypeDistribution, departmentDistribution] = await Promise.all([
+                    // Event type distribution
                     Model.aggregate([
-                        { $match: { status: 'active', type: { $exists: true, $ne: '' } } },
+                        { $match: { type: { $exists: true, $ne: '' } } },
                         { $group: { _id: '$type', value: { $sum: 1 } } },
                         { $sort: { value: -1 } },
                         { $limit: 10 },
                         { $project: { _id: 0, name: '$_id', value: 1 } }
                     ]),
+
+                    // Department distribution
                     Model.aggregate([
-                        { $match: { status: 'active', department: { $exists: true, $ne: '' } } },
+                        { $match: { department: { $exists: true, $ne: '' } } },
                         { $group: { _id: '$department', value: { $sum: 1 } } },
                         { $sort: { value: -1 } },
                         { $limit: 10 },
                         { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // Recent events (last 10)
+                    Model.aggregate([
+                        { $sort: { date: -1 } },
+                        { $limit: 10 },
+                        {
+                            $project: {
+                                _id: 0,
+                                title: 1,
+                                type: 1,
+                                department: 1,
+                                universityCountry: 1,
+                                date: 1
+                            }
+                        }
                     ])
                 ]);
 
-                stats = { ...stats, eventTypes, departments, eventTypeDistribution, departmentDistribution };
+                stats = { ...stats, eventTypes, departments, eventTypeDistribution, departmentDistribution, recentEvents };
                 break;
 
             case 'Conference':

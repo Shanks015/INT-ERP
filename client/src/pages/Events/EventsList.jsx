@@ -121,9 +121,9 @@ const EventsList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Events" value={stats.total} icon={Calendar} color="primary" moduleType="events" statType="total" moduleData={{ total: stats.total, types: stats.eventTypes, departments: stats.departments }} />
-                <SmartStatsCard title="Event Types" value={stats.eventTypes} icon={Tag} color="secondary" moduleType="events" statType="types" moduleData={{ total: stats.total, types: stats.eventTypes, departments: stats.departments }} />
-                <SmartStatsCard title="Departments" value={stats.departments} icon={Building2} color="info" moduleType="events" statType="departments" moduleData={{ total: stats.total, types: stats.eventTypes, departments: stats.departments }} />
+                <SmartStatsCard title="Total Events" value={stats.total} icon={Calendar} color="primary" moduleType="events" statType="total" moduleData={{ ...stats }} />
+                <SmartStatsCard title="Event Types" value={stats.eventTypes} icon={Tag} color="secondary" moduleType="events" statType="types" moduleData={{ ...stats }} />
+                <SmartStatsCard title="Departments" value={stats.departments} icon={Building2} color="info" moduleType="events" statType="departments" moduleData={{ ...stats }} />
             </div>
 
             <div className="card bg-base-100 shadow-xl mb-6">
@@ -177,9 +177,9 @@ const EventsList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Title</th><th>Type</th><th>University / Country</th><th>Date</th><th>Department</th><th>Campus</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Title</th><th>Type</th><th>University / Country</th><th>Date</th><th>Department</th><th>Campus</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {events.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No events found</td></tr> : events.map((event) => (
+                                {events.length === 0 ? <tr><td colSpan={7} className="text-center py-8">No events found</td></tr> : events.map((event) => (
                                     <tr key={event._id}>
                                         <td className="max-w-md" title={event.title}>{event.title}</td>
                                         <td><span className="badge badge-info badge-sm whitespace-nowrap">{event.type ? event.type.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\s*\/\s*/g, ' / ') : '-'}</span></td>
@@ -191,11 +191,6 @@ const EventsList = () => {
                                         <td>{formatDate(event.date)}</td>
                                         <td>{event.department || '-'}</td>
                                         <td>{event.campus || '-'}</td>
-                                        <td>
-                                            {event.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
-                                            {event.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
-                                            {event.status === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
-                                        </td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
                                                 {event.driveLink && (
