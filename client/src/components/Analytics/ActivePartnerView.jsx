@@ -218,6 +218,57 @@ const ActivePartnerView = ({ data }) => {
                     </div>
                 </motion.div>
             </div>
+
+            {/* Expiring Soon List */}
+            {data.expiringPartners && data.expiringPartners.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="card bg-base-100 shadow-sm border border-base-200"
+                >
+                    <div className="card-body">
+                        <h3 className="card-title text-base flex items-center gap-2">
+                            <Clock size={16} className="text-warning" />
+                            <span>Approaching Expiry</span>
+                        </h3>
+
+                        <div className="overflow-x-auto mt-2">
+                            <table className="table table-sm w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Partner Institution</th>
+                                        <th>Country</th>
+                                        <th>Type</th>
+                                        <th>Expires In</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {data.expiringPartners.map((partner, index) => {
+                                        const daysLeft = Math.ceil((new Date(partner.expiringDate) - new Date()) / (1000 * 60 * 60 * 24));
+                                        const isCritical = daysLeft < 90;
+                                        return (
+                                            <tr key={index} className="hover:bg-base-200/50">
+                                                <td className="font-medium">{partner.institutionName}</td>
+                                                <td>{partner.country}</td>
+                                                <td>
+                                                    <span className="badge badge-sm badge-ghost">{partner.agreementType}</span>
+                                                </td>
+                                                <td>
+                                                    <span className={`badge badge-sm ${isCritical ? 'badge-error text-white' : 'badge-warning'}`}>
+                                                        {new Date(partner.expiringDate).toLocaleDateString()}
+                                                        <span className="opacity-70 ml-1">({daysLeft} days)</span>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
         </div>
     );
 };

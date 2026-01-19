@@ -5,6 +5,7 @@ import { useAnalytics } from '../../context/AnalyticsContext';
 import StatsOverview from './StatsOverview';
 import TrendChart from './TrendChart';
 import GeographicView from './GeographicView';
+import ActivePartnerView from './ActivePartnerView';
 
 const AnalyticsModal = () => {
     const { isOpen, closeAnalytics, analyticsData, activeTab, setActiveTab } = useAnalytics();
@@ -97,22 +98,24 @@ const AnalyticsModal = () => {
                             </button>
                         </div>
 
-                        {/* Tabs */}
-                        <div className="tabs tabs-boxed bg-base-200 p-2 mx-4 md:mx-6 mt-4">
-                            {tabs.map((tab) => {
-                                const Icon = tab.icon;
-                                return (
-                                    <button
-                                        key={tab.id}
-                                        className={`tab gap-2 ${activeTab === tab.id ? 'tab-active' : ''}`}
-                                        onClick={() => setActiveTab(tab.id)}
-                                    >
-                                        <Icon size={16} />
-                                        <span className="hidden sm:inline">{tab.label}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
+                        {/* Tabs - Hidden for Active view (Single View Mode) */}
+                        {analyticsData?.statType !== 'active' && (
+                            <div className="tabs tabs-boxed bg-base-200 p-2 mx-4 md:mx-6 mt-4">
+                                {tabs.map((tab) => {
+                                    const Icon = tab.icon;
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            className={`tab gap-2 ${activeTab === tab.id ? 'tab-active' : ''}`}
+                                            onClick={() => setActiveTab(tab.id)}
+                                        >
+                                            <Icon size={16} />
+                                            <span className="hidden sm:inline">{tab.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
 
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto p-4 md:p-6">
@@ -124,12 +127,6 @@ const AnalyticsModal = () => {
                                     exit={{ opacity: 0, x: -20 }}
                                     transition={{ duration: 0.2 }}
                                 >
-                                    import ActivePartnerView from './ActivePartnerView';
-
-                                    // ... (existing imports)
-
-                                    // ...
-
                                     {activeTab === 'overview' && <StatsOverview data={analyticsData} />}
                                     {activeTab === 'trends' && <TrendChart data={analyticsData} />}
                                     {activeTab === 'geographic' && (
