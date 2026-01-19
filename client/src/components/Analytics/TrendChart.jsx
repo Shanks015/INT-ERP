@@ -2,19 +2,23 @@ import { motion } from 'framer-motion';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const TrendChart = ({ data }) => {
+    console.log('TrendChart received data:', data);
+
     // Generate mock trend data (replace with real backend data later)
     const generateTrendData = () => {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const currentMonth = new Date().getMonth();
+        const baseValue = data.total ? Math.floor(data.total / 12) : 10;
 
         return months.slice(0, currentMonth + 1).map((month, index) => ({
             month,
-            current: Math.floor(Math.random() * 50) + (data.total / 12),
-            previous: Math.floor(Math.random() * 40) + (data.total / 14)
+            current: Math.floor(Math.random() * 20) + baseValue + index * 2,
+            previous: Math.floor(Math.random() * 15) + Math.max(1, baseValue - 5) + index
         }));
     };
 
     const trendData = data.trendData || generateTrendData();
+    console.log('Trend data being used:', trendData);
 
     return (
         <div className="space-y-6">
