@@ -40,6 +40,11 @@ const StatsOverview = ({ data }) => {
                     const Icon = stat.icon;
                     const isPositive = (stat.change || stat.value) >= 0;
 
+                    // Hide Active card for events module
+                    if (data.moduleType === 'events' && stat.label === 'Active') {
+                        return null;
+                    }
+
                     return (
                         <motion.div
                             key={stat.label}
