@@ -133,7 +133,6 @@ mongoose
         app.listen(PORT, HOST, () => {
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📡 Local: http://localhost:${PORT}/api`);
-            console.log(`🌐 Network: http://192.168.12.14:${PORT}/api`);
             try {
                 fs.appendFileSync('error.log', `${new Date().toISOString()} - SERVER STARTED\n`);
             } catch (e) {
