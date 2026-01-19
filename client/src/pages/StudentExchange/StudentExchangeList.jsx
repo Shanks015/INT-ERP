@@ -150,8 +150,8 @@ const StudentExchangeList = () => {
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Record Status Badge */}
-                                                {exchange.recordStatus === 'active' && <span className="badge badge-success badge-sm">Active</span>}
-                                                {exchange.recordStatus === 'expired' && <span className="badge badge-error badge-sm">Expired</span>}
+                                                {exchange.recordStatus === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
+                                                {exchange.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
 
                                                 {/* Approval Workflow Badges */}
                                                 {exchange.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
@@ -209,3 +209,4 @@ const StudentExchangeList = () => {
 };
 
 export default StudentExchangeList;
+

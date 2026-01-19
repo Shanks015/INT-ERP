@@ -154,8 +154,8 @@ const ScholarsList = () => {
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Record Status Badge */}
-                                                {scholar.recordStatus === 'active' && <span className="badge badge-success badge-sm">Active</span>}
-                                                {scholar.recordStatus === 'expired' && <span className="badge badge-error badge-sm">Expired</span>}
+                                                {scholar.recordStatus === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
+                                                {scholar.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
 
                                                 {/* Approval Workflow Badges */}
                                                 {scholar.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
@@ -212,3 +212,4 @@ const ScholarsList = () => {
 };
 
 export default ScholarsList;
+

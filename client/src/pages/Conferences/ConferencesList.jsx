@@ -248,3 +248,4 @@ const ConferencesList = () => {
 };
 
 export default ConferencesList;
+
