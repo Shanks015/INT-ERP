@@ -194,7 +194,6 @@ const UniversityInsightsView = ({ data }) => {
                                     <th>Country</th>
                                     <th>Visitor</th>
                                     <th>Type</th>
-                                    <th>Purpose</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
@@ -208,9 +207,6 @@ const UniversityInsightsView = ({ data }) => {
                                             <span className="badge badge-info badge-sm whitespace-nowrap">
                                                 {visit.type || '-'}
                                             </span>
-                                        </td>
-                                        <td className="max-w-xs truncate" title={visit.purpose}>
-                                            {visit.purpose || '-'}
                                         </td>
                                         <td>{new Date(visit.date).toLocaleDateString()}</td>
                                     </tr>
