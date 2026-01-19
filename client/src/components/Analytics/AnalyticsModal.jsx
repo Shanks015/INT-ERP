@@ -98,44 +98,30 @@ const AnalyticsModal = () => {
                             </button>
                         </div>
 
-                        {/* Tabs - Hidden for Active view (Single View Mode) */}
-                        {analyticsData?.statType !== 'active' && (
-                            <div className="tabs tabs-boxed bg-base-200 p-2 mx-4 md:mx-6 mt-4">
-                                {tabs.map((tab) => {
-                                    const Icon = tab.icon;
-                                    return (
-                                        <button
-                                            key={tab.id}
-                                            className={`tab gap-2 ${activeTab === tab.id ? 'tab-active' : ''}`}
-                                            onClick={() => setActiveTab(tab.id)}
-                                        >
-                                            <Icon size={16} />
-                                            <span className="hidden sm:inline">{tab.label}</span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        )}
 
-                        {/* Content */}
+                        {/* Content - Dedicated View per Stat Type (No Tabs) */}
                         <div className="flex-1 overflow-y-auto p-4 md:p-6">
-                            <AnimatePresence mode="wait">
-                                <motion.div
-                                    key={activeTab}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    {activeTab === 'overview' && <StatsOverview data={analyticsData} />}
-                                    {activeTab === 'trends' && <TrendChart data={analyticsData} />}
-                                    {activeTab === 'geographic' && (
-                                        analyticsData.statType === 'active'
-                                            ? <ActivePartnerView data={analyticsData} />
-                                            : <GeographicView data={analyticsData} />
-                                    )}
-                                </motion.div>
-                            </AnimatePresence>
+                            {(() => {
+                                const statType = analyticsData?.statType;
+
+                                // Dedicated view for each stat type
+                                if (statType === 'active') {
+                                    return <ActivePartnerView data={analyticsData} />;
+                                } else if (statType === 'countries' || statType === 'universities') {
+                                    return <GeographicView data={analyticsData} />;
+                                } else if (statType === 'total') {
+                                    // Total shows Overview + Trends
+                                    return (
+                                        <div className="space-y-6">
+                                            <StatsOverview data={analyticsData} />
+                                            <TrendChart data={analyticsData} />
+                                        </div>
+                                    );
+                                } else {
+                                    // Other stats show Overview only
+                                    return <StatsOverview data={analyticsData} />;
+                                }
+                            })()}
                         </div>
                     </motion.div>
                 </>

@@ -4,6 +4,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieCha
 import { AlertCircle, Clock, CheckCircle, FileText, ArrowRight } from 'lucide-react';
 
 const ActivePartnerView = ({ data }) => {
+    console.log('ActivePartnerView received data:', data);
+
     // Colors for different statuses
     const COLORS = {
         upcoming: 'oklch(var(--er))',   // Red for critical
@@ -24,10 +26,12 @@ const ActivePartnerView = ({ data }) => {
     ];
 
     // Data safely extracted
-    const expiryData = data.expiryForecast || { upcoming: 0, mediumTerm: 0, longTerm: 0 };
-    const agreementData = data.agreementTypes || [];
-    const avgDuration = data.avgDurationDays || 0;
-    const totalActive = data.active || 0;
+    const expiryData = data?.expiryForecast || { upcoming: 0, mediumTerm: 0, longTerm: 0 };
+    const agreementData = data?.agreementTypes || [];
+    const avgDuration = data?.avgDurationDays || 0;
+    const totalActive = data?.active || 0;
+
+    console.log('Extracted data:', { expiryData, agreementData, avgDuration, totalActive });
 
     const chartData = [
         { name: '< 3 Months', value: expiryData.upcoming, color: COLORS.upcoming, label: 'Critical' },
@@ -125,7 +129,7 @@ const ActivePartnerView = ({ data }) => {
                             <div className="badge badge-outline text-xs font-normal">Next 6+ Months</div>
                         </h3>
 
-                        <div className="h-[250px] w-full mt-4">
+                        <div className="h-[250px] w-full mt-4" style={{ minHeight: '250px' }}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 30 }}>
                                     <XAxis type="number" hide />
@@ -180,7 +184,7 @@ const ActivePartnerView = ({ data }) => {
                         </h3>
 
                         {agreementData.length > 0 ? (
-                            <div className="h-[250px] w-full mt-4 flex items-center justify-center">
+                            <div className="h-[250px] w-full mt-4 flex items-center justify-center" style={{ minHeight: '250px' }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
@@ -249,7 +253,7 @@ const ActivePartnerView = ({ data }) => {
                                         const isCritical = daysLeft < 90;
                                         return (
                                             <tr key={index} className="hover:bg-base-200/50">
-                                                <td className="font-medium">{partner.institutionName}</td>
+                                                <td className="font-medium">{partner.partnerName || 'Unknown Partner'}</td>
                                                 <td>{partner.country}</td>
                                                 <td>
                                                     <span className="badge badge-sm badge-ghost">{partner.agreementType}</span>
