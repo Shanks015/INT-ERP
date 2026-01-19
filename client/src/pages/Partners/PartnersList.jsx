@@ -107,7 +107,7 @@ const PartnersList = () => {
 
     const handleDelete = async (reason) => {
         try {
-            await api.delete(`/ partners / ${ deleteModal.partner._id } `, {
+            await api.delete(`/ partners / ${deleteModal.partner._id} `, {
                 data: { reason }
             });
 
@@ -343,17 +343,16 @@ const PartnersList = () => {
                                     <th>Contact Person</th>
                                     <th>Email</th>
                                     <th>MoU Status</th>
-                                    <th>Active Status</th>
                                     <th>Signing Date</th>
                                     <th>Expiry Date</th>
-                                    <th>Record Status</th>
+                                    <th>Active Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {partners.length === 0 ? (
                                     <tr>
-                                        <td colSpan={11} className="text-center py-8">
+                                        <td colSpan={10} className="text-center py-8">
                                             No partners found. Add your first partner!
                                         </td>
                                     </tr>
@@ -368,11 +367,11 @@ const PartnersList = () => {
                                                 {partner.email ? (
                                                     <a
                                                         href={`https://mail.google.com/mail/?view=cm&fs=1&to=${partner.email}`}
-target = "_blank"
-rel = "noopener noreferrer"
-className = "link link-primary"
-    >
-    { partner.email }
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="link link-primary"
+                                                    >
+                                                        {partner.email}
                                                     </a >
                                                 ) : '-'}
                                             </td >
@@ -383,14 +382,6 @@ className = "link link-primary"
                                                             'badge-info'
                                                         }`}>
                                                         {partner.mouStatus === 'InProgress' ? 'In Progress' : partner.mouStatus}
-                                                    </span>
-                                                ) : '-'}
-                                            </td>
-                                            <td>
-                                                {partner.activeStatus ? (
-                                                    <span className={`badge badge-sm ${partner.activeStatus === 'Active' ? 'badge-success' : 'badge-neutral'
-                                                        }`}>
-                                                        {partner.activeStatus}
                                                     </span>
                                                 ) : '-'}
                                             </td>
@@ -448,22 +439,22 @@ className = "link link-primary"
                         </table >
                     </div >
 
-    {/* Pagination */ }
-{
-    totalItems > 0 && (
-        <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            itemsPerPage={itemsPerPage}
-            onPageChange={setCurrentPage}
-            onItemsPerPageChange={(newLimit) => {
-                setItemsPerPage(newLimit);
-                setCurrentPage(1);
-            }}
-        />
-    )
-}
+                    {/* Pagination */}
+                    {
+                        totalItems > 0 && (
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalItems={totalItems}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
+                                onItemsPerPageChange={(newLimit) => {
+                                    setItemsPerPage(newLimit);
+                                    setCurrentPage(1);
+                                }}
+                            />
+                        )
+                    }
                 </div >
             </div >
 
