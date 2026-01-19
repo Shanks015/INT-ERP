@@ -134,6 +134,8 @@ const GeographicView = ({ data }) => {
                             />
                             <YAxis
                                 tick={{ fontSize: 12, fill: 'oklch(var(--bc))' }}
+                                domain={[0, 'auto']}
+                                allowDecimals={false}
                             />
                             <Tooltip
                                 contentStyle={{
@@ -150,6 +152,7 @@ const GeographicView = ({ data }) => {
                                 dataKey="value"
                                 radius={[8, 8, 0, 0]}
                                 cursor="pointer"
+                                label={{ position: 'top', fill: 'oklch(var(--bc))', fontSize: 12 }}
                             >
                                 {topCountries.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
