@@ -1,9 +1,8 @@
 import { motion } from 'framer-motion';
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { Building2, Globe, Users, TrendingUp, Calendar } from 'lucide-react';
 
 const UniversityInsightsView = ({ data }) => {
-    // Colors
     const COLORS = {
         primary: 'oklch(var(--p))',
         secondary: 'oklch(var(--s))',
@@ -87,7 +86,7 @@ const UniversityInsightsView = ({ data }) => {
 
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Top Universities Bar Chart */}
+                {/* Top Universities - Custom Progress Bars */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -99,23 +98,37 @@ const UniversityInsightsView = ({ data }) => {
                             <Building2 size={20} />
                             Top 10 Universities by Visits
                         </h3>
-                        <div style={{ minHeight: '300px' }}>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={universityDist} layout="vertical">
-                                    <CartesianGrid stroke="oklch(var(--bc) / 0.1)" strokeDasharray="3 3" />
-                                    <XAxis type="number" stroke="oklch(var(--bc) / 0.5)" />
-                                    <YAxis dataKey="name" type="category" width={150} stroke="oklch(var(--bc) / 0.5)" />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: 'oklch(var(--b1))',
-                                            border: '1px solid oklch(var(--bc) / 0.2)',
-                                            borderRadius: '0.5rem'
-                                        }}
-                                    />
-                                    <Bar dataKey="value" fill={COLORS.primary} radius={[0, 4, 4, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
+                        {universityDist.length > 0 ? (
+                            <div className="space-y-3 mt-4">
+                                {universityDist.map((uni, index) => {
+                                    const maxValue = Math.max(...universityDist.map(u => u.value));
+                                    const percentage = (uni.value / maxValue) * 100;
+
+                                    return (
+                                        <div key={index}>
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-sm font-medium truncate max-w-[70%]" title={uni.name}>
+                                                    {uni.name}
+                                                </span>
+                                                <span className="text-sm font-bold text-primary">{uni.value}</span>
+                                            </div>
+                                            <div className="h-6 bg-base-300 rounded-full overflow-hidden">
+                                                <motion.div
+                                                    className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full"
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${percentage}%` }}
+                                                    transition={{ delay: 0.3 + index * 0.05, duration: 0.5 }}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-base-content/50">
+                                No university data available
+                            </div>
+                        )}
                     </div>
                 </motion.div>
 
@@ -170,14 +183,20 @@ const UniversityInsightsView = ({ data }) => {
             >
                 <div className="card-body">
                     <h3 className="card-title text-lg">Visit Purposes</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                        {purposeDist.map((purpose, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-base-100 rounded-lg">
-                                <span className="text-sm font-medium">{purpose.name}</span>
-                                <span className="badge badge-primary">{purpose.value}</span>
-                            </div>
-                        ))}
-                    </div>
+                    {purposeDist.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                            {purposeDist.map((purpose, index) => (
+                                <div key={index} className="flex items-center justify-between p-3 bg-base-100 rounded-lg">
+                                    <span className="text-sm font-medium">{purpose.name}</span>
+                                    <span className="badge badge-primary">{purpose.value}</span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8 text-base-content/50">
+                            No purpose data available
+                        </div>
+                    )}
                 </div>
             </motion.div>
 
