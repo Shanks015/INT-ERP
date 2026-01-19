@@ -18,8 +18,33 @@ export const AnalyticsProvider = ({ children }) => {
     const openAnalytics = (data) => {
         console.log('AnalyticsContext: openAnalytics called with:', data);
         setAnalyticsData(data);
+
+        // Set smart default tab based on statType
+        const defaultTab = getDefaultTab(data.statType);
+        setActiveTab(defaultTab);
+
         setIsOpen(true);
         console.log('AnalyticsContext: Modal should be open now');
+    };
+
+    const getDefaultTab = (statType) => {
+        // Smart defaults based on what was clicked
+        switch (statType) {
+            case 'countries':
+            case 'universities':
+            case 'departments':
+                return 'geographic'; // Geographic data → Geographic tab
+            case 'total':
+            case 'active':
+            case 'responses':
+            case 'non-responses':
+                return 'overview'; // Counts → Overview tab
+            case 'types':
+            case 'channels':
+                return 'trends'; // Categories → Trends tab
+            default:
+                return 'overview';
+        }
     };
 
     const closeAnalytics = () => {
