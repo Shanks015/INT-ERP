@@ -124,9 +124,19 @@ const AnalyticsModal = () => {
                                     exit={{ opacity: 0, x: -20 }}
                                     transition={{ duration: 0.2 }}
                                 >
+                                    import ActivePartnerView from './ActivePartnerView';
+
+                                    // ... (existing imports)
+
+                                    // ...
+
                                     {activeTab === 'overview' && <StatsOverview data={analyticsData} />}
                                     {activeTab === 'trends' && <TrendChart data={analyticsData} />}
-                                    {activeTab === 'geographic' && <GeographicView data={analyticsData} />}
+                                    {activeTab === 'geographic' && (
+                                        analyticsData.statType === 'active'
+                                            ? <ActivePartnerView data={analyticsData} />
+                                            : <GeographicView data={analyticsData} />
+                                    )}
                                 </motion.div>
                             </AnimatePresence>
                         </div>
