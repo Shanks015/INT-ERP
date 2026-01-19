@@ -88,34 +88,34 @@ const WorldMap = ({ data }) => {
                     </div>
                 )}
 
-                {/* Zoom Controls */}
-                <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
-                    <button
-                        onClick={handleZoomIn}
-                        className="btn btn-sm btn-circle btn-primary"
-                        title="Zoom In"
-                        disabled={position.zoom >= 4}
-                    >
-                        <ZoomIn size={16} />
-                    </button>
-                    <button
-                        onClick={handleZoomOut}
-                        className="btn btn-sm btn-circle btn-primary"
-                        title="Zoom Out"
-                        disabled={position.zoom <= 1}
-                    >
-                        <ZoomOut size={16} />
-                    </button>
-                    <button
-                        onClick={handleReset}
-                        className="btn btn-sm btn-circle btn-ghost"
-                        title="Reset View"
-                    >
-                        <Maximize2 size={16} />
-                    </button>
-                </div>
+                <div className="w-full h-[600px] border border-base-300 rounded-lg overflow-hidden bg-base-100 relative">
+                    {/* Zoom Controls - Inside Map */}
+                    <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
+                        <button
+                            onClick={handleZoomIn}
+                            className="btn btn-sm btn-circle btn-primary"
+                            title="Zoom In"
+                            disabled={position.zoom >= 4}
+                        >
+                            <ZoomIn size={16} />
+                        </button>
+                        <button
+                            onClick={handleZoomOut}
+                            className="btn btn-sm btn-circle btn-primary"
+                            title="Zoom Out"
+                            disabled={position.zoom <= 1}
+                        >
+                            <ZoomOut size={16} />
+                        </button>
+                        <button
+                            onClick={handleReset}
+                            className="btn btn-sm btn-circle btn-ghost"
+                            title="Reset View"
+                        >
+                            <Maximize2 size={16} />
+                        </button>
+                    </div>
 
-                <div className="w-full h-[600px] border border-base-300 rounded-lg overflow-hidden bg-base-100">
                     <ComposableMap
                         projectionConfig={{
                             scale: 200
