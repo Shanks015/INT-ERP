@@ -111,7 +111,11 @@ const AnalyticsModal = () => {
                                 } else if (statType === 'universities' && moduleType === 'campus-visits') {
                                     // Campus Visits Universities gets dedicated dashboard
                                     return <UniversityInsightsView data={analyticsData} />;
-                                } else if (statType === 'countries' || statType === 'universities') {
+                                } else if (statType === 'countries') {
+                                    // Countries shows geographic view with world map
+                                    return <GeographicView data={analyticsData} />;
+                                } else if (statType === 'universities') {
+                                    // Other modules' universities show geographic view
                                     return <GeographicView data={analyticsData} />;
                                 } else if (statType === 'total') {
                                     // Total shows Overview + Trends
