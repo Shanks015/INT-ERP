@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, GraduationCap, TrendingUp, Clock, Eye, Globe, CheckCircle } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
@@ -101,9 +101,9 @@ const MastersAbroadList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard title="Total Programs" value={stats.total} icon={GraduationCap} color="primary" />
-                <StatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" />
-                <StatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" />
+                <SmartStatsCard title="Total Programs" value={stats.total} icon={GraduationCap} color="primary" moduleType="masters-abroad" statType="total" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="masters-abroad" statType="countries" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="masters-abroad" statType="active" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
             </div>
             <FilterBar
                 filters={filters}

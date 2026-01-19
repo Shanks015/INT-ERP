@@ -10,7 +10,7 @@ import { Plus, Edit, Trash2, Download, Upload, Radio, TrendingUp, Clock, Eye, Ha
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import Pagination from '../../components/Pagination';
 
 const DigitalMediaList = () => {
@@ -106,8 +106,8 @@ const DigitalMediaList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <StatsCard title="Total Media" value={stats.total} icon={Radio} color="primary" />
-                <StatsCard title="Channels" value={stats.channels} icon={Hash} color="secondary" />
+                <SmartStatsCard title="Total Posts" value={stats.total} icon={Radio} color="primary" moduleType="digital-media" statType="total" moduleData={{ total: stats.total, channels: stats.channels }} />
+                <SmartStatsCard title="Channels" value={stats.channels} icon={Hash} color="secondary" moduleType="digital-media" statType="channels" moduleData={{ total: stats.total, channels: stats.channels }} />
             </div>
 
             <div className="card bg-base-100 shadow-xl mb-6">

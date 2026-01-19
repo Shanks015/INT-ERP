@@ -10,7 +10,7 @@ import { Plus, Edit, Trash2, Download, Upload, GraduationCap, TrendingUp, Clock,
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
@@ -118,9 +118,9 @@ const ScholarsList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard title="Total Scholars" value={stats.total} icon={GraduationCap} color="primary" />
-                <StatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" />
-                <StatsCard title="Departments" value={stats.departments} icon={Building2} color="info" />
+                <SmartStatsCard title="Total Scholars" value={stats.total} icon={GraduationCap} color="primary" moduleType="scholars" statType="total" moduleData={{ total: stats.total, countries: stats.countries, departments: stats.departments }} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="scholars" statType="countries" moduleData={{ total: stats.total, countries: stats.countries, departments: stats.departments }} />
+                <SmartStatsCard title="Departments" value={stats.departments} icon={Building2} color="info" moduleType="scholars" statType="departments" moduleData={{ total: stats.total, countries: stats.countries, departments: stats.departments }} />
             </div>
             <FilterBar
                 filters={filters}
