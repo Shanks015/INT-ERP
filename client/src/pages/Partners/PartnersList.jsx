@@ -388,74 +388,76 @@ const PartnersList = () => {
                                             <td>{partner.signingDate ? formatDate(partner.signingDate) : '-'}</td>
                                             <td>{partner.expiringDate ? formatDate(partner.expiringDate) : '-'}</td>
                                             <td>
-                                                <div className="flex flex-col gap-1">
-                                                    {/* Record Status Badge */}
-                                                    {partner.recordStatus === 'active' && <span className="badge badge-success badge-sm">Active</span>}
-                                                    {partner.recordStatus === 'expired' && <span className="badge badge-error badge-sm">Expired</span>}
+                                                {partner.activeStatus ? (
+                                                    <span className={`badge badge-sm ${partner.activeStatus === 'Active' ? 'badge-success' : 'badge-neutral'}`}>
+                                                        {partner.activeStatus}
+                                                    </span>
+                                                ) : '-'}
+                                            </td>
 
-                                                    {/* Approval Workflow Badges */}
-                                                    {partner.status === 'pending_edit' && (
-                                                        <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap">
-                                                            <Clock size={12} />
-                                                            Edit Pending
-                                                        </span>
-                                                    )}
-                                                    {partner.status === 'pending_delete' && (
-                                                        <span className="badge badge-error badge-sm gap-1 whitespace-nowrap">
-                                                            <Clock size={12} />
-                                                            Delete Pending
-                                                        </span>
-                                                    )}
-                                                </div>
+                                            {/* Approval Workflow Badges */}
+                                            {partner.status === 'pending_edit' && (
+                                                <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap">
+                                                    <Clock size={12} />
+                                                    Edit Pending
+                                                </span>
+                                            )}
+                                            {partner.status === 'pending_delete' && (
+                                                <span className="badge badge-error badge-sm gap-1 whitespace-nowrap">
+                                                    <Clock size={12} />
+                                                    Delete Pending
+                                                </span>
+                                            )}
+                                        </div>
                                             </td>
-                                            <td>
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => setDetailModal({ isOpen: true, partner })}
-                                                        className="btn btn-info btn-sm"
-                                                        title="View Details"
-                                                    >
-                                                        <Eye size={16} />
-                                                    </button>
-                                                    <Link
-                                                        to={`/partners/edit/${partner._id}`}
-                                                        className={`btn btn-warning btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
-                                                    >
-                                                        <Edit size={16} />
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => setDeleteModal({ isOpen: true, partner })}
-                                                        className={`btn btn-error btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
-                                                        disabled={partner.status !== 'active'}
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr >
-                                    ))
+                            <td>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setDetailModal({ isOpen: true, partner })}
+                                        className="btn btn-info btn-sm"
+                                        title="View Details"
+                                    >
+                                        <Eye size={16} />
+                                    </button>
+                                    <Link
+                                        to={`/partners/edit/${partner._id}`}
+                                        className={`btn btn-warning btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
+                                    >
+                                        <Edit size={16} />
+                                    </Link>
+                                    <button
+                                        onClick={() => setDeleteModal({ isOpen: true, partner })}
+                                        className={`btn btn-error btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
+                                        disabled={partner.status !== 'active'}
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </td>
+                        </tr >
+                        ))
                                 )}
-                            </tbody >
-                        </table >
-                    </div >
+                    </tbody >
+                </table >
+            </div >
 
-                    {/* Pagination */}
-                    {
-                        totalItems > 0 && (
-                            <Pagination
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                totalItems={totalItems}
-                                itemsPerPage={itemsPerPage}
-                                onPageChange={setCurrentPage}
-                                onItemsPerPageChange={(newLimit) => {
-                                    setItemsPerPage(newLimit);
-                                    setCurrentPage(1);
-                                }}
-                            />
-                        )
-                    }
-                </div >
+            {/* Pagination */}
+            {
+                totalItems > 0 && (
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={totalItems}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={setCurrentPage}
+                        onItemsPerPageChange={(newLimit) => {
+                            setItemsPerPage(newLimit);
+                            setCurrentPage(1);
+                        }}
+                    />
+                )
+            }
+        </div >
             </div >
 
             <DeleteConfirmModal
