@@ -1,9 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEffect, useState } from 'react';
-import { X, TrendingUp, Globe, BarChart3, Download, FileText, File, Table } from 'lucide-react';
+import { useEffect } from 'react';
+import { X, TrendingUp, Globe, BarChart3 } from 'lucide-react';
 import { useAnalytics } from '../../context/AnalyticsContext';
-import { exportToPDF, exportToExcel, exportToCSV } from '../../utils/exportUtils';
-import toast from 'react-hot-toast';
 import StatsOverview from './StatsOverview';
 import TrendChart from './TrendChart';
 import GeographicView from './GeographicView';
@@ -40,31 +38,6 @@ const AnalyticsModal = () => {
             closeAnalytics();
         } else {
             console.log('Click on modal content, not closing');
-        }
-    };
-
-    const handleExport = async (format) => {
-        try {
-            toast.loading(`Exporting to ${format.toUpperCase()}...`, { id: 'export' });
-
-            switch (format) {
-                case 'pdf':
-                    await exportToPDF(analyticsData);
-                    break;
-                case 'excel':
-                    exportToExcel(analyticsData);
-                    break;
-                case 'csv':
-                    exportToCSV(analyticsData);
-                    break;
-                default:
-                    throw new Error('Unknown format');
-            }
-
-            toast.success(`Exported successfully!`, { id: 'export' });
-        } catch (error) {
-            console.error('Export error:', error);
-            toast.error(`Export failed: ${error.message}`, { id: 'export' });
         }
     };
 
@@ -115,43 +88,13 @@ const AnalyticsModal = () => {
                                                 'Detailed insights and trends'}
                                 </p>
                             </div>
-                            <div className="flex items-center gap-2">
-                                {/* Export Dropdown */}
-                                <div className="dropdown dropdown-end">
-                                    <label tabIndex={0} className="btn btn-ghost btn-sm gap-2">
-                                        <Download size={18} />
-                                        <span className="hidden sm:inline">Export</span>
-                                    </label>
-                                    <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300">
-                                        <li>
-                                            <button onClick={() => handleExport('pdf')} className="gap-2">
-                                                <FileText size={16} />
-                                                Export as PDF
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <button onClick={() => handleExport('excel')} className="gap-2">
-                                                <File size={16} />
-                                                Export as Excel
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <button onClick={() => handleExport('csv')} className="gap-2">
-                                                <Table size={16} />
-                                                Export as CSV
-                                            </button>
-                                        </li>
-                                    </ul>
-                                </div>
-
-                                <button
-                                    onClick={closeAnalytics}
-                                    className="btn btn-ghost btn-sm btn-circle"
-                                    aria-label="Close analytics"
-                                >
-                                    <X size={20} />
-                                </button>
-                            </div>
+                            <button
+                                onClick={closeAnalytics}
+                                className="btn btn-ghost btn-sm btn-circle"
+                                aria-label="Close analytics"
+                            >
+                                <X size={20} />
+                            </button>
                         </div>
 
                         {/* Tabs */}
