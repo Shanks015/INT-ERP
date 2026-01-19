@@ -9,7 +9,7 @@ import { Plus, Edit, Trash2, Download, Upload, Mail, TrendingUp, Clock, Eye, Mes
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
@@ -163,9 +163,9 @@ const OutreachList = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard title="Total Outreach" value={stats.total} icon={Mail} color="primary" />
-                <StatsCard title="Responses" value={stats.responses} icon={MessageSquare} color="success" />
-                <StatsCard title="No Response" value={stats.nonResponses} icon={XCircle} color="warning" />
+                <SmartStatsCard title="Total Outreach" value={stats.total} icon={Mail} color="primary" moduleType="outreach" statType="total" moduleData={{ total: stats.total, responses: stats.responses, nonResponses: stats.nonResponses }} />
+                <SmartStatsCard title="Responses" value={stats.responses} icon={CheckCircle} color="success" moduleType="outreach" statType="responses" moduleData={{ total: stats.total, responses: stats.responses, nonResponses: stats.nonResponses }} />
+                <SmartStatsCard title="No Response" value={stats.nonResponses} icon={XCircle} color="error" moduleType="outreach" statType="non-responses" moduleData={{ total: stats.total, responses: stats.responses, nonResponses: stats.nonResponses }} />
             </div>
 
             {/* Filters */}

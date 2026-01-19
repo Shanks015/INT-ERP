@@ -9,7 +9,7 @@ import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Search,
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
-import StatsCard from '../../components/StatsCard';
+import SmartStatsCard from '../../components/SmartStatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
@@ -168,18 +168,6 @@ const CampusVisitsList = () => {
 
             {/* Stats Cards with Trends */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatsCard
-                    title="Total Visits"
-                    value={stats.total}
-                    icon={Users}
-                    color="primary"
-                    trend={stats.trend}
-                />
-                <StatsCard
-                    title="Countries"
-                    value={stats.countries}
-                    icon={Globe}
-                    color="secondary"
                 />
                 <StatsCard
                     title="Universities"
