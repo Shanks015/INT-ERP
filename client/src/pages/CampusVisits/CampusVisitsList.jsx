@@ -176,7 +176,7 @@ const CampusVisitsList = () => {
                     trend={stats.trend}
                     moduleType="campus-visits"
                     statType="total"
-                    moduleData={{ total: stats.total, countries: stats.countries, universities: stats.universities }}
+                    moduleData={{ ...stats }}
                 />
                 <SmartStatsCard
                     title="Countries"
@@ -185,7 +185,7 @@ const CampusVisitsList = () => {
                     color="secondary"
                     moduleType="campus-visits"
                     statType="countries"
-                    moduleData={{ total: stats.total, countries: stats.countries, universities: stats.universities }}
+                    moduleData={{ ...stats }}
                 />
                 <SmartStatsCard
                     title="Universities"
@@ -194,10 +194,7 @@ const CampusVisitsList = () => {
                     color="info"
                     moduleType="campus-visits"
                     statType="universities"
-                    moduleData={{
-                        ...stats, // Spread all stats including distributions
-                        trend: { change: 2, percentage: 4.5, direction: 'up' }
-                    }}
+                    moduleData={{ ...stats }}
                 />
             </div>
 
