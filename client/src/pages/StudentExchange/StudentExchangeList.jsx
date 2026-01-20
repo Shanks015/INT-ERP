@@ -114,9 +114,9 @@ const StudentExchangeList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Exchanges" value={stats.total} icon={Users} color="primary" moduleType="student-exchange" statType="total" moduleData={{ total: stats.total, universities: stats.universities, active: stats.active }} />
-                <SmartStatsCard title="Universities" value={stats.universities} icon={Building2} color="secondary" moduleType="student-exchange" statType="universities" moduleData={{ total: stats.total, universities: stats.universities, active: stats.active }} />
-                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="student-exchange" statType="active" moduleData={{ total: stats.total, universities: stats.universities, active: stats.active }} />
+                <SmartStatsCard title="Total Exchanges" value={stats.total} icon={UserCheck} color="primary" moduleType="student-exchange" statType="total" moduleData={stats} />
+                <SmartStatsCard title="Universities" value={stats.universities} icon={Building2} color="secondary" moduleType="student-exchange" statType="universities" moduleData={stats} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="student-exchange" statType="active" moduleData={stats} />
             </div>
             <FilterBar
                 filters={filters}

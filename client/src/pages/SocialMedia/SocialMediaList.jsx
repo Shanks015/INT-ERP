@@ -99,7 +99,10 @@ const SocialMediaList = () => {
                 <div className="card-body">
                     <div className="flex flex-col lg:flex-row gap-4">
                         <div className="form-control flex-1">
-                            <div className="input-group"><span><Search size={18} /></span><input type="text" placeholder="Search posts..." className="input input-bordered w-full" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} /></div>
+                            <div className="relative">
+                                <input type="text" placeholder="Search posts..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                                <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/50" size={20} />
+                            </div>
                         </div>
                         {filters.search && <button onClick={handleClearFilters} className="btn btn-ghost">Clear Filters</button>}
                     </div>

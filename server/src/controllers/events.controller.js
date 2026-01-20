@@ -189,3 +189,41 @@ export const exportCSV = async (req, res) => {
         });
     }
 };
+// Get count of pending actions (admin only)
+export const getPendingCount = async (req, res) => {
+    try {
+        const count = await Event.countDocuments({
+            status: { $in: ['pending_create', 'pending_edit', 'pending_delete'] }
+        });
+        res.json({ success: true, count });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching pending count',
+            error: error.message
+        });
+    }
+};
+
+// Get all pending records (admin only)
+export const getAllPending = async (req, res) => {
+    try {
+        const pendingEvents = await Event.find({
+            status: { $in: ['pending_create', 'pending_edit', 'pending_delete'] }
+        })
+            .populate('createdBy', 'name email')
+            .populate('updatedBy', 'name email')
+            .sort({ updatedAt: -1 });
+
+        res.json({
+            success: true,
+            data: pendingEvents
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching pending events',
+            error: error.message
+        });
+    }
+};

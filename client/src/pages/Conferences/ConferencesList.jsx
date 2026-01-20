@@ -128,9 +128,9 @@ const ConferencesList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Conferences" value={stats.total} icon={Users} color="primary" moduleType="conferences" statType="total" moduleData={{ total: stats.total, countries: stats.countries, departments: stats.departments }} />
-                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="conferences" statType="countries" moduleData={{ total: stats.total, countries: stats.countries, departments: stats.departments }} />
-                <SmartStatsCard title="Departments" value={stats.departments} icon={Building2} color="info" moduleType="conferences" statType="departments" moduleData={{ total: stats.total, countries: stats.countries, departments: stats.departments }} />
+                <SmartStatsCard title="Total Conferences" value={stats.total} icon={Users} color="primary" moduleType="conferences" statType="total" moduleData={stats} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="conferences" statType="countries" moduleData={stats} />
+                <SmartStatsCard title="Departments" value={stats.departments} icon={Building2} color="info" moduleType="conferences" statType="departments" moduleData={stats} />
             </div>
 
             {/* Custom Filters */}

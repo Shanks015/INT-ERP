@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
-import { AlertCircle, Clock, CheckCircle, FileText, ArrowRight } from 'lucide-react';
+import { AlertCircle, Clock, CheckCircle, FileText, ArrowRight, Building2 } from 'lucide-react';
 
 const ActivePartnerView = ({ data }) => {
     // Colors for different statuses
@@ -26,6 +26,8 @@ const ActivePartnerView = ({ data }) => {
     // Data safely extracted
     const expiryData = data?.expiryForecast || { upcoming: 0, mediumTerm: 0, longTerm: 0 };
     const agreementData = data?.agreementTypes || [];
+    const departmentData = data?.departmentDistribution || [];
+    const topUniversitiesData = data?.topUniversities || [];
     const avgDuration = data?.avgDurationDays || 0;
     const totalActive = data?.active || 0;
 
@@ -45,48 +47,53 @@ const ActivePartnerView = ({ data }) => {
     return (
         <div className="space-y-6">
             {/* Top Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Expiry Alert Card */}
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="card bg-base-100 shadow-sm border border-base-200"
-                >
-                    <div className="card-body p-5">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 rounded-lg bg-error/10 text-error">
-                                <AlertCircle size={20} />
-                            </div>
-                            <h3 className="font-semibold text-base-content/70">Expiring Soon</h3>
-                        </div>
-                        <div className="text-3xl font-bold text-base-content">
-                            {expiryData.upcoming}
-                        </div>
-                        <p className="text-xs text-base-content/50">Partnerships ending in &lt; 90 days</p>
-                    </div>
-                </motion.div>
+            <div className={`grid grid-cols-1 ${expiryData.upcoming + expiryData.mediumTerm + expiryData.longTerm > 0 ? 'md:grid-cols-3' : 'md:grid-cols-1'} gap-4`}>
 
-                {/* Avg Duration Card */}
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="card bg-base-100 shadow-sm border border-base-200"
-                >
-                    <div className="card-body p-5">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 rounded-lg bg-secondary/10 text-secondary">
-                                <Clock size={20} />
+                {/* Expiry Alert Card - Only show if data exists */}
+                {(expiryData.upcoming + expiryData.mediumTerm + expiryData.longTerm > 0) && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="card bg-base-100 shadow-sm border border-base-200"
+                    >
+                        <div className="card-body p-5">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 rounded-lg bg-error/10 text-error">
+                                    <AlertCircle size={20} />
+                                </div>
+                                <h3 className="font-semibold text-base-content/70">Expiring Soon</h3>
                             </div>
-                            <h3 className="font-semibold text-base-content/70">Avg. Duration</h3>
+                            <div className="text-3xl font-bold text-base-content">
+                                {expiryData.upcoming}
+                            </div>
+                            <p className="text-xs text-base-content/50">Partnerships ending in &lt; 90 days</p>
                         </div>
-                        <div className="text-3xl font-bold text-base-content">
-                            {durationDisplay}
+                    </motion.div>
+                )}
+
+                {/* Avg Duration Card - Only show if > 0 */}
+                {avgDuration > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="card bg-base-100 shadow-sm border border-base-200"
+                    >
+                        <div className="card-body p-5">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 rounded-lg bg-secondary/10 text-secondary">
+                                    <Clock size={20} />
+                                </div>
+                                <h3 className="font-semibold text-base-content/70">Avg. Duration</h3>
+                            </div>
+                            <div className="text-3xl font-bold text-base-content">
+                                {durationDisplay}
+                            </div>
+                            <p className="text-xs text-base-content/50">Average active partnership length</p>
                         </div>
-                        <p className="text-xs text-base-content/50">Average active partnership length</p>
-                    </div>
-                </motion.div>
+                    </motion.div>
+                )}
 
                 {/* Total Active Card */}
                 <motion.div
@@ -111,61 +118,63 @@ const ActivePartnerView = ({ data }) => {
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className={`grid grid-cols-1 ${expiryData.upcoming + expiryData.mediumTerm + expiryData.longTerm > 0 ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-6`}>
 
-                {/* Expiry Forecast Chart */}
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="card bg-base-100 shadow-sm border border-base-200"
-                >
-                    <div className="card-body">
-                        <h3 className="card-title text-base flex justify-between items-center">
-                            <span>Expiry Forecast</span>
-                            <div className="badge badge-outline text-xs font-normal">Next 6+ Months</div>
-                        </h3>
+                {/* Expiry Forecast Chart - Only show if data exists */}
+                {(expiryData.upcoming + expiryData.mediumTerm + expiryData.longTerm > 0) && (
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="card bg-base-100 shadow-sm border border-base-200"
+                    >
+                        <div className="card-body">
+                            <h3 className="card-title text-base flex justify-between items-center">
+                                <span>Expiry Forecast</span>
+                                <div className="badge badge-outline text-xs font-normal">Next 6+ Months</div>
+                            </h3>
 
-                        <div className="h-[250px] w-full mt-4" style={{ minHeight: '250px' }}>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 30 }}>
-                                    <XAxis type="number" hide />
-                                    <YAxis
-                                        dataKey="name"
-                                        type="category"
-                                        width={80}
-                                        tick={{ fill: 'oklch(var(--bc))', fontSize: 12 }}
-                                        axisLine={false}
-                                        tickLine={false}
-                                    />
-                                    <Tooltip
-                                        cursor={{ fill: 'transparent' }}
-                                        contentStyle={{
-                                            backgroundColor: 'oklch(var(--b1))',
-                                            border: '1px solid oklch(var(--bc) / 0.1)',
-                                            borderRadius: '0.5rem'
-                                        }}
-                                    />
-                                    <Bar
-                                        dataKey="value"
-                                        radius={[0, 4, 4, 0]}
-                                        barSize={32}
-                                        label={{ position: 'right', fill: 'oklch(var(--bc))', fontSize: 12 }}
-                                    >
-                                        {chartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="h-[250px] w-full mt-4" style={{ minHeight: '250px' }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 30 }}>
+                                        <XAxis type="number" hide />
+                                        <YAxis
+                                            dataKey="name"
+                                            type="category"
+                                            width={80}
+                                            tick={{ fill: 'oklch(var(--bc))', fontSize: 12 }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                        />
+                                        <Tooltip
+                                            cursor={{ fill: 'transparent' }}
+                                            contentStyle={{
+                                                backgroundColor: 'oklch(var(--b1))',
+                                                border: '1px solid oklch(var(--bc) / 0.1)',
+                                                borderRadius: '0.5rem'
+                                            }}
+                                        />
+                                        <Bar
+                                            dataKey="value"
+                                            radius={[0, 4, 4, 0]}
+                                            barSize={32}
+                                            label={{ position: 'right', fill: 'oklch(var(--bc))', fontSize: 12 }}
+                                        >
+                                            {chartData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2 mt-2 text-center text-xs text-base-content/60">
+                                <div>Create renewal plan<br />for upcoming</div>
+                                <div>Review terms for<br />medium term</div>
+                                <div>Stable pipeline<br />long term</div>
+                            </div>
                         </div>
-
-                        <div className="grid grid-cols-3 gap-2 mt-2 text-center text-xs text-base-content/60">
-                            <div>Create renewal plan<br />for upcoming</div>
-                            <div>Review terms for<br />medium term</div>
-                            <div>Stable pipeline<br />long term</div>
-                        </div>
-                    </div>
-                </motion.div>
+                    </motion.div>
+                )}
 
                 {/* Agreement Types Donut */}
                 <motion.div
@@ -219,56 +228,164 @@ const ActivePartnerView = ({ data }) => {
                 </motion.div>
             </div>
 
-            {/* Expiring Soon List */}
-            {data.expiringPartners && data.expiringPartners.length > 0 && (
+            {/* Departments Distribution (New Insight) */}
+            {departmentData.length > 0 && (
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 }}
                     className="card bg-base-100 shadow-sm border border-base-200"
                 >
                     <div className="card-body">
-                        <h3 className="card-title text-base flex items-center gap-2">
-                            <Clock size={16} className="text-warning" />
-                            <span>Approaching Expiry</span>
+                        <h3 className="card-title text-base flex justify-between items-center">
+                            <span>Top Departments</span>
+                            <Building2 size={16} className="text-base-content/40" />
                         </h3>
 
-                        <div className="overflow-x-auto mt-2">
-                            <table className="table table-sm w-full">
-                                <thead>
-                                    <tr>
-                                        <th>Partner Institution</th>
-                                        <th>Country</th>
-                                        <th>Type</th>
-                                        <th>Expires In</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.expiringPartners.map((partner, index) => {
-                                        const daysLeft = Math.ceil((new Date(partner.expiringDate) - new Date()) / (1000 * 60 * 60 * 24));
-                                        const isCritical = daysLeft < 90;
-                                        return (
-                                            <tr key={index} className="hover:bg-base-200/50">
-                                                <td className="font-medium">{partner.partnerName || 'Unknown Partner'}</td>
-                                                <td>{partner.country}</td>
-                                                <td>
-                                                    <span className="badge badge-sm badge-ghost">{partner.agreementType}</span>
-                                                </td>
-                                                <td>
-                                                    <span className={`badge badge-sm ${isCritical ? 'badge-error text-white' : 'badge-warning'}`}>
-                                                        {new Date(partner.expiringDate).toLocaleDateString()}
-                                                        <span className="opacity-70 ml-1">({daysLeft} days)</span>
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                        <div className="h-[250px] w-full mt-4" style={{ minHeight: '250px' }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={departmentData}
+                                    layout="vertical"
+                                    margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                                >
+                                    <XAxis type="number" hide />
+                                    <YAxis
+                                        dataKey="name"
+                                        type="category"
+                                        width={100}
+                                        tick={{ fontSize: 11, fill: 'oklch(var(--bc))' }}
+                                    />
+                                    <Tooltip
+                                        cursor={{ fill: 'transparent' }}
+                                        contentStyle={{
+                                            backgroundColor: 'oklch(var(--b1))',
+                                            border: '1px solid oklch(var(--bc) / 0.1)',
+                                            borderRadius: '0.5rem'
+                                        }}
+                                    />
+                                    <Bar
+                                        dataKey="value"
+                                        radius={[0, 4, 4, 0]}
+                                        barSize={20}
+                                        fill="oklch(var(--p))"
+                                    >
+                                        {departmentData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 </motion.div>
             )}
+
+            {/* Top Active Universities */}
+            {topUniversitiesData.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="card bg-base-100 shadow-sm border border-base-300"
+                >
+                    <div className="card-body">
+                        <h3 className="card-title text-base flex justify-between items-center">
+                            <span>Top Active Partners</span>
+                            <Building2 size={16} className="text-base-content/40" />
+                        </h3>
+
+                        <div className="h-[300px] w-full mt-4">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={topUniversitiesData}
+                                    layout="vertical"
+                                    margin={{ top: 5, right: 30, left: 120, bottom: 5 }}
+                                >
+                                    <XAxis type="number" hide />
+                                    <YAxis
+                                        dataKey="name"
+                                        type="category"
+                                        width={115}
+                                        tick={{ fontSize: 11, fill: 'oklch(var(--bc))' }}
+                                    />
+                                    <Tooltip
+                                        cursor={{ fill: 'transparent' }}
+                                        contentStyle={{
+                                            backgroundColor: 'oklch(var(--b1))',
+                                            border: '1px solid oklch(var(--bc) / 0.1)',
+                                            borderRadius: '0.5rem'
+                                        }}
+                                    />
+                                    <Bar
+                                        dataKey="value"
+                                        radius={[0, 4, 4, 0]}
+                                        barSize={20}
+                                        fill={COLORS.primary}
+                                    >
+                                        {topUniversitiesData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+
+
+            {/* Expiring Soon List */}
+            {
+                data.expiringPartners && data.expiringPartners.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="card bg-base-100 shadow-sm border border-base-200"
+                    >
+                        <div className="card-body">
+                            <h3 className="card-title text-base flex items-center gap-2">
+                                <Clock size={16} className="text-warning" />
+                                <span>Approaching Expiry</span>
+                            </h3>
+
+                            <div className="overflow-x-auto mt-2">
+                                <table className="table table-sm w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Partner Institution</th>
+                                            <th>Country</th>
+                                            <th>Type</th>
+                                            <th>Expires In</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {data.expiringPartners.map((partner, index) => {
+                                            const daysLeft = Math.ceil((new Date(partner.expiringDate) - new Date()) / (1000 * 60 * 60 * 24));
+                                            const isCritical = daysLeft < 90;
+                                            return (
+                                                <tr key={index} className="hover:bg-base-200/50">
+                                                    <td className="font-medium">{partner.partnerName || 'Unknown Partner'}</td>
+                                                    <td>{partner.country}</td>
+                                                    <td>
+                                                        <span className="badge badge-sm badge-ghost">{partner.agreementType}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span className={`badge badge-sm ${isCritical ? 'badge-error text-white' : 'badge-warning'}`}>
+                                                            {new Date(partner.expiringDate).toLocaleDateString()}
+                                                            <span className="opacity-70 ml-1">({daysLeft} days)</span>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </motion.div>
+                )
+            }
         </div>
     );
 };

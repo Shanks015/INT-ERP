@@ -112,9 +112,9 @@ const ImmersionProgramsList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Programs" value={stats.total} icon={Plane} color="primary" moduleType="immersion" statType="total" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
-                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="immersion" statType="countries" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
-                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="immersion" statType="active" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
+                <SmartStatsCard title="Total Programs" value={stats.total} icon={Plane} color="primary" moduleType="immersion" statType="total" moduleData={stats} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="immersion" statType="countries" moduleData={stats} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="immersion" statType="active" moduleData={stats} />
             </div>
 
             <div className="card bg-base-100 shadow-xl mb-6">

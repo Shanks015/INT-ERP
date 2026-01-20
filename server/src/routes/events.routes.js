@@ -10,6 +10,10 @@ const router = express.Router();
 router.get('/stats', authenticate, enhancedCtrl.getEnhancedStats(Event));
 router.get('/export-csv', authenticate, ctrl.exportCSV);
 
+// Pending routes (must be before /:id)
+router.get('/pending/count', authenticate, authorize(['admin']), ctrl.getPendingCount);
+router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPending);
+
 // CRUD routes
 router.get('/', authenticate, ctrl.getAll);
 router.get('/:id', authenticate, ctrl.getById);

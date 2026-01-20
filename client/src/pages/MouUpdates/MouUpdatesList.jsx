@@ -107,9 +107,9 @@ const MouUpdatesList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Updates" value={stats.total} icon={FileText} color="primary" moduleType="mou-updates" statType="total" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
-                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="mou-updates" statType="countries" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
-                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="mou-updates" statType="active" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
+                <SmartStatsCard title="Total Updates" value={stats.total} icon={FileText} color="primary" moduleType="mou-updates" statType="total" moduleData={stats} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="mou-updates" statType="countries" moduleData={stats} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="mou-updates" statType="active" moduleData={stats} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <div className="form-control">
@@ -127,16 +127,9 @@ const MouUpdatesList = () => {
                     </select>
                 </div>
                 <div className="form-control">
-                    <label className="label"><span className="label-text">MoU Status</span></label>
-                    <select className="select select-bordered w-full" value={filters.mouStatus || ''} onChange={(e) => handleFilterChange({ mouStatus: e.target.value })}>
-                        <option value="">All MoU Statuses</option>
-                        {mouStatuses.map(status => <option key={status} value={status}>{status}</option>)}
-                    </select>
-                </div>
-                <div className="form-control">
                     <label className="label"><span className="label-text">Validity Status</span></label>
                     <select className="select select-bordered w-full" value={filters.validityStatus || ''} onChange={(e) => handleFilterChange({ validityStatus: e.target.value })}>
-                        <option value="">All Validity Statuses</option>
+                        <option value="">All Statuses</option>
                         {validityStatuses.map(status => <option key={status} value={status}>{status}</option>)}
                     </select>
                 </div>
@@ -145,7 +138,7 @@ const MouUpdatesList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>University</th><th>Country</th><th>Update Date</th><th>Agreement Type</th><th>MoU Status</th><th>Term</th><th>Validity</th><th>Department</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>University</th><th>Country</th><th>Update Date</th><th>Agreement Type</th><th>Term</th><th>Status</th><th>Department</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
                                 {updates.length === 0 ? <tr><td colSpan={10} className="text-center py-8">No updates found</td></tr> : updates.map((update) => (
                                     <tr key={update._id}>
@@ -153,15 +146,15 @@ const MouUpdatesList = () => {
                                         <td>{update.country || '-'}</td>
                                         <td>{update.date ? formatDate(update.date) : '-'}</td>
                                         <td>{update.agreementType || '-'}</td>
-                                        <td>{update.mouStatus || '-'}</td>
                                         <td>{update.term || '-'}</td>
-                                        <td>{update.validityStatus || '-'}</td>
-                                        <td>{update.department || '-'}</td>
                                         <td>
-                                            {update.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2"><Clock size={14} />Edit Pending</span>}
-                                            {update.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2"><Clock size={14} />Delete Pending</span>}
-                                            {update.status === 'active' && <span className="badge badge-success">Active</span>}
+                                            {update.validityStatus ? (
+                                                <span className={`badge badge-sm ${update.validityStatus === 'Active' ? 'badge-success' : 'badge-neutral'}`}>
+                                                    {update.validityStatus}
+                                                </span>
+                                            ) : '-'}
                                         </td>
+                                        <td>{update.department || '-'}</td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
                                                 {update.driveLink && (
@@ -196,15 +189,11 @@ const MouUpdatesList = () => {
                     { key: 'country', label: 'Country' },
                     { key: 'date', label: 'Date', type: 'date' },
                     { key: 'completedDate', label: 'Completed Date', type: 'date' },
-                    { key: 'mouStatus', label: 'MoU Status' },
-                    { key: 'contactPerson', label: 'Contact Person' },
-                    { key: 'contactEmail', label: 'Contact Email', type: 'email' },
                     { key: 'agreementType', label: 'Agreement Type' },
                     { key: 'term', label: 'Term' },
-                    { key: 'validityStatus', label: 'Validity Status' },
+                    { key: 'validityStatus', label: 'Status' },
                     { key: 'department', label: 'Department' },
                     { key: 'driveLink', label: 'Drive Link', type: 'link' },
-                    { key: 'status', label: 'Status' },
                     { key: 'createdAt', label: 'Created At', type: 'date' },
                     { key: 'updatedAt', label: 'Updated At', type: 'date' }
                 ]}

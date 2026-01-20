@@ -103,9 +103,9 @@ const MembershipsList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Memberships" value={stats.total} icon={Users2} color="primary" moduleType="memberships" statType="total" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
-                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="memberships" statType="countries" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
-                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="memberships" statType="active" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
+                <SmartStatsCard title="Total Memberships" value={stats.total} icon={Users2} color="primary" moduleType="memberships" statType="total" moduleData={stats} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="memberships" statType="countries" moduleData={stats} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="memberships" statType="active" moduleData={stats} />
             </div>
             <FilterBar
                 filters={filters}
