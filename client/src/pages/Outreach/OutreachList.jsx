@@ -5,7 +5,7 @@ import { useDebounce } from '../../hooks/useDebounce';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Mail, TrendingUp, Clock, Eye, MessageSquare, XCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Mail, TrendingUp, Clock, Eye, MessageSquare, XCircle, CheckCircle } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
@@ -161,11 +161,10 @@ const OutreachList = () => {
                 </div>
             </div>
 
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Outreach" value={stats.total} icon={Mail} color="primary" moduleType="outreach" statType="total" moduleData={{ total: stats.total, responses: stats.responses, nonResponses: stats.nonResponses }} />
-                <SmartStatsCard title="Responses" value={stats.responses} icon={CheckCircle} color="success" moduleType="outreach" statType="responses" moduleData={{ total: stats.total, responses: stats.responses, nonResponses: stats.nonResponses }} />
-                <SmartStatsCard title="No Response" value={stats.nonResponses} icon={XCircle} color="error" moduleType="outreach" statType="non-responses" moduleData={{ total: stats.total, responses: stats.responses, nonResponses: stats.nonResponses }} />
+                <SmartStatsCard title="Total Outreach" value={stats.total} icon={Mail} color="primary" moduleType="outreach" statType="total" moduleData={stats} />
+                <SmartStatsCard title="Responses" value={stats.responses} icon={CheckCircle} color="success" moduleType="outreach" statType="responses" moduleData={stats} />
+                <SmartStatsCard title="No Response" value={stats.nonResponses} icon={XCircle} color="error" moduleType="outreach" statType="non-responses" moduleData={stats} />
             </div>
 
             {/* Filters */}

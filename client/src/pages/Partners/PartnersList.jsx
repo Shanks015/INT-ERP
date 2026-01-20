@@ -337,13 +337,12 @@ const PartnersList = () => {
                                 <tr>
                                     <th>Country</th>
                                     <th>University</th>
-                                    <th>School</th>
+                                    <th>Department</th>
                                     <th>Contact Person</th>
                                     <th>Email</th>
-                                    <th>MoU Status</th>
                                     <th>Signing Date</th>
                                     <th>Expiry Date</th>
-                                    <th>Active Status</th>
+                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -373,16 +372,6 @@ const PartnersList = () => {
                                                     </a >
                                                 ) : '-'}
                                             </td >
-                                            <td>
-                                                {partner.mouStatus ? (
-                                                    <span className={`badge badge-sm whitespace-nowrap ${partner.mouStatus === 'Completed' ? 'badge-success' :
-                                                        partner.mouStatus === 'InProgress' ? 'badge-warning' :
-                                                            'badge-info'
-                                                        }`}>
-                                                        {partner.mouStatus === 'InProgress' ? 'In Progress' : partner.mouStatus}
-                                                    </span>
-                                                ) : '-'}
-                                            </td>
                                             <td>{partner.signingDate ? formatDate(partner.signingDate) : '-'}</td>
                                             <td>{partner.expiringDate ? formatDate(partner.expiringDate) : '-'}</td>
                                             <td>
@@ -396,14 +385,13 @@ const PartnersList = () => {
                                                 <div className="flex gap-2">
                                                     <Link
                                                         to={`/partners/edit/${partner._id}`}
-                                                        className={`btn btn-warning btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
+                                                        className="btn btn-warning btn-sm"
                                                     >
                                                         <Edit size={16} />
                                                     </Link>
                                                     <button
                                                         onClick={() => setDeleteModal({ isOpen: true, partner })}
-                                                        className={`btn btn-error btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
-                                                        disabled={partner.status !== 'active'}
+                                                        className="btn btn-error btn-sm"
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -472,7 +460,6 @@ const PartnersList = () => {
                     { key: 'signingDate', label: 'Signing Date', type: 'date' },
                     { key: 'expiringDate', label: 'Expiry Date', type: 'date' },
                     { key: 'recordStatus', label: 'Record Status' },
-                    { key: 'status', label: 'Approval Status' },
                     { key: 'createdAt', label: 'Created At', type: 'date' },
                     { key: 'updatedAt', label: 'Updated At', type: 'date' }
                 ]}

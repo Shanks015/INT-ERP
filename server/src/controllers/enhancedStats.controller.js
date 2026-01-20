@@ -31,7 +31,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 dateField = 'date'; // event date
                 break;
             case 'Partner':
-                dateField = 'completedOn'; // when partnership was completed (use completedOn instead of signingDate)
+                dateField = 'createdAt'; // Use createdAt to reflect system activity/growth
                 break;
             case 'Outreach':
                 dateField = 'createdAt'; // outreach doesn't have a date field, use createdAt
@@ -69,26 +69,62 @@ export const getEnhancedStats = (Model) => async (req, res) => {
 
         // Calculate trend - compare this month to last month using the appropriate date field
         // Use $or to include records where the date field exists OR fall back to createdAt
+        let baseQuery = {};
+        if (modelName === 'Event') {
+            baseQuery = {};
+        } else if (modelName === 'Partner') {
+            baseQuery = {
+                $or: [
+                    { activeStatus: 'Active' },
+                    { activeStatus: 'active' },
+                    { activeStatus: { $regex: /^active$/i } }
+                ],
+                recordStatus: { $ne: 'expired' }
+            };
+        } else if (modelName === 'MouUpdate') {
+            baseQuery = {
+                $or: [
+                    { validityStatus: 'Active' },
+                    { validityStatus: 'active' },
+                    { validityStatus: { $regex: /^active$/i } }
+                ]
+            };
+        } else {
+            baseQuery = { status: 'active' };
+        }
+
         const thisMonthQuery = {
-            status: 'active',
-            $or: [
-                { [dateField]: { $gte: startOfThisMonth } },
-                { [dateField]: { $exists: false }, createdAt: { $gte: startOfThisMonth } },
-                { [dateField]: null, createdAt: { $gte: startOfThisMonth } }
+            $and: [
+                baseQuery,
+                {
+                    $or: [
+                        { [dateField]: { $gte: startOfThisMonth } },
+                        { [dateField]: { $exists: false }, createdAt: { $gte: startOfThisMonth } },
+                        { [dateField]: null, createdAt: { $gte: startOfThisMonth } }
+                    ]
+                }
             ]
         };
 
         const lastMonthQuery = {
-            status: 'active',
-            $or: [
-                { [dateField]: { $gte: startOfLastMonth, $lte: endOfLastMonth } },
-                { [dateField]: { $exists: false }, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } },
-                { [dateField]: null, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } }
+            $and: [
+                baseQuery,
+                {
+                    $or: [
+                        { [dateField]: { $gte: startOfLastMonth, $lte: endOfLastMonth } },
+                        { [dateField]: { $exists: false }, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } },
+                        { [dateField]: null, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } }
+                    ]
+                }
             ]
         };
 
         const thisMonthCount = await Model.countDocuments(thisMonthQuery);
         const lastMonthCount = await Model.countDocuments(lastMonthQuery);
+
+        // ... trend calculation details ... 
+
+
 
         // Calculate trend metrics
         const change = thisMonthCount - lastMonthCount;
@@ -231,8 +267,8 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.distinct('department').then(arr => arr.filter(Boolean).length)
                 ]);
 
-                // Get distributions
-                const [confCountryDist, confDeptDist] = await Promise.all([
+                // Get distributions and recent conferences
+                const [confCountryDist, confDeptDist, recentConferences] = await Promise.all([
                     Model.aggregate([
                         { $match: { status: 'active', country: { $exists: true, $ne: '' } } },
                         { $group: { _id: '$country', value: { $sum: 1 } } },
@@ -246,6 +282,21 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                         { $sort: { value: -1 } },
                         { $limit: 10 },
                         { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    // Recent conferences
+                    Model.aggregate([
+                        { $match: { status: 'active' } },
+                        { $sort: { date: -1 } },
+                        { $limit: 10 },
+                        {
+                            $project: {
+                                _id: 0,
+                                conferenceName: 1,
+                                country: 1,
+                                department: 1,
+                                date: 1
+                            }
+                        }
                     ])
                 ]);
 
@@ -254,16 +305,45 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     countries: confCountries,
                     departments: confDepartments,
                     countryDistribution: confCountryDist,
-                    departmentDistribution: confDeptDist
+                    departmentDistribution: confDeptDist,
+                    recentConferences
                 };
                 break;
 
             case 'MouSigningCeremony':
-                const [mouCountries, mouDepartments] = await Promise.all([
+                const [ceremonyCountries, ceremonyDepartments, activeCeremonies, ceremonyCountryDist, ceremonyDeptDist] = await Promise.all([
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
-                    Model.distinct('department').then(arr => arr.filter(Boolean).length)
+                    Model.distinct('department').then(arr => arr.filter(Boolean).length),
+
+                    // Active ceremonies count
+                    Model.countDocuments({ recordStatus: 'active', status: 'active' }),
+
+                    // Country Distribution for Map
+                    Model.aggregate([
+                        { $match: { country: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$country', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 15 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // Department Distribution
+                    Model.aggregate([
+                        { $match: { department: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$department', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ])
                 ]);
-                stats = { ...stats, countries: mouCountries, departments: mouDepartments };
+                stats = {
+                    ...stats,
+                    countries: ceremonyCountries,
+                    departments: ceremonyDepartments,
+                    active: activeCeremonies,
+                    countryDistribution: ceremonyCountryDist,
+                    departmentDistribution: ceremonyDeptDist
+                };
                 break;
 
             case 'ScholarInResidence':
@@ -347,43 +427,440 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 break;
 
             case 'MouUpdate':
-                const [mouUpdateCountries, activeUpdates] = await Promise.all([
+                // Check for various casing of 'active'
+                const mouActiveMatch = {
+                    $or: [
+                        { validityStatus: 'Active' },
+                        { validityStatus: 'active' },
+                        { validityStatus: { $regex: /^active$/i } }
+                    ]
+                    // status: 'active' removed
+                };
+
+                const [
+                    mouUpdateCountries,
+                    activeUpdates,
+                    mouCountryDist,
+                    mouAgreementDist,
+                    mouDeptDist
+                ] = await Promise.all([
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
-                    Model.countDocuments({ activeStatus: 'Active', status: 'active' })
+                    Model.countDocuments(mouActiveMatch),
+
+                    // Country Distribution (Active Only) for Map
+                    Model.aggregate([
+                        {
+                            $match: {
+                                $and: [
+                                    mouActiveMatch,
+                                    { country: { $exists: true, $ne: '' } }
+                                ]
+                            }
+                        },
+                        { $group: { _id: '$country', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 15 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // Agreement Type Distribution
+                    Model.aggregate([
+                        {
+                            $match: {
+                                $and: [
+                                    mouActiveMatch,
+                                    { agreementType: { $exists: true, $ne: '' } }
+                                ]
+                            }
+                        },
+                        { $group: { _id: '$agreementType', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 5 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // Department Distribution (New Insight)
+                    Model.aggregate([
+                        {
+                            $match: {
+                                $and: [
+                                    mouActiveMatch,
+                                    { department: { $exists: true, $ne: '' } }
+                                ]
+                            }
+                        },
+                        { $group: { _id: '$department', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 5 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ])
                 ]);
-                stats = { ...stats, countries: mouUpdateCountries, active: activeUpdates };
+
+                stats = {
+                    ...stats,
+                    countries: mouUpdateCountries,
+                    active: activeUpdates,
+                    countryDistribution: mouCountryDist,
+                    agreementTypes: mouAgreementDist,
+                    departmentDistribution: mouDeptDist,
+                    // Provide empty expiry forecast since MouUpdate has no expiry date field
+                    expiryForecast: { upcoming: 0, mediumTerm: 0, longTerm: 0 },
+                    avgDurationDays: 0,
+                    expiringPartners: []
+                };
                 break;
 
             case 'ImmersionProgram':
-                const [immersionCountries, activeImmersion] = await Promise.all([
+                const todayImmersion = new Date();
+                const threeMonthsAhead = new Date(todayImmersion.getTime() + 90 * 24 * 60 * 60 * 1000);
+                const sixMonthsAhead = new Date(todayImmersion.getTime() + 180 * 24 * 60 * 60 * 1000);
+
+                const [
+                    immersionCountries,
+                    activeImmersion,
+                    immersionCountryDist,
+                    immersionDirectionDist,
+                    immersionUniversityDist,
+                    immersionExpiryForecast,
+                    endingSoonList,
+                    avgProgramDuration
+                ] = await Promise.all([
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
-                    Model.countDocuments({ recordStatus: 'active', status: 'active' })
+                    Model.countDocuments({ recordStatus: 'active', status: 'active' }),
+                    Model.aggregate([
+                        { $match: { country: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$country', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 15 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        { $match: { direction: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$direction', value: { $sum: 1 } } },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        { $match: { recordStatus: 'active', status: 'active', university: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$university', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        {
+                            $match: {
+                                recordStatus: 'active',
+                                status: 'active',
+                                departureDate: { $exists: true, $ne: null }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                upcoming: {
+                                    $sum: {
+                                        $cond: [{ $lte: ['$departureDate', threeMonthsAhead] }, 1, 0]
+                                    }
+                                },
+                                mediumTerm: {
+                                    $sum: {
+                                        $cond: [{
+                                            $and: [
+                                                { $gt: ['$departureDate', threeMonthsAhead] },
+                                                { $lte: ['$departureDate', sixMonthsAhead] }
+                                            ]
+                                        }, 1, 0]
+                                    }
+                                },
+                                longTerm: {
+                                    $sum: {
+                                        $cond: [{ $gt: ['$departureDate', sixMonthsAhead] }, 1, 0]
+                                    }
+                                }
+                            }
+                        }
+                    ]),
+                    Model.aggregate([
+                        {
+                            $match: {
+                                recordStatus: 'active',
+                                status: 'active',
+                                departureDate: { $exists: true, $ne: null }
+                            }
+                        },
+                        { $sort: { departureDate: 1 } },
+                        { $limit: 10 },
+                        {
+                            $project: {
+                                _id: 0,
+                                partnerName: '$university',
+                                country: 1,
+                                expiringDate: '$departureDate',
+                                agreementType: '$direction'
+                            }
+                        }
+                    ]),
+                    Model.aggregate([
+                        {
+                            $match: {
+                                recordStatus: 'active',
+                                status: 'active',
+                                arrivalDate: { $exists: true, $ne: null },
+                                departureDate: { $exists: true, $ne: null }
+                            }
+                        },
+                        {
+                            $project: {
+                                duration: { $subtract: ['$departureDate', '$arrivalDate'] }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                avgDurationMs: { $avg: '$duration' }
+                            }
+                        }
+                    ])
                 ]);
-                stats = { ...stats, countries: immersionCountries, active: activeImmersion };
+
+                const immersionForecast = immersionExpiryForecast[0] || { upcoming: 0, mediumTerm: 0, longTerm: 0 };
+                delete immersionForecast._id;
+
+                const immersionAvgDurationDays = avgProgramDuration[0]?.avgDurationMs
+                    ? Math.round(avgProgramDuration[0].avgDurationMs / (1000 * 60 * 60 * 24))
+                    : 0;
+
+                stats = {
+                    ...stats,
+                    countries: immersionCountries,
+                    active: activeImmersion,
+                    countryDistribution: immersionCountryDist,
+                    directionDistribution: immersionDirectionDist,
+                    topUniversities: immersionUniversityDist,
+                    expiryForecast: immersionForecast,
+                    expiringPartners: endingSoonList,
+                    avgDurationDays: immersionAvgDurationDays,
+                    agreementTypes: immersionDirectionDist
+                };
                 break;
 
             case 'StudentExchange':
-                const [exchangeUniversities, activeExchange] = await Promise.all([
+                const [exchangeUniversities, exchangeCountries, activeExchange, seUniversityDistribution, seCountryDistribution, recentExchanges] = await Promise.all([
                     Model.distinct('exchangeUniversity').then(arr => arr.filter(Boolean).length),
-                    Model.countDocuments({ recordStatus: 'active', status: 'active' })
+                    Model.distinct('country').then(arr => arr.filter(Boolean).length),
+                    Model.countDocuments({ recordStatus: 'active', status: 'active' }),
+
+                    // University distribution
+                    Model.aggregate([
+                        { $match: { status: 'active', exchangeUniversity: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$exchangeUniversity', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // Country distribution
+                    Model.aggregate([
+                        { $match: { status: 'active', country: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$country', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+
+                    // Recent exchanges
+                    Model.aggregate([
+                        { $match: { status: 'active' } },
+                        { $sort: { createdAt: -1 } },
+                        { $limit: 10 },
+                        {
+                            $project: {
+                                _id: 0,
+                                studentName: 1,
+                                exchangeUniversity: 1,
+                                country: 1,
+                                direction: 1,
+                                date: '$createdAt'
+                            }
+                        }
+                    ])
                 ]);
-                stats = { ...stats, universities: exchangeUniversities, active: activeExchange };
+
+                stats = {
+                    ...stats,
+                    universities: exchangeUniversities,
+                    countries: exchangeCountries,
+                    active: activeExchange,
+                    universityDistribution: seUniversityDistribution,
+                    countryDistribution: seCountryDistribution,
+                    recentExchanges
+                };
                 break;
 
             case 'MastersAbroad':
-                const [mastersCountries, activeMasters] = await Promise.all([
+                const [
+                    mastersCountries,
+                    activeMasters,
+                    mastersCountryDist,
+                    mastersUniversityDist
+                ] = await Promise.all([
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
-                    Model.countDocuments({ recordStatus: 'active', status: 'active' })
+                    Model.countDocuments({ recordStatus: 'active', status: 'active' }),
+                    Model.aggregate([
+                        { $match: { country: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$country', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 15 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        { $match: { university: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$university', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ])
                 ]);
-                stats = { ...stats, countries: mastersCountries, active: activeMasters };
+                stats = {
+                    ...stats,
+                    countries: mastersCountries,
+                    active: activeMasters,
+                    countryDistribution: mastersCountryDist,
+                    universityDistribution: mastersUniversityDist
+                };
                 break;
 
             case 'Membership':
-                const [membershipCountries, activeMemberships] = await Promise.all([
+                const todayMembership = new Date();
+                const threeMonthsAheadMembership = new Date(todayMembership.getTime() + 90 * 24 * 60 * 60 * 1000);
+                const sixMonthsAheadMembership = new Date(todayMembership.getTime() + 180 * 24 * 60 * 60 * 1000);
+
+                const [
+                    membershipCountries,
+                    activeMemberships,
+                    membershipCountryDist,
+                    membershipOrganizationDist,
+                    membershipStatusDist,
+                    membershipExpiryForecast,
+                    expiringMembershipsList,
+                    avgMembershipDuration
+                ] = await Promise.all([
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
-                    Model.countDocuments({ recordStatus: 'active', status: 'active' })
+                    Model.countDocuments({ recordStatus: 'active', status: 'active' }),
+                    Model.aggregate([
+                        { $match: { country: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$country', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 15 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        { $match: { recordStatus: 'active', status: 'active', name: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$name', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        { $match: { membershipStatus: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$membershipStatus', value: { $sum: 1 } } },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        {
+                            $match: {
+                                recordStatus: 'active',
+                                status: 'active',
+                                endDate: { $exists: true, $ne: null }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                upcoming: {
+                                    $sum: {
+                                        $cond: [{ $lte: ['$endDate', threeMonthsAheadMembership] }, 1, 0]
+                                    }
+                                },
+                                mediumTerm: {
+                                    $sum: {
+                                        $cond: [{
+                                            $and: [
+                                                { $gt: ['$endDate', threeMonthsAheadMembership] },
+                                                { $lte: ['$endDate', sixMonthsAheadMembership] }
+                                            ]
+                                        }, 1, 0]
+                                    }
+                                },
+                                longTerm: {
+                                    $sum: {
+                                        $cond: [{ $gt: ['$endDate', sixMonthsAheadMembership] }, 1, 0]
+                                    }
+                                }
+                            }
+                        }
+                    ]),
+                    Model.aggregate([
+                        {
+                            $match: {
+                                recordStatus: 'active',
+                                status: 'active',
+                                endDate: { $exists: true, $ne: null }
+                            }
+                        },
+                        { $sort: { endDate: 1 } },
+                        { $limit: 10 },
+                        {
+                            $project: {
+                                _id: 0,
+                                partnerName: '$name',
+                                country: 1,
+                                expiringDate: '$endDate',
+                                agreementType: '$membershipStatus'
+                            }
+                        }
+                    ]),
+                    Model.aggregate([
+                        {
+                            $match: {
+                                recordStatus: 'active',
+                                status: 'active',
+                                startDate: { $exists: true, $ne: null },
+                                endDate: { $exists: true, $ne: null }
+                            }
+                        },
+                        {
+                            $project: {
+                                duration: { $subtract: ['$endDate', '$startDate'] }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                avgDurationMs: { $avg: '$duration' }
+                            }
+                        }
+                    ])
                 ]);
-                stats = { ...stats, countries: membershipCountries, active: activeMemberships };
+
+                const membershipForecast = membershipExpiryForecast[0] || { upcoming: 0, mediumTerm: 0, longTerm: 0 };
+                delete membershipForecast._id;
+
+                const membershipAvgDurationDays = avgMembershipDuration[0]?.avgDurationMs
+                    ? Math.round(avgMembershipDuration[0].avgDurationMs / (1000 * 60 * 60 * 24))
+                    : 0;
+
+                stats = {
+                    ...stats,
+                    countries: membershipCountries,
+                    active: activeMemberships,
+                    countryDistribution: membershipCountryDist,
+                    topUniversities: membershipOrganizationDist,
+                    agreementTypes: membershipStatusDist,
+                    expiryForecast: membershipForecast,
+                    expiringPartners: expiringMembershipsList,
+                    avgDurationDays: membershipAvgDurationDays
+                };
                 break;
 
             case 'DigitalMedia':
@@ -402,38 +879,78 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 break;
 
             case 'Outreach':
-                // Response calculation - check for actual responses vs \"No reply\"/\"No response\" text
-                const hasResponseCount = await Model.countDocuments({
-                    status: 'active',
-                    reply: {
-                        $exists: true,
-                        $ne: '',
-                        $nin: ['No reply', 'No response', 'no reply', 'no response', 'N/A', 'NA', '-']
-                    }
-                });
+                const [
+                    outreachCountries,
+                    hasResponseCount,
+                    outreachCountryDist,
+                    partnerDist,
+                    emailDomainDist
+                ] = await Promise.all([
+                    Model.distinct('country').then(arr => arr.filter(Boolean).length),
+                    Model.countDocuments({
+                        status: 'active',
+                        reply: {
+                            $exists: true,
+                            $ne: '',
+                            $nin: ['No reply', 'No response', 'no reply', 'no response', 'N/A', 'NA', '-']
+                        }
+                    }),
+                    Model.aggregate([
+                        { $match: { country: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$country', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 15 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        { $match: { name: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$name', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        { $match: { email: { $exists: true, $ne: '' } } },
+                        { $project: { domain: { $arrayElemAt: [{ $split: ['$email', '@'] }, 1] } } },
+                        { $match: { domain: { $exists: true, $ne: null } } },
+                        { $group: { _id: '$domain', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ])
+                ]);
                 const noResponseCount = stats.total - hasResponseCount;
-
-                // Response distribution for pie chart
                 const responseDistribution = [
                     { name: 'Responded', value: hasResponseCount },
                     { name: 'No Response', value: noResponseCount }
                 ];
-
                 stats = {
                     ...stats,
+                    countries: outreachCountries,
                     responses: hasResponseCount,
                     nonResponses: noResponseCount,
-                    responseDistribution
+                    responseDistribution,
+                    countryDistribution: outreachCountryDist,
+                    partnerDistribution: partnerDist,
+                    emailDomainDistribution: emailDomainDist
                 };
                 break;
 
             case 'Partner':
                 const partnerCountries = await Model.distinct('country').then(arr => arr.filter(Boolean).length);
 
-                const activePartners = await Model.countDocuments({
-                    activeStatus: 'Active',
-                    recordStatus: { $ne: 'expired' }
-                });
+                // Check for various casing of 'active' and ensure record is not expired
+                const activeMatch = {
+                    $or: [
+                        { activeStatus: 'Active' },
+                        { activeStatus: 'active' },
+                        { activeStatus: { $regex: /^active$/i } }
+                    ],
+                    recordStatus: { $ne: 'expired' },
+                    status: 'active'
+                };
+
+                const activePartners = await Model.countDocuments(activeMatch);
 
                 // Get Expiry Forecast and detailed distributions
                 const today = new Date();
@@ -446,14 +963,14 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     expiryForecast,
                     expiringPartnersList,
                     agreementTypeDist,
-                    avgDurationResult
+                    avgDurationResult,
+                    topActiveUniversities
                 ] = await Promise.all([
                     // Country Distribution (Active Only)
                     Model.aggregate([
                         {
                             $match: {
-                                activeStatus: 'Active',
-                                recordStatus: { $ne: 'expired' },
+                                ...activeMatch,
                                 country: { $exists: true, $ne: '' }
                             }
                         },
@@ -463,9 +980,8 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                         { $project: { _id: 0, name: '$_id', value: 1 } }
                     ]),
 
-                    // Active Status Distribution (for verification)
+                    // Active Status Distribution (for verification of data quality)
                     Model.aggregate([
-                        { $match: { status: 'active' } },
                         { $group: { _id: '$activeStatus', value: { $sum: 1 } } },
                         { $project: { _id: 0, name: '$_id', value: 1 } }
                     ]),
@@ -474,8 +990,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.aggregate([
                         {
                             $match: {
-                                activeStatus: 'Active',
-                                recordStatus: { $ne: 'expired' },
+                                ...activeMatch,
                                 expiringDate: { $exists: true, $ne: null }
                             }
                         },
@@ -510,8 +1025,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.aggregate([
                         {
                             $match: {
-                                activeStatus: 'Active',
-                                recordStatus: { $ne: 'expired' },
+                                ...activeMatch,
                                 expiringDate: { $exists: true, $ne: null }
                             }
                         },
@@ -532,8 +1046,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.aggregate([
                         {
                             $match: {
-                                activeStatus: 'Active',
-                                recordStatus: { $ne: 'expired' },
+                                ...activeMatch,
                                 agreementType: { $exists: true, $ne: '' }
                             }
                         },
@@ -547,8 +1060,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.aggregate([
                         {
                             $match: {
-                                activeStatus: 'Active',
-                                recordStatus: { $ne: 'expired' },
+                                ...activeMatch,
                                 signingDate: { $exists: true, $ne: null } // Use signingDate for start
                             }
                         },
@@ -563,6 +1075,20 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                                 avgDurationMs: { $avg: '$duration' }
                             }
                         }
+                    ]),
+
+                    // Top Active Universities
+                    Model.aggregate([
+                        {
+                            $match: {
+                                ...activeMatch,
+                                university: { $exists: true, $ne: '' }
+                            }
+                        },
+                        { $group: { _id: '$university', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
                     ])
                 ]);
 
@@ -584,12 +1110,51 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     expiryForecast: forecast,
                     agreementTypes: agreementTypeDist,
                     avgDurationDays,
-                    expiringPartners: expiringPartnersList
+                    expiringPartners: expiringPartnersList,
+                    topUniversities: topActiveUniversities,
+                    activeCountryDistribution: partnerCountryDist,
+                    recentAdditions: expiringPartnersList.slice(0, 5)
                 };
                 break;
 
             default:
                 // If no specific stats defined, just return total
+                break;
+
+            case 'StudentExchange':
+                const [
+                    studentExchangeCountries,
+                    studentExchangeUniversities,
+                    activeExchanges,
+                    studentExchangeCountryDist,
+                    studentExchangeUniversityDist
+                ] = await Promise.all([
+                    Model.distinct('country').then(arr => arr.filter(Boolean).length),
+                    Model.distinct('university').then(arr => arr.filter(Boolean).length),
+                    Model.countDocuments({ recordStatus: 'active', status: 'active' }),
+                    Model.aggregate([
+                        { $match: { country: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$country', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 15 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ]),
+                    Model.aggregate([
+                        { $match: { university: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$university', value: { $sum: 1 } } },
+                        { $sort: { value: -1 } },
+                        { $limit: 10 },
+                        { $project: { _id: 0, name: '$_id', value: 1 } }
+                    ])
+                ]);
+                stats = {
+                    ...stats,
+                    countries: studentExchangeCountries,
+                    universities: studentExchangeUniversities,
+                    active: activeExchanges,
+                    countryDistribution: studentExchangeCountryDist,
+                    universityDistribution: studentExchangeUniversityDist
+                };
                 break;
         }
 

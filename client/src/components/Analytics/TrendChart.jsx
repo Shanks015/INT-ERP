@@ -2,32 +2,44 @@ import { motion } from 'framer-motion';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const TrendChart = ({ data }) => {
-    console.log('TrendChart received data:', data);
+    // Check if we have real trend data from backend
+    const hasTrendData = data.trendData && Array.isArray(data.trendData) && data.trendData.length > 0;
 
-    // Generate mock trend data (replace with real backend data later)
-    const generateTrendData = () => {
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const currentMonth = new Date().getMonth();
-        console.log('Current month:', currentMonth);
+    // If no real trend data, show informative message
+    if (!hasTrendData) {
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="card bg-base-200 shadow-sm"
+            >
+                <div className="card-body">
+                    <h3 className="card-title text-lg">Growth Trend</h3>
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className="text-6xl mb-4">📊</div>
+                        <h4 className="text-lg font-semibold mb-2">Trend Data Coming Soon</h4>
+                        <p className="text-base-content/60 max-w-md">
+                            Historical trend data will be available once you have activity over multiple months.
+                            Currently showing growth rate: <span className="font-bold text-primary">{data.trend?.percentage || 0}%</span>
+                        </p>
+                        <div className="stats shadow mt-4">
+                            <div className="stat place-items-center">
+                                <div className="stat-title">Current Month Growth</div>
+                                <div className={`stat-value text-2xl ${(data.trend?.percentage || 0) >= 0 ? 'text-success' : 'text-error'}`}>
+                                    {(data.trend?.percentage || 0) >= 0 ? '+' : ''}{data.trend?.percentage || 0}%
+                                </div>
+                                <div className="stat-desc">
+                                    {data.trend?.change >= 0 ? '+' : ''}{data.trend?.change || 0} from last month
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
 
-        const baseValue = data.total ? Math.floor(data.total / 12) : 10;
-
-        // For now, always show first 6 months for consistency
-        const displayMonths = months.slice(0, 6);
-        console.log('Display months:', displayMonths);
-
-        const result = displayMonths.map((month, index) => ({
-            month,
-            current: Math.floor(Math.random() * 20) + baseValue + index * 2,
-            previous: Math.floor(Math.random() * 15) + Math.max(1, baseValue - 5) + index
-        }));
-
-        console.log('Generated result:', result);
-        return result;
-    };
-
-    const trendData = data.trendData || generateTrendData();
-    console.log('Trend data being used:', trendData, 'Length:', trendData.length);
+    const trendData = data.trendData;
 
     return (
         <div className="space-y-6">
@@ -51,110 +63,44 @@ const TrendChart = ({ data }) => {
                                     <stop offset="95%" stopColor="oklch(var(--s))" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--bc) / 0.1)" vertical={false} />
                             <XAxis
                                 dataKey="month"
-                                tick={{ fontSize: 12, fill: 'oklch(var(--bc))' }}
+                                stroke="oklch(var(--bc))"
+                                tick={{ fontSize: 12 }}
                             />
                             <YAxis
-                                tick={{ fontSize: 12, fill: 'oklch(var(--bc))' }}
+                                stroke="oklch(var(--bc))"
+                                tick={{ fontSize: 12 }}
                             />
                             <Tooltip
                                 contentStyle={{
                                     backgroundColor: 'oklch(var(--b1))',
-                                    border: '1px solid oklch(var(--bc) / 0.2)',
-                                    borderRadius: '0.5rem',
-                                    color: 'oklch(var(--bc))'
+                                    border: '1px solid oklch(var(--bc) / 0.1)',
+                                    borderRadius: '0.5rem'
                                 }}
-                                labelStyle={{ color: 'oklch(var(--bc))' }}
-                                itemStyle={{ color: 'oklch(var(--bc))' }}
                             />
-                            <Legend
-                                wrapperStyle={{ fontSize: '14px' }}
-                            />
+                            <Legend />
                             <Area
                                 type="monotone"
                                 dataKey="current"
                                 stroke="oklch(var(--p))"
                                 fillOpacity={1}
                                 fill="url(#colorCurrent)"
-                                name="This Year"
+                                strokeWidth={2}
+                                name="Current Year"
                             />
                             <Area
                                 type="monotone"
                                 dataKey="previous"
                                 stroke="oklch(var(--s))"
                                 fillOpacity={1}
-                                fill="url(#colorPrevious)"
-                                name="Last Year"
+                                fill="url(#colorPrevious))"
+                                strokeWidth={2}
+                                name="Previous Year"
                             />
                         </AreaChart>
                     </ResponsiveContainer>
-                </div>
-            </motion.div>
-
-            {/* Monthly Comparison */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="card bg-base-200 shadow-sm"
-            >
-                <div className="card-body">
-                    <h3 className="card-title text-lg">Month-over-Month Comparison</h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <LineChart data={trendData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                            <XAxis
-                                dataKey="month"
-                                tick={{ fontSize: 12, fill: 'oklch(var(--bc))' }}
-                            />
-                            <YAxis
-                                tick={{ fontSize: 12, fill: 'oklch(var(--bc))' }}
-                            />
-                            <Tooltip
-                                contentStyle={{
-                                    backgroundColor: 'oklch(var(--b1))',
-                                    border: '1px solid oklch(var(--bc) / 0.2)',
-                                    borderRadius: '0.5rem',
-                                    color: 'oklch(var(--bc))'
-                                }}
-                                labelStyle={{ color: 'oklch(var(--bc))' }}
-                                itemStyle={{ color: 'oklch(var(--bc))' }}
-                            />
-                            <Legend wrapperStyle={{ fontSize: '14px' }} />
-                            <Line
-                                type="monotone"
-                                dataKey="current"
-                                stroke="oklch(var(--p))"
-                                strokeWidth={3}
-                                dot={{ fill: 'oklch(var(--p))', r: 4 }}
-                                name="This Year"
-                            />
-                            <Line
-                                type="monotone"
-                                dataKey="previous"
-                                stroke="oklch(var(--s))"
-                                strokeWidth={2}
-                                strokeDasharray="5 5"
-                                dot={{ fill: 'oklch(var(--s))', r: 3 }}
-                                name="Last Year"
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
-
-                    {/* Insights */}
-                    <div className="mt-4 p-4 bg-info/10 rounded-lg">
-                        <p className="text-sm">
-                            <strong className="text-info">💡 Insight:</strong> {
-                                data.trend?.change > 0
-                                    ? `You're on track for ${data.trend.percentage}% growth this period.`
-                                    : data.trend?.change < 0
-                                        ? `Activity has decreased by ${Math.abs(data.trend.percentage)}%. Consider reviewing your strategies.`
-                                        : 'Activity is stable compared to last period.'
-                            }
-                        </p>
-                    </div>
                 </div>
             </motion.div>
         </div>

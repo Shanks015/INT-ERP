@@ -9,6 +9,8 @@ import ActivePartnerView from './ActivePartnerView';
 import UniversityInsightsView from './UniversityInsightsView';
 import DepartmentInsightsView from './DepartmentInsightsView';
 import EventTypeInsightsView from './EventTypeInsightsView';
+import OutreachView from './OutreachView';
+import DigitalMediaView from './DigitalMediaView';
 
 const AnalyticsModal = () => {
     const { isOpen, closeAnalytics, analyticsData, activeTab, setActiveTab } = useAnalytics();
@@ -108,7 +110,13 @@ const AnalyticsModal = () => {
                                 const moduleType = analyticsData?.moduleType;
 
                                 // Dedicated view for each stat type
-                                if (statType === 'active') {
+                                if (moduleType === 'outreach') {
+                                    // Outreach gets its custom view for all stat types
+                                    return <OutreachView data={analyticsData} />;
+                                } else if (moduleType === 'digital-media') {
+                                    // Digital Media gets its custom view for all stat types
+                                    return <DigitalMediaView data={analyticsData} />;
+                                } else if (statType === 'active') {
                                     return <ActivePartnerView data={analyticsData} />;
                                 } else if (statType === 'universities' && moduleType === 'campus-visits') {
                                     // Campus Visits Universities gets dedicated dashboard

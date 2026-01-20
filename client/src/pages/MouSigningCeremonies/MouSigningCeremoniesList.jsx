@@ -5,7 +5,7 @@ import { useDebounce } from '../../hooks/useDebounce';
 import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, FileText, TrendingUp, Clock, Eye, Globe, Building2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, FileText, TrendingUp, Clock, Eye, Globe, Building2, Award } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
@@ -104,8 +104,8 @@ const MouSigningCeremoniesList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <SmartStatsCard title="Total Ceremonies" value={stats.total} icon={Award} color="primary" moduleType="mou-ceremonies" statType="total" moduleData={{ total: stats.total, countries: stats.countries }} />
-                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="mou-ceremonies" statType="countries" moduleData={{ total: stats.total, countries: stats.countries }} />
+                <SmartStatsCard title="Total Ceremonies" value={stats.total} icon={Award} color="primary" moduleType="mou-ceremonies" statType="total" moduleData={stats} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="mou-ceremonies" statType="countries" moduleData={stats} />
             </div>
             <FilterBar
                 filters={filters}

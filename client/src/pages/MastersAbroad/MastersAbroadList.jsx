@@ -40,6 +40,21 @@ const MastersAbroadList = () => {
         } catch (error) { console.error('Error fetching stats:', error); }
     };
 
+    // Helper function for case-insensitive unique values
+    const getCaseInsensitiveUnique = (array, key) => {
+        const seen = new Map();
+        array.forEach(item => {
+            const value = item[key];
+            if (value) {
+                const lowerValue = value.toLowerCase();
+                if (!seen.has(lowerValue)) {
+                    seen.set(lowerValue, value);
+                }
+            }
+        });
+        return Array.from(seen.values()).sort();
+    };
+
     const fetchFilterData = async () => {
         try {
             const response = await api.get('/masters-abroad', { params: { limit: 1000 } });
@@ -101,9 +116,9 @@ const MastersAbroadList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Programs" value={stats.total} icon={GraduationCap} color="primary" moduleType="masters-abroad" statType="total" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
-                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="masters-abroad" statType="countries" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
-                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="masters-abroad" statType="active" moduleData={{ total: stats.total, countries: stats.countries, active: stats.active }} />
+                <SmartStatsCard title="Total Programs" value={stats.total} icon={GraduationCap} color="primary" moduleType="masters-abroad" statType="total" moduleData={stats} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="masters-abroad" statType="countries" moduleData={stats} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="masters-abroad" statType="active" moduleData={stats} />
             </div>
             <FilterBar
                 filters={filters}

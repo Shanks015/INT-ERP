@@ -106,8 +106,8 @@ const DigitalMediaList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <SmartStatsCard title="Total Posts" value={stats.total} icon={Radio} color="primary" moduleType="digital-media" statType="total" moduleData={{ total: stats.total, channels: stats.channels }} />
-                <SmartStatsCard title="Channels" value={stats.channels} icon={Hash} color="secondary" moduleType="digital-media" statType="channels" moduleData={{ total: stats.total, channels: stats.channels }} />
+                <SmartStatsCard title="Total Posts" value={stats.total} icon={Radio} color="primary" moduleType="digital-media" statType="total" moduleData={stats} />
+                <SmartStatsCard title="Channels" value={stats.channels} icon={Hash} color="secondary" moduleType="digital-media" statType="channels" moduleData={stats} />
             </div>
 
             <div className="card bg-base-100 shadow-xl mb-6">
@@ -116,12 +116,12 @@ const DigitalMediaList = () => {
                         <h3 className="text-lg font-semibold">Filters</h3>
                         <button onClick={handleClearFilters} className="btn btn-ghost btn-sm gap-2"><X size={16} /> Clear All</button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="form-control">
                             <label className="label"><span className="label-text">Search</span></label>
                             <div className="relative">
                                 <input type="text" placeholder="Search topic, channel..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
-                                <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
+                                <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/50" size={20} />
                             </div>
                         </div>
 
