@@ -26,6 +26,7 @@ const ImportModal = ({ isOpen, onClose, onSuccess, moduleName }) => {
         { value: 'masters-abroad', label: 'Masters Abroad' },
         { value: 'memberships', label: 'Memberships' },
         { value: 'digital-media', label: 'Digital Media' },
+        { value: 'outreach', label: 'Outreach' },
     ];
 
     const handleFileChange = (e) => {
@@ -42,7 +43,14 @@ const ImportModal = ({ isOpen, onClose, onSuccess, moduleName }) => {
         formData.append('file', file);
 
         try {
-            const response = await api.post(`/import/${module}`, formData, {
+            // Determine endpoint based on module
+            let endpoint = `/import/${module}`;
+            // Use custom endpoint for outreach to handle specific field mapping
+            if (module === 'outreach') {
+                endpoint = '/outreach/import-csv';
+            }
+
+            const response = await api.post(endpoint, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             toast.success(response.data.message);
@@ -62,7 +70,7 @@ const ImportModal = ({ isOpen, onClose, onSuccess, moduleName }) => {
         <div className="modal modal-open">
             <div className="modal-box">
                 <button onClick={onClose} className="btn btn-sm btn-circle absolute right-2 top-2"><X size={20} /></button>
-                <h3 className="font-bold text-lg mb-4">Import Data from Excel</h3>
+                <h3 className="font-bold text-lg mb-4">Import Data (CSV or Excel)</h3>
 
                 {!result ? (
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -81,11 +89,11 @@ const ImportModal = ({ isOpen, onClose, onSuccess, moduleName }) => {
                         </div>
 
                         <div className="form-control">
-                            <label className="label"><span className="label-text">Select Excel File</span></label>
+                            <label className="label"><span className="label-text">Select File (CSV/Excel)</span></label>
                             <input
                                 type="file"
                                 className="file-input file-input-bordered w-full"
-                                accept=".xlsx, .xls"
+                                accept=".csv, .xlsx, .xls"
                                 onChange={handleFileChange}
                                 required
                             />

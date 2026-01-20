@@ -18,6 +18,7 @@ const outreachSchema = new mongoose.Schema({
     partnershipType: String,
     reply: String,
     notes: String,
+    department: String,
     approvalStatus: {
         type: String,
         enum: ['pending', 'approved', 'rejected'],
