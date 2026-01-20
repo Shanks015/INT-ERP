@@ -1,8 +1,10 @@
 import express from 'express';
+import multer from 'multer';
 import { authenticate, authorize } from '../middleware/auth.js';
 import * as outreachController from '../controllers/outreach.controller.js';
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // All routes require authentication
 router.use(authenticate);
@@ -12,6 +14,9 @@ router.get('/stats', outreachController.getOutreachStats);
 
 // Export to CSV
 router.get('/export-csv', outreachController.exportOutreachCSV);
+
+// Import from CSV
+router.post('/import-csv', upload.single('file'), outreachController.importOutreachCSV);
 
 // Get pending items (admin only) - MUST BE BEFORE /:id
 router.get('/pending/all', authorize(['admin']), outreachController.getOutreachPending);
