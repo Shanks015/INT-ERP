@@ -892,7 +892,8 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                         reply: {
                             $exists: true,
                             $ne: '',
-                            $nin: ['No reply', 'No response', 'no reply', 'no response', 'N/A', 'NA', '-']
+                            // Use regex to exclude variations of "No Response", "No Reply", "N/A", "-"
+                            $not: /^(no\s*(reply|response)|n\/?a|-)$/i
                         }
                     }),
                     Model.aggregate([
