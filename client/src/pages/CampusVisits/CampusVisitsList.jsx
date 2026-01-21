@@ -18,6 +18,7 @@ const CampusVisitsList = () => {
     const formatDate = useDateFormat();
     const [campusVisits, setCampusVisits] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, universities: 0, trend: null });
+    const [statsLoading, setStatsLoading] = useState(true);
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
@@ -56,10 +57,13 @@ const CampusVisitsList = () => {
 
     const fetchStats = async () => {
         try {
+            setStatsLoading(true);
             const response = await api.get('/campus-visits/stats');
             setStats(response.data.stats);
         } catch (error) {
             console.error('Error fetching stats:', error);
+        } finally {
+            setStatsLoading(false);
         }
     };
 
@@ -177,6 +181,7 @@ const CampusVisitsList = () => {
                     moduleType="campus-visits"
                     statType="total"
                     moduleData={{ ...stats }}
+                    loading={statsLoading}
                 />
                 <SmartStatsCard
                     title="Countries"
@@ -186,6 +191,7 @@ const CampusVisitsList = () => {
                     moduleType="campus-visits"
                     statType="countries"
                     moduleData={{ ...stats }}
+                    loading={statsLoading}
                 />
                 <SmartStatsCard
                     title="Universities"
@@ -195,6 +201,7 @@ const CampusVisitsList = () => {
                     moduleType="campus-visits"
                     statType="universities"
                     moduleData={{ ...stats }}
+                    loading={statsLoading}
                 />
             </div>
 

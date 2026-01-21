@@ -19,6 +19,7 @@ const StudentExchangeList = () => {
     const formatDate = useDateFormat();
     const [exchanges, setExchanges] = useState([]);
     const [stats, setStats] = useState({ total: 0, universities: 0, active: 0 });
+    const [statsLoading, setStatsLoading] = useState(true);
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
@@ -39,9 +40,11 @@ const StudentExchangeList = () => {
 
     const fetchStats = async () => {
         try {
+            setStatsLoading(true);
             const response = await api.get('/student-exchange/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+        finally { setStatsLoading(false); }
     };
 
     const fetchFilterData = async () => {
@@ -114,9 +117,9 @@ const StudentExchangeList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Exchanges" value={stats.total} icon={UserCheck} color="primary" moduleType="student-exchange" statType="total" moduleData={stats} />
-                <SmartStatsCard title="Universities" value={stats.universities} icon={Building2} color="secondary" moduleType="student-exchange" statType="universities" moduleData={stats} />
-                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="student-exchange" statType="active" moduleData={stats} />
+                <SmartStatsCard title="Total Exchanges" value={stats.total} icon={UserCheck} color="primary" moduleType="student-exchange" statType="total" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Universities" value={stats.universities} icon={Building2} color="secondary" moduleType="student-exchange" statType="universities" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="student-exchange" statType="active" moduleData={stats} loading={statsLoading} />
             </div>
             <FilterBar
                 filters={filters}

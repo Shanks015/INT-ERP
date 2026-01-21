@@ -1,7 +1,8 @@
+import React from 'react';
 import StatsCard from './StatsCard';
 import { useAnalytics } from '../context/AnalyticsContext';
 
-const SmartStatsCard = ({
+const SmartStatsCard = React.memo(({
     title,
     value,
     icon,
@@ -10,12 +11,13 @@ const SmartStatsCard = ({
     moduleType,
     statType,
     moduleData,
+    loading,
     ...rest
 }) => {
     const { openAnalytics } = useAnalytics();
 
     const handleClick = () => {
-        console.log('SmartStatsCard clicked!', { title, moduleType, statType });
+        // console.log('SmartStatsCard clicked!', { title, moduleType, statType }); // cleanup debug log
 
         // Prepare analytics data
         const analyticsData = {
@@ -28,7 +30,7 @@ const SmartStatsCard = ({
             ...moduleData
         };
 
-        console.log('Opening analytics with data:', analyticsData);
+        // console.log('Opening analytics with data:', analyticsData);
         openAnalytics(analyticsData);
     };
 
@@ -39,10 +41,13 @@ const SmartStatsCard = ({
             icon={icon}
             color={color}
             trend={trend}
+            loading={loading}
             onClick={handleClick}
             {...rest}
         />
     );
-};
+});
+
+SmartStatsCard.displayName = 'SmartStatsCard';
 
 export default SmartStatsCard;
