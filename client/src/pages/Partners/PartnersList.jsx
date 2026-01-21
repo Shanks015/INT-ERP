@@ -19,6 +19,7 @@ const PartnersList = () => {
     const formatDate = useDateFormat();
     const [partners, setPartners] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, active: 0 });
+    const [statsLoading, setStatsLoading] = useState(true);
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, partner: null });
     const [importModal, setImportModal] = useState(false);
@@ -54,10 +55,13 @@ const PartnersList = () => {
 
     const fetchStats = async () => {
         try {
+            setStatsLoading(true);
             const response = await api.get('/partners/stats');
             setStats(response.data.stats);
         } catch (error) {
             console.error('Error fetching stats:', error);
+        } finally {
+            setStatsLoading(false);
         }
     };
 
@@ -220,6 +224,7 @@ const PartnersList = () => {
                         })),
                         trend: { change: 5, percentage: 8.3, direction: 'up' } // Replace with real trend data
                     }}
+                    loading={statsLoading}
                 />
                 <SmartStatsCard
                     title="Countries"
@@ -237,6 +242,7 @@ const PartnersList = () => {
                             value: partners.filter(p => p.country === c).length
                         }))
                     }}
+                    loading={statsLoading}
                 />
                 <SmartStatsCard
                     title="Active"
@@ -249,6 +255,7 @@ const PartnersList = () => {
                         ...stats, // Spread all stats from backend (including expiryForecast, agreementTypes, etc.)
                         trend: { change: 3, percentage: 5.2, direction: 'up' }
                     }}
+                    loading={statsLoading}
                 />
             </div>
 

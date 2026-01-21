@@ -18,6 +18,7 @@ const EventsList = () => {
     const formatDate = useDateFormat();
     const [events, setEvents] = useState([]);
     const [stats, setStats] = useState({ total: 0, eventTypes: 0, departments: 0 });
+    const [statsLoading, setStatsLoading] = useState(true);
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
@@ -39,9 +40,11 @@ const EventsList = () => {
 
     const fetchStats = async () => {
         try {
+            setStatsLoading(true);
             const response = await api.get('/events/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+        finally { setStatsLoading(false); }
     };
 
     const fetchFilterData = async () => {
@@ -121,9 +124,9 @@ const EventsList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Events" value={stats.total} icon={Calendar} color="primary" moduleType="events" statType="total" moduleData={{ ...stats }} />
-                <SmartStatsCard title="Event Types" value={stats.eventTypes} icon={Tag} color="secondary" moduleType="events" statType="types" moduleData={{ ...stats }} />
-                <SmartStatsCard title="Departments" value={stats.departments} icon={Building2} color="info" moduleType="events" statType="departments" moduleData={{ ...stats }} />
+                <SmartStatsCard title="Total Events" value={stats.total} icon={Calendar} color="primary" moduleType="events" statType="total" moduleData={{ ...stats }} loading={statsLoading} />
+                <SmartStatsCard title="Event Types" value={stats.eventTypes} icon={Tag} color="secondary" moduleType="events" statType="types" moduleData={{ ...stats }} loading={statsLoading} />
+                <SmartStatsCard title="Departments" value={stats.departments} icon={Building2} color="info" moduleType="events" statType="departments" moduleData={{ ...stats }} loading={statsLoading} />
             </div>
 
             <div className="card bg-base-100 shadow-xl mb-6">

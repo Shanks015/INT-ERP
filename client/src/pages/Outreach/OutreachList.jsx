@@ -17,6 +17,7 @@ const OutreachList = () => {
     const { user, isAdmin } = useAuth();
     const [outreach, setOutreach] = useState([]);
     const [stats, setStats] = useState({ total: 0, responses: 0, nonResponses: 0 });
+    const [statsLoading, setStatsLoading] = useState(true);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({ search: '', country: '', partnershipType: '', outreachType: '', startDate: '', endDate: '' });
 
@@ -40,9 +41,11 @@ const OutreachList = () => {
 
     const fetchStats = async () => {
         try {
+            setStatsLoading(true);
             const response = await api.get('/outreach/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+        finally { setStatsLoading(false); }
     };
 
     const fetchFilterData = async () => {
@@ -162,9 +165,9 @@ const OutreachList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Outreach" value={stats.total} icon={Mail} color="primary" moduleType="outreach" statType="total" moduleData={stats} />
-                <SmartStatsCard title="Responses" value={stats.responses} icon={CheckCircle} color="success" moduleType="outreach" statType="responses" moduleData={stats} />
-                <SmartStatsCard title="No Response" value={stats.nonResponses} icon={XCircle} color="error" moduleType="outreach" statType="non-responses" moduleData={stats} />
+                <SmartStatsCard title="Total Outreach" value={stats.total} icon={Mail} color="primary" moduleType="outreach" statType="total" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Responses" value={stats.responses} icon={CheckCircle} color="success" moduleType="outreach" statType="responses" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="No Response" value={stats.nonResponses} icon={XCircle} color="error" moduleType="outreach" statType="non-responses" moduleData={stats} loading={statsLoading} />
             </div>
 
             {/* Filters */}
@@ -336,6 +339,11 @@ const OutreachList = () => {
                     { key: 'contactName', label: 'Contact Name' },
                     { key: 'contactPerson', label: 'Contact Person' },
                     { key: 'email', label: 'Email', type: 'email' },
+                    {
+                        key: 'alternativeEmails',
+                        label: 'Alternative Emails',
+                        render: (val) => val && val.length > 0 ? val.join(', ') : '-'
+                    },
                     { key: 'phone', label: 'Phone' },
                     { key: 'website', label: 'Website', type: 'link' },
                     { key: 'partnershipType', label: 'Partnership Type' },

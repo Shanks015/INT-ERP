@@ -4,12 +4,15 @@ import App from './App.jsx';
 import './index.css';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { Toaster } from 'react-hot-toast';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
-        <AuthProvider>
-            <App />
-            <Toaster position="top-right" />
-        </AuthProvider>
+        <ErrorBoundary>
+            <AuthProvider>
+                <App />
+                <Toaster position="top-right" />
+            </AuthProvider>
+        </ErrorBoundary>
     </StrictMode>
 );

@@ -19,6 +19,7 @@ const MouUpdatesList = () => {
     const formatDate = useDateFormat();
     const [updates, setUpdates] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, active: 0 });
+    const [statsLoading, setStatsLoading] = useState(true);
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
@@ -40,9 +41,11 @@ const MouUpdatesList = () => {
 
     const fetchStats = async () => {
         try {
+            setStatsLoading(true);
             const response = await api.get('/mou-updates/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+        finally { setStatsLoading(false); }
     };
 
     const fetchFilterData = async () => {
@@ -107,9 +110,9 @@ const MouUpdatesList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Updates" value={stats.total} icon={FileText} color="primary" moduleType="mou-updates" statType="total" moduleData={stats} />
-                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="mou-updates" statType="countries" moduleData={stats} />
-                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="mou-updates" statType="active" moduleData={stats} />
+                <SmartStatsCard title="Total Updates" value={stats.total} icon={FileText} color="primary" moduleType="mou-updates" statType="total" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="mou-updates" statType="countries" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="mou-updates" statType="active" moduleData={stats} loading={statsLoading} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <div className="form-control">

@@ -7,7 +7,8 @@ const StatsCard = ({
     trend,
     color = 'primary',
     onClick,
-    isActive = false
+    isActive = false,
+    loading = false
 }) => {
     const trendIcons = {
         up: <TrendingUp className="w-4 h-4" />,
@@ -33,9 +34,15 @@ const StatsCard = ({
                     {Icon && <Icon className="w-6 h-6 sm:w-8 sm:h-8" />}
                 </div>
                 <div className="stat-title text-xs sm:text-sm truncate">{title}</div>
-                <div className={`stat-value text-${color} text-xl sm:text-2xl md:text-3xl`}>{value || 0}</div>
+                {loading ? (
+                    <div className="stat-value text-xl sm:text-2xl md:text-3xl flex items-center h-9">
+                        <span className="loading loading-spinner loading-md text-primary"></span>
+                    </div>
+                ) : (
+                    <div className={`stat-value text-${color} text-xl sm:text-2xl md:text-3xl`}>{value || 0}</div>
+                )}
 
-                {trend && (
+                {trend && !loading && (
                     <div className={`stat-desc flex items-center gap-1 ${trendColors[trend.direction]} flex-wrap`}>
                         {trendIcons[trend.direction]}
                         <span className="font-semibold text-xs sm:text-sm whitespace-nowrap">

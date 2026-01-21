@@ -17,7 +17,7 @@ export const handleFormSubmit = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid payload: responses array missing' });
         }
 
-        console.log(`Received submission for form: ${formTitle}`);
+
         let result;
 
         // Normalize form title to lowercase for matching

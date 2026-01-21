@@ -19,6 +19,7 @@ const MembershipsList = () => {
     const formatDate = useDateFormat();
     const [memberships, setMemberships] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, active: 0 });
+    const [statsLoading, setStatsLoading] = useState(true);
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
@@ -38,9 +39,11 @@ const MembershipsList = () => {
 
     const fetchStats = async () => {
         try {
+            setStatsLoading(true);
             const response = await api.get('/memberships/stats');
             setStats(response.data.stats);
         } catch (error) { console.error('Error fetching stats:', error); }
+        finally { setStatsLoading(false); }
     };
 
     const fetchFilterData = async () => {
@@ -103,9 +106,9 @@ const MembershipsList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Memberships" value={stats.total} icon={Users2} color="primary" moduleType="memberships" statType="total" moduleData={stats} />
-                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="memberships" statType="countries" moduleData={stats} />
-                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="memberships" statType="active" moduleData={stats} />
+                <SmartStatsCard title="Total Memberships" value={stats.total} icon={Users2} color="primary" moduleType="memberships" statType="total" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="memberships" statType="countries" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="memberships" statType="active" moduleData={stats} loading={statsLoading} />
             </div>
             <FilterBar
                 filters={filters}

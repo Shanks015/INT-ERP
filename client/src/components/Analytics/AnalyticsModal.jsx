@@ -15,7 +15,7 @@ import DigitalMediaView from './DigitalMediaView';
 const AnalyticsModal = () => {
     const { isOpen, closeAnalytics, analyticsData, activeTab, setActiveTab } = useAnalytics();
 
-    console.log('AnalyticsModal render:', { isOpen, hasData: !!analyticsData });
+
 
     // Handle ESC key press
     useEffect(() => {
@@ -23,7 +23,6 @@ const AnalyticsModal = () => {
 
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
-                console.log('ESC key pressed, closing modal');
                 closeAnalytics();
             }
         };
@@ -33,17 +32,13 @@ const AnalyticsModal = () => {
     }, [isOpen, closeAnalytics]);
 
     if (!analyticsData) {
-        console.log('AnalyticsModal: No data, not rendering modal');
         return null;
     }
 
     const handleBackdropClick = (e) => {
         // Only close if clicking directly on backdrop, not bubbled events
         if (e.target === e.currentTarget) {
-            console.log('Backdrop clicked, closing modal');
             closeAnalytics();
-        } else {
-            console.log('Click on modal content, not closing');
         }
     };
 

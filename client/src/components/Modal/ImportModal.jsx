@@ -54,7 +54,12 @@ const ImportModal = ({ isOpen, onClose, onSuccess, moduleName }) => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             toast.success(response.data.message);
-            setResult({ success: true, message: response.data.message, count: response.data.count });
+            setResult({
+                success: true,
+                message: response.data.message,
+                summary: response.data.summary,
+                errors: response.data.errors
+            });
             if (onSuccess) onSuccess();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Import failed');
@@ -121,15 +126,56 @@ const ImportModal = ({ isOpen, onClose, onSuccess, moduleName }) => {
                         <div className={`text-5xl mb-4 ${result.success ? 'text-success' : 'text-error'}`}>
                             {result.success ? '🎉' : '❌'}
                         </div>
-                        <h4 className="text-xl font-bold mb-2">{result.success ? 'Import Successful' : 'Import Failed'}</h4>
+                        <h4 className="text-xl font-bold mb-2">{result.success ? 'Import Completed' : 'Import Failed'}</h4>
                         <p className="mb-6">{result.message}</p>
-                        <button
-                            onClick={() => { setResult(null); setFile(null); }}
-                            className="btn btn-outline mr-2"
-                        >
-                            Import Another
-                        </button>
-                        <button onClick={onClose} className="btn btn-primary">Close</button>
+
+                        {/* Summary Stats */}
+                        {result.summary && (
+                            <div className="stats shadow mb-6 w-full max-w-md mx-auto">
+                                <div className="stat place-items-center">
+                                    <div className="stat-title">Total Rows</div>
+                                    <div className="stat-value text-base-content">{result.summary.total}</div>
+                                </div>
+                                <div className="stat place-items-center">
+                                    <div className="stat-title">Imported</div>
+                                    <div className="stat-value text-success">{result.summary.successful}</div>
+                                </div>
+                                <div className="stat place-items-center">
+                                    <div className="stat-title">Skipped</div>
+                                    <div className="stat-value text-error">{result.summary.failed}</div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Error Details */}
+                        {result.errors && result.errors.length > 0 && (
+                            <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box mb-6 text-left max-h-60 overflow-y-auto">
+                                <input type="checkbox" />
+                                <div className="collapse-title text-sm font-medium">
+                                    View {result.errors.length} skipped records details
+                                </div>
+                                <div className="collapse-content">
+                                    <div className="text-xs space-y-2 mt-2">
+                                        {result.errors.map((err, idx) => (
+                                            <div key={idx} className="alert alert-warning p-2 text-xs flex-col items-start gap-1">
+                                                <span className="font-bold">Row {err.row}:</span>
+                                                <span>{err.reason}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex justify-center gap-2">
+                            <button
+                                onClick={() => { setResult(null); setFile(null); }}
+                                className="btn btn-outline"
+                            >
+                                Import Another
+                            </button>
+                            <button onClick={onClose} className="btn btn-primary">Close</button>
+                        </div>
                     </div>
                 )}
             </div>

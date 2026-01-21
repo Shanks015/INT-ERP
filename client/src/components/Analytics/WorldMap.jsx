@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps';
 import { motion } from 'framer-motion';
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
@@ -37,18 +37,23 @@ const WorldMap = ({ data }) => {
     const [position, setPosition] = useState({ coordinates: [0, 0], zoom: 1 });
 
     // Create a map of country data by country name
-    const countryDataMap = {};
-    if (data.countryDistribution) {
-        data.countryDistribution.forEach(item => {
-            const normalizedName = normalizeCountryName(item.name);
-            countryDataMap[normalizedName] = item.value;
-        });
-    }
+    const { countryDataMap, maxValue } = useMemo(() => {
+        const map = {};
+        let max = 1;
 
-    // Find max value for color scaling
-    const maxValue = data.countryDistribution
-        ? Math.max(...data.countryDistribution.map(d => d.value))
-        : 1;
+        if (data?.countryDistribution) {
+            data.countryDistribution.forEach(item => {
+                const normalizedName = normalizeCountryName(item.name);
+                map[normalizedName] = item.value;
+            });
+
+            if (data.countryDistribution.length > 0) {
+                max = Math.max(...data.countryDistribution.map(d => d.value));
+            }
+        }
+
+        return { countryDataMap: map, maxValue: max };
+    }, [data.countryDistribution]);
 
     // Get color based on value (heat map)
     const getCountryColor = (countryName) => {
@@ -70,7 +75,6 @@ const WorldMap = ({ data }) => {
         const value = countryDataMap[countryName];
 
         if (value) {
-            console.log(`Clicked on ${countryName}: ${value} records`);
             // Future: Filter records by this country
         }
     };
