@@ -176,6 +176,7 @@ const OutreachList = () => {
                 onFilterChange={handleFilterChange}
                 onClearFilters={handleClearFilters}
                 showCountryFilter={true}
+                showDateFilter={false}
             >
                 <div className="form-control">
                     <label className="label"><span className="label-text">Partnership Type</span></label>

@@ -1,6 +1,6 @@
 import { Search, X } from 'lucide-react';
 
-const FilterBar = ({ filters, onFilterChange, onClearFilters, showCountryFilter = false, countries = [] }) => {
+const FilterBar = ({ filters, onFilterChange, onClearFilters, showCountryFilter = false, showDateFilter = true, countries = [] }) => {
     const handleChange = (field, value) => {
         onFilterChange({ [field]: value });
     };
@@ -53,30 +53,34 @@ const FilterBar = ({ filters, onFilterChange, onClearFilters, showCountryFilter 
                     </div>
 
                     {/* Start Date */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">From Date</span>
-                        </label>
-                        <input
-                            type="date"
-                            className="input input-bordered w-full"
-                            value={filters.startDate || ''}
-                            onChange={(e) => handleChange('startDate', e.target.value)}
-                        />
-                    </div>
+                    {showDateFilter && (
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">From Date</span>
+                            </label>
+                            <input
+                                type="date"
+                                className="input input-bordered w-full"
+                                value={filters.startDate || ''}
+                                onChange={(e) => handleChange('startDate', e.target.value)}
+                            />
+                        </div>
+                    )}
 
                     {/* End Date */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">To Date</span>
-                        </label>
-                        <input
-                            type="date"
-                            className="input input-bordered w-full"
-                            value={filters.endDate || ''}
-                            onChange={(e) => handleChange('endDate', e.target.value)}
-                        />
-                    </div>
+                    {showDateFilter && (
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">To Date</span>
+                            </label>
+                            <input
+                                type="date"
+                                className="input input-bordered w-full"
+                                value={filters.endDate || ''}
+                                onChange={(e) => handleChange('endDate', e.target.value)}
+                            />
+                        </div>
+                    )}
 
                     {/* Country Filter (optional) */}
                     {showCountryFilter && (
