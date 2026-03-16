@@ -3,9 +3,14 @@ import toast from 'react-hot-toast';
 
 // Dynamically determine API URL based on current hostname
 const getApiUrl = () => {
-    // Check if we are in production build (Vite sets this)
+    // Check for explicit environment variable first (especially useful for production)
+    if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL;
+    }
+
+    // Fallback logic for development
     if (import.meta.env.PROD) {
-        return '/api'; // Use relative path for Nginx reverse proxy
+        return '/api'; // Standard relative path for production proxy
     }
 
     const hostname = window.location.hostname;

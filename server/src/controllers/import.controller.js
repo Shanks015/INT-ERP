@@ -151,9 +151,9 @@ export const importData = async (req, res) => {
                     summary: row['Summary'],
                     arrivalDate: parseDate(row['Arrival Date']),
                     departureDate: parseDate(row['Departure Date']),
-                    fees: row['Fees Per Day'],
-                    department: row['Department'],
-                    driveLink: row['drive link']
+                    feesPerPax: row['Fees Per Pax'],
+                    department: row['Department '], // Note the space in Excel header
+                    driveLink: row['Immersion Program -  Upload Zip FIle'] || row['drive link']
                 });
                 break;
             case 'student-exchange':
@@ -162,12 +162,12 @@ export const importData = async (req, res) => {
                     direction: row['Incoming/Outgoing'],
                     studentName: row['Students Name'],
                     semesterYear: row['Course Semester Year'],
-                    usnNumber: row['USN No'], // mapped?
+                    usnNo: row['USN NO'],
                     exchangeUniversity: row['Exchange University'],
                     fromDate: parseDate(row['From Date']),
                     toDate: parseDate(row['To Date']),
-                    exchangeStatus: row['Status'],
-                    driveLink: row['drive link']
+                    status: row['Status'] || 'active',
+                    driveLink: row['Student Exchange -   Upload Zip FIle'] || row['Student Exchange -  Upload Zip FIle'] || row['drive link']
                 });
                 break;
             case 'masters-abroad':
@@ -203,12 +203,12 @@ export const importData = async (req, res) => {
                 Model = DigitalMedia;
                 mappingFunction = (row) => ({
                     date: parseDate(row['Date']),
-                    type: row['Channel'], // Mapping Channel to Type
-                    link: row['Link of Article'],
-                    title: row['Article Topic'],
-                    // amountPaid: row['Amoun t Paid'], // Schema check 
-                    reach: row['Summary'], // Mapping Summary to Reach? or maybe Summary is separate
-                    driveLink: row['drive link']
+                    channel: row['Channel'],
+                    link: row['Link of the Article'] || row['Link of Article'],
+                    articleTopic: row['Article Topic'],
+                    amountPaid: row['Amount Paid'],
+                    summary: row['Summary'],
+                    driveLink: row['Digital Media -  Upload Zip FIle'] || row['drive link']
                 });
                 break;
             default:

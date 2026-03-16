@@ -24,6 +24,7 @@ import {
     Database,
     ChevronDown
 } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 const MainLayout = () => {
     const { user, logout, isAdmin } = useAuth();
@@ -347,7 +348,7 @@ const MainLayout = () => {
                     </div>
 
                     <div className="flex-1">
-                        <h1 className="text-xl font-bold">International Affairs ERP</h1>
+                        <img src={logo} alt="Logo" className="h-10 mx-auto" />
                     </div>
 
                     <div className="flex-none gap-2">
