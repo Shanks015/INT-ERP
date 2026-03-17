@@ -3,9 +3,21 @@ import toast from 'react-hot-toast';
 
 // Dynamically determine API URL based on current hostname
 const getApiUrl = () => {
-    // Check for explicit environment variable first (especially useful for production)
+    // Check for explicit environment variable first
     if (import.meta.env.VITE_API_URL) {
-        return import.meta.env.VITE_API_URL;
+        let url = import.meta.env.VITE_API_URL;
+        
+        // Auto-fix common typo reported by user
+        if (url.includes('iint-erp.onrender.com')) {
+            url = url.replace('iint-erp.onrender.com', 'int-erp.onrender.com');
+        }
+        
+        // Auto-fix Mixed Content: Ensure HTTPS if the site is HTTPS
+        if (window.location.protocol === 'https:' && url.startsWith('http:')) {
+            url = url.replace('http:', 'https:');
+        }
+        
+        return url;
     }
 
     // Fallback logic for development
@@ -25,8 +37,11 @@ const getApiUrl = () => {
     return `${protocol}//${hostname}:5000/api`;
 };
 
+const apiUrl = getApiUrl();
+console.log('🚀 Active API URL:', apiUrl);
+
 const api = axios.create({
-    baseURL: getApiUrl(),
+    baseURL: apiUrl,
     headers: {
         'Content-Type': 'application/json'
     }
