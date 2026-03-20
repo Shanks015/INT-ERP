@@ -42,9 +42,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+const allowedOrigins = [
+    process.env.CLIENT_URL,
+    'https://int-erp.edgeone.app',
+    'https://int-erp.onrender.com'
+].filter(Boolean);
+
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-        ? process.env.CLIENT_URL
+        ? allowedOrigins
         : true, // Allow all origins in development
     credentials: true
 }));
