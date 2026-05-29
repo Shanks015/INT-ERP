@@ -111,7 +111,7 @@ const PartnersList = () => {
 
     const handleDelete = async (reason) => {
         try {
-            await api.delete(`/ partners / ${deleteModal.partner._id} `, {
+            await api.delete(`/partners/${deleteModal.partner._id}`, {
                 data: { reason }
             });
 
