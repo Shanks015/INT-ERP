@@ -122,11 +122,7 @@ export const create = async (req, res) => {
 // Update event
 export const update = async (req, res) => {
     try {
-        const event = await Event.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
+        const event = await Event.findById(req.params.id);
 
         if (!event) {
             return res.status(404).json({
@@ -135,9 +131,36 @@ export const update = async (req, res) => {
             });
         }
 
+        // Check if event is already pending
+        if (event.status !== 'active') {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot edit an event that has pending changes'
+            });
+        }
+
+        // Admin can directly update
+        if (req.user.role === 'admin') {
+            Object.assign(event, req.body);
+            event.updatedBy = req.userId;
+            await event.save();
+
+            return res.json({
+                success: true,
+                message: 'Event updated successfully',
+                data: event
+            });
+        }
+
+        // Employee/Intern creates pending edit
+        event.status = 'pending_edit';
+        event.pendingChanges = req.body;
+        event.updatedBy = req.userId;
+        await event.save();
+
         res.json({
             success: true,
-            message: 'Event updated successfully',
+            message: 'Edit request submitted for approval',
             data: event
         });
     } catch (error) {
@@ -152,16 +175,44 @@ export const update = async (req, res) => {
 // Delete event
 export const remove = async (req, res) => {
     try {
-        const event = await Event.findByIdAndDelete(req.params.id);
+        const { reason } = req.body;
+        const event = await Event.findById(req.params.id);
+
         if (!event) {
             return res.status(404).json({
                 success: false,
                 message: 'Event not found'
             });
         }
+
+        // Check if event is already pending
+        if (event.status !== 'active') {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot delete an event that has pending changes'
+            });
+        }
+
+        // Admin can directly delete
+        if (req.user.role === 'admin') {
+            await Event.findByIdAndDelete(req.params.id);
+
+            return res.json({
+                success: true,
+                message: 'Event deleted successfully'
+            });
+        }
+
+        // Employee/Intern creates pending delete
+        event.status = 'pending_delete';
+        event.deletionReason = reason || '';
+        event.updatedBy = req.userId;
+        await event.save();
+
         res.json({
             success: true,
-            message: 'Event deleted successfully'
+            message: 'Delete request submitted for approval',
+            data: event
         });
     } catch (error) {
         res.status(500).json({

@@ -55,8 +55,11 @@ const partnerSchema = new mongoose.Schema({
         type: Date
     },
     // Approval workflow fields
-    // Approval workflow fields
-    // status removed - relying on activeStatus/recordStatus
+    status: {
+        type: String,
+        enum: ['active', 'pending_edit', 'pending_delete'],
+        default: 'active'
+    },
     pendingChanges: {
         type: mongoose.Schema.Types.Mixed,
         default: null

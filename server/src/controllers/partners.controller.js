@@ -118,11 +118,7 @@ export const create = async (req, res) => {
 // Update partner
 export const update = async (req, res) => {
     try {
-        const partner = await Partner.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
+        const partner = await Partner.findById(req.params.id);
 
         if (!partner) {
             return res.status(404).json({
@@ -131,9 +127,36 @@ export const update = async (req, res) => {
             });
         }
 
+        // Check if partner is already pending
+        if (partner.status !== 'active') {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot edit a partner that has pending changes'
+            });
+        }
+
+        // Admin can directly update
+        if (req.user.role === 'admin') {
+            Object.assign(partner, req.body);
+            partner.updatedBy = req.userId;
+            await partner.save();
+
+            return res.json({
+                success: true,
+                message: 'Partner updated successfully',
+                data: partner
+            });
+        }
+
+        // Employee/Intern creates pending edit
+        partner.status = 'pending_edit';
+        partner.pendingChanges = req.body;
+        partner.updatedBy = req.userId;
+        await partner.save();
+
         res.json({
             success: true,
-            message: 'Partner updated successfully',
+            message: 'Edit request submitted for approval',
             data: partner
         });
     } catch (error) {
@@ -148,16 +171,44 @@ export const update = async (req, res) => {
 // Delete partner
 export const remove = async (req, res) => {
     try {
-        const partner = await Partner.findByIdAndDelete(req.params.id);
+        const { reason } = req.body;
+        const partner = await Partner.findById(req.params.id);
+
         if (!partner) {
             return res.status(404).json({
                 success: false,
                 message: 'Partner not found'
             });
         }
+
+        // Check if partner is already pending
+        if (partner.status !== 'active') {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot delete a partner that has pending changes'
+            });
+        }
+
+        // Admin can directly delete
+        if (req.user.role === 'admin') {
+            await Partner.findByIdAndDelete(req.params.id);
+
+            return res.json({
+                success: true,
+                message: 'Partner deleted successfully'
+            });
+        }
+
+        // Employee/Intern creates pending delete
+        partner.status = 'pending_delete';
+        partner.deletionReason = reason || '';
+        partner.updatedBy = req.userId;
+        await partner.save();
+
         res.json({
             success: true,
-            message: 'Partner deleted successfully'
+            message: 'Delete request submitted for approval',
+            data: partner
         });
     } catch (error) {
         res.status(500).json({
@@ -168,13 +219,42 @@ export const remove = async (req, res) => {
     }
 };
 
-// Dummy pending functions to satisfy frontend polling
+// Get pending counts/all for Partners
 export const getPendingCount = async (req, res) => {
-    res.json({ success: true, count: 0 });
+    try {
+        const count = await Partner.countDocuments({
+            status: { $in: ['pending_edit', 'pending_delete'] }
+        });
+        res.json({ success: true, count });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching pending count',
+            error: error.message
+        });
+    }
 };
 
 export const getAllPending = async (req, res) => {
-    res.json({ success: true, data: [] });
+    try {
+        const pending = await Partner.find({
+            status: { $in: ['pending_edit', 'pending_delete'] }
+        })
+            .populate('createdBy', 'name email')
+            .populate('updatedBy', 'name email')
+            .sort({ updatedAt: -1 });
+
+        res.json({
+            success: true,
+            data: pending
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching pending partners',
+            error: error.message
+        });
+    }
 };
 
 // Export CSV (Direct)
