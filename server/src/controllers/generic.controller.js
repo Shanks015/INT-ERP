@@ -1,7 +1,57 @@
 import { Parser } from 'json2csv';
 import fs from 'fs';
+import ActivityLog from '../models/ActivityLog.js';
 
 // Generic CRUD controller factory for all modules with approval workflow
+
+// Helper mapping for Mongoose model names to ActivityLog modules
+const getModuleName = (modelName) => {
+    const mapping = {
+        'Partner': 'partners',
+        'Event': 'events',
+        'Conference': 'conferences',
+        'CampusVisit': 'campus-visits',
+        'ImmersionProgram': 'immersion-programs',
+        'MouSigningCeremony': 'mou-signing',
+        'ScholarInResidence': 'scholars',
+        'MouUpdate': 'mou-updates',
+        'StudentExchange': 'student-exchange',
+        'MastersAbroad': 'masters-abroad',
+        'Membership': 'memberships',
+        'DigitalMedia': 'digital-media',
+        'Outreach': 'outreach'
+    };
+    return mapping[modelName] || modelName.toLowerCase();
+};
+
+export const logUserActivity = async (req, action, modelName, record) => {
+    try {
+        if (!req.user) return; // Must have authenticated user to log
+        
+        let targetName = null;
+        if (record) {
+            targetName = record.name || record.title || record.university || 
+                         record.visitorName || record.studentName || record.scholarName ||
+                         record.topic || record.nameOfOrganization || record.dignitaries;
+        }
+
+        await ActivityLog.logActivity({
+            user: req.user._id,
+            userName: req.user.name,
+            action,
+            module: getModuleName(modelName),
+            targetId: record ? String(record._id) : null,
+            targetName: targetName ? String(targetName) : null,
+            ipAddress: req.ip || req.connection.remoteAddress,
+            userAgent: req.get('user-agent'),
+            method: req.method,
+            path: req.path,
+            statusCode: 200
+        });
+    } catch (err) {
+        console.error('Error in logUserActivity helper:', err);
+    }
+};
 
 // Get all records with filters, search, sorting, and pagination
 export const getAll = (Model) => async (req, res) => {
@@ -178,6 +228,9 @@ export const create = (Model) => async (req, res) => {
 
         await record.save();
 
+        // Log creation activity
+        await logUserActivity(req, 'create', Model.modelName, record);
+
         res.status(201).json({
             success: true,
             message: 'Record created successfully',
@@ -218,6 +271,9 @@ export const update = (Model) => async (req, res) => {
             record.updatedBy = req.userId;
             await record.save();
 
+            // Log admin direct update activity
+            await logUserActivity(req, 'update', Model.modelName, record);
+
             return res.json({
                 success: true,
                 message: 'Record updated successfully',
@@ -230,6 +286,9 @@ export const update = (Model) => async (req, res) => {
         record.pendingChanges = req.body;
         record.updatedBy = req.userId;
         await record.save();
+
+        // Log employee staged update activity
+        await logUserActivity(req, 'update', Model.modelName, record);
 
         res.json({
             success: true,
@@ -270,6 +329,9 @@ export const remove = (Model) => async (req, res) => {
         if (req.user.role === 'admin') {
             await Model.findByIdAndDelete(req.params.id);
 
+            // Log admin direct delete activity
+            await logUserActivity(req, 'delete', Model.modelName, record);
+
             return res.json({
                 success: true,
                 message: 'Record deleted successfully'
@@ -281,6 +343,9 @@ export const remove = (Model) => async (req, res) => {
         record.deletionReason = reason || '';
         record.updatedBy = req.userId;
         await record.save();
+
+        // Log employee staged delete activity
+        await logUserActivity(req, 'delete', Model.modelName, record);
 
         res.json({
             success: true,
@@ -333,6 +398,9 @@ export const approve = (Model) => async (req, res) => {
             record.updatedBy = req.userId;
             await record.save();
 
+            // Log admin approve edit activity
+            await logUserActivity(req, 'update', Model.modelName, record);
+
             return res.json({
                 success: true,
                 message: 'Edit approved and applied',
@@ -343,6 +411,9 @@ export const approve = (Model) => async (req, res) => {
         if (record.status === 'pending_delete') {
             // Delete the record
             await Model.findByIdAndDelete(req.params.id);
+
+            // Log admin approve delete activity
+            await logUserActivity(req, 'delete', Model.modelName, record);
 
             return res.json({
                 success: true,
@@ -377,12 +448,16 @@ export const reject = (Model) => async (req, res) => {
         }
 
         if (record.status === 'pending_edit' || record.status === 'pending_delete') {
+            const oldStatus = record.status;
             // Restore to active status
             record.status = 'active';
             record.pendingChanges = null;
             record.deletionReason = null;
             // Store rejection reason (optional - could add rejectionReason field)
             await record.save();
+
+            // Log admin reject staging activity
+            await logUserActivity(req, 'update', Model.modelName, record);
 
             return res.json({
                 success: true,
@@ -425,6 +500,9 @@ export const exportCSV = (Model) => async (req, res) => {
 
         const parser = new Parser();
         const csv = parser.parse(cleanRecords);
+
+        // Log export activity
+        await logUserActivity(req, 'export', Model.modelName, null);
 
         res.header('Content-Type', 'text/csv');
         res.header('Content-Disposition', `attachment; filename="${Model.modelName.toLowerCase()}-export.csv"`);

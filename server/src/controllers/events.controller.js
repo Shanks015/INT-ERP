@@ -1,4 +1,5 @@
 import Event from '../models/Event.js';
+import { logUserActivity } from './generic.controller.js';
 
 // Get all events
 export const getAll = async (req, res) => {
@@ -105,6 +106,10 @@ export const create = async (req, res) => {
     try {
         const event = new Event(req.body);
         await event.save();
+
+        // Log event creation activity
+        await logUserActivity(req, 'create', 'Event', event);
+
         res.status(201).json({
             success: true,
             message: 'Event created successfully',
@@ -145,6 +150,9 @@ export const update = async (req, res) => {
             event.updatedBy = req.userId;
             await event.save();
 
+            // Log admin event update activity
+            await logUserActivity(req, 'update', 'Event', event);
+
             return res.json({
                 success: true,
                 message: 'Event updated successfully',
@@ -157,6 +165,9 @@ export const update = async (req, res) => {
         event.pendingChanges = req.body;
         event.updatedBy = req.userId;
         await event.save();
+
+        // Log employee staged event update activity
+        await logUserActivity(req, 'update', 'Event', event);
 
         res.json({
             success: true,
@@ -197,6 +208,9 @@ export const remove = async (req, res) => {
         if (req.user.role === 'admin') {
             await Event.findByIdAndDelete(req.params.id);
 
+            // Log admin event delete activity
+            await logUserActivity(req, 'delete', 'Event', event);
+
             return res.json({
                 success: true,
                 message: 'Event deleted successfully'
@@ -208,6 +222,9 @@ export const remove = async (req, res) => {
         event.deletionReason = reason || '';
         event.updatedBy = req.userId;
         await event.save();
+
+        // Log employee staged event delete activity
+        await logUserActivity(req, 'delete', 'Event', event);
 
         res.json({
             success: true,

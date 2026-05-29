@@ -1,5 +1,6 @@
 import Partner from '../models/Partner.js';
 import { Parser } from 'json2csv';
+import { logUserActivity } from './generic.controller.js';
 
 // Get all partners
 export const getAll = async (req, res) => {
@@ -101,6 +102,10 @@ export const create = async (req, res) => {
             createdBy: req.userId
         });
         await partner.save();
+
+        // Log partner creation activity
+        await logUserActivity(req, 'create', 'Partner', partner);
+
         res.status(201).json({
             success: true,
             message: 'Partner created successfully',
@@ -141,6 +146,9 @@ export const update = async (req, res) => {
             partner.updatedBy = req.userId;
             await partner.save();
 
+            // Log admin partner update activity
+            await logUserActivity(req, 'update', 'Partner', partner);
+
             return res.json({
                 success: true,
                 message: 'Partner updated successfully',
@@ -153,6 +161,9 @@ export const update = async (req, res) => {
         partner.pendingChanges = req.body;
         partner.updatedBy = req.userId;
         await partner.save();
+
+        // Log employee staged partner update activity
+        await logUserActivity(req, 'update', 'Partner', partner);
 
         res.json({
             success: true,
@@ -193,6 +204,9 @@ export const remove = async (req, res) => {
         if (req.user.role === 'admin') {
             await Partner.findByIdAndDelete(req.params.id);
 
+            // Log admin partner delete activity
+            await logUserActivity(req, 'delete', 'Partner', partner);
+
             return res.json({
                 success: true,
                 message: 'Partner deleted successfully'
@@ -204,6 +218,9 @@ export const remove = async (req, res) => {
         partner.deletionReason = reason || '';
         partner.updatedBy = req.userId;
         await partner.save();
+
+        // Log employee staged partner delete activity
+        await logUserActivity(req, 'delete', 'Partner', partner);
 
         res.json({
             success: true,
