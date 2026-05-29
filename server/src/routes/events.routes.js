@@ -3,6 +3,7 @@ import { authenticate, authorize } from '../middleware/auth.js';
 import * as ctrl from '../controllers/events.controller.js';
 import * as enhancedCtrl from '../controllers/enhancedStats.controller.js';
 import Event from '../models/Event.js';
+import { approve, reject } from '../controllers/generic.controller.js';
 
 const router = express.Router();
 
@@ -20,5 +21,9 @@ router.get('/:id', authenticate, ctrl.getById);
 router.post('/', authenticate, ctrl.create);
 router.put('/:id', authenticate, ctrl.update);
 router.delete('/:id', authenticate, ctrl.remove);
+
+// Pending actions routes
+router.post('/pending/:id/approve', authenticate, authorize(['admin']), approve(Event));
+router.post('/pending/:id/reject', authenticate, authorize(['admin']), reject(Event));
 
 export default router;

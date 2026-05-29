@@ -3,6 +3,7 @@ import { authenticate, authorize } from '../middleware/auth.js';
 import * as ctrl from '../controllers/partners.controller.js';
 import * as enhancedCtrl from '../controllers/enhancedStats.controller.js';
 import Partner from '../models/Partner.js';
+import { approve, reject } from '../controllers/generic.controller.js';
 
 const router = express.Router();
 
@@ -25,5 +26,9 @@ router.get('/:id', authenticate, ctrl.getById); // This must come AFTER specific
 router.post('/', authenticate, ctrl.create);
 router.put('/:id', authenticate, ctrl.update);
 router.delete('/:id', authenticate, ctrl.remove);
+
+// Pending actions routes
+router.post('/pending/:id/approve', authenticate, authorize(['admin']), approve(Partner));
+router.post('/pending/:id/reject', authenticate, authorize(['admin']), reject(Partner));
 
 export default router;
