@@ -1,54 +1,80 @@
 import mongoose from 'mongoose';
 
-const mouUpdateSchema = new mongoose.Schema({
+const meetingTrackerSchema = new mongoose.Schema({
+    meetingId: {
+        type: String,
+        trim: true
+    },
+    meetingTitle: {
+        type: String,
+        required: true,
+        trim: true
+    },
     date: {
-        type: Date,
-        required: true
+        type: Date
     },
-    university: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    country: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    department: {
+    startTime: {
         type: String,
         trim: true
     },
-    contactPerson: {
+    endTime: {
         type: String,
         trim: true
     },
-    contactEmail: {
+    timezone: {
         type: String,
         trim: true
     },
-    mouStatus: {
+    mode: {
         type: String,
         trim: true
     },
-    agreementType: {
+    platformLocation: {
         type: String,
         trim: true
     },
-    term: {
+    hostOrganization: {
         type: String,
         trim: true
     },
-    validityStatus: {
+    hostName: {
         type: String,
         trim: true
+    },
+    hostEmail: {
+        type: String,
+        trim: true
+    },
+    participants: {
+        type: String,
+        trim: true
+    },
+    keyAgenda: {
+        type: String,
+        trim: true
+    },
+    discussionSummary: {
+        type: String,
+        trim: true
+    },
+    actionItems: {
+        type: String,
+        trim: true
+    },
+    nextMeetingDate: {
+        type: Date
     },
     driveLink: {
         type: String,
         trim: true
     },
-    completedDate: {
-        type: Date
+    remarks: {
+        type: String,
+        trim: true
+    },
+    sheetMonth: {
+        type: String,
+        trim: true
     },
     // Approval workflow fields
     status: {
@@ -76,4 +102,4 @@ const mouUpdateSchema = new mongoose.Schema({
     timestamps: true
 });
 
-export default mongoose.model('MouUpdate', mouUpdateSchema);
+export default mongoose.model('MeetingTracker', meetingTrackerSchema);

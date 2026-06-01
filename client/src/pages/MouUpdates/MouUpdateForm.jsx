@@ -22,6 +22,7 @@ const MouUpdateForm = () => {
         department: '',
         agreementType: '',
         term: '',
+        completedDate: '',
         driveLink: ''
     });
     const [loading, setLoading] = useState(false);
@@ -44,6 +45,7 @@ const MouUpdateForm = () => {
                 department: item.department || '',
                 agreementType: item.agreementType || '',
                 term: item.term || '',
+                completedDate: item.completedDate ? new Date(item.completedDate).toISOString().split('T')[0] : '',
                 driveLink: item.driveLink || ''
             });
         } catch (error) {
@@ -214,6 +216,17 @@ const MouUpdateForm = () => {
                                             value={formData.date}
                                             onChange={handleChange}
                                             required
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Completed Date</span></label>
+                                        <input
+                                            type="date"
+                                            name="completedDate"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.completedDate}
+                                            onChange={handleChange}
                                         />
                                     </div>
 

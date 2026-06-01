@@ -35,6 +35,14 @@ const mastersAbroadSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    passportNumber: {
+        type: String,
+        trim: true
+    },
+    driveLink: {
+        type: String,
+        trim: true
+    },
     // Approval workflow fields
     status: {
         type: String,

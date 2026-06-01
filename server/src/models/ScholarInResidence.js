@@ -28,8 +28,7 @@ const scholarInResidenceSchema = new mongoose.Schema({
         required: true
     },
     toDate: {
-        type: Date,
-        required: true
+        type: Date
     },
     summary: {
         type: String,
@@ -40,6 +39,10 @@ const scholarInResidenceSchema = new mongoose.Schema({
         trim: true
     },
     driveLink: {
+        type: String,
+        trim: true
+    },
+    scholarStatus: {
         type: String,
         trim: true
     },

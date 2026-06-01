@@ -11,6 +11,7 @@ import StudentExchange from '../models/StudentExchange.js';
 import MastersAbroad from '../models/MastersAbroad.js';
 import Membership from '../models/Membership.js';
 import DigitalMedia from '../models/DigitalMedia.js';
+import MeetingTracker from '../models/MeetingTracker.js';
 
 // Helper to parse date from Excel (which might be number or string)
 const parseDate = (value) => {
@@ -23,6 +24,18 @@ const parseDate = (value) => {
     return new Date(value);
 };
 
+// Helper to parse time from Excel (which might be decimal fraction of 24h or string)
+const parseExcelTime = (value) => {
+    if (!value) return '';
+    if (typeof value === 'number') {
+        const totalMinutes = Math.round(value * 24 * 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }
+    return String(value).trim();
+};
+
 export const importData = async (req, res) => {
     try {
         if (!req.file) {
@@ -31,6 +44,78 @@ export const importData = async (req, res) => {
 
         const workbook = ExcelJS.read(req.file.buffer, { type: 'buffer' });
         const moduleName = req.params.module;
+
+        // Custom multi-tab import handling for meeting-trackers
+        if (moduleName === 'meeting-trackers') {
+            const allRecords = [];
+            const errors = [];
+            let totalProcessed = 0;
+
+            for (const name of workbook.SheetNames) {
+                const sheet = workbook.Sheets[name];
+                const rawData = ExcelJS.utils.sheet_to_json(sheet);
+                rawData.forEach((row, index) => {
+                    totalProcessed++;
+                    // Check if it's an empty row or has no key fields
+                    if (!row['Meeting ID'] && !row['Meeting Title'] && !row['Sl NO']) {
+                        errors.push({ row: index + 2, sheet: name, reason: 'Empty row or missing Sl NO/Meeting ID/Meeting Title' });
+                        return;
+                    }
+                    
+                    try {
+                        const dateParsed = parseDate(row['Date'] || row['Meeting Date']);
+                        const nextMeetingDateParsed = parseDate(row['Next Meeting Date']);
+                        const startTimeParsed = parseExcelTime(row['Start Time']);
+                        const endTimeParsed = parseExcelTime(row['End Time']);
+                        
+                        allRecords.push({
+                            meetingId: String(row['Meeting ID'] || row['ID'] || '').trim(),
+                            meetingTitle: String(row['Meeting Title'] || row['Title'] || '').trim() || 'Untitled Meeting',
+                            date: dateParsed,
+                            startTime: startTimeParsed,
+                            endTime: endTimeParsed,
+                            timezone: String(row['Timezone'] || row['Time Zone'] || 'IST').trim(),
+                            mode: String(row['Mode (Online/Offline)'] || row['Mode'] || 'Online').trim(),
+                            platformLocation: String(row['Platform/Location'] || '').trim(),
+                            hostOrganization: String(row['Host Organization'] || '').trim(),
+                            hostName: String(row['Host Name'] || '').trim(),
+                            hostEmail: String(row['Host Email'] || '').trim(),
+                            participants: String(row['Participants'] || '').trim(),
+                            keyAgenda: String(row['Key Agenda'] || '').trim(),
+                            discussionSummary: String(row['Discussion Summary'] || '').trim(),
+                            actionItems: String(row['Action Items'] || '').trim(),
+                            nextMeetingDate: nextMeetingDateParsed,
+                            driveLink: String(row['Drive Link (MoM/Recording)'] || row['Drive Link'] || row['drive link'] || '').trim(),
+                            remarks: String(row['Remarks'] || '').trim(),
+                            sheetMonth: name,
+                            status: 'active',
+                            createdBy: req.user._id,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        });
+                    } catch (err) {
+                        errors.push({ row: index + 2, sheet: name, reason: err.message });
+                    }
+                });
+            }
+            
+            if (allRecords.length === 0) {
+                return res.status(400).json({ success: false, message: 'No valid data found in Meeting Tracker sheets', errors });
+            }
+            
+            const result = await MeetingTracker.insertMany(allRecords);
+            return res.json({
+                success: true,
+                message: `Successfully imported ${result.length} records into meeting-trackers across ${workbook.SheetNames.length} sheets`,
+                summary: {
+                    total: totalProcessed,
+                    successful: result.length,
+                    failed: totalProcessed - result.length
+                },
+                errors: errors.filter(e => !e.reason.includes('Empty row')) // Don't clutter user with empty row notifications
+            });
+        }
+
         let sheetName = workbook.SheetNames[0]; // Default to first sheet
 
         // Try to find a sheet that matches the module name if possible, otherwise use first

@@ -75,6 +75,10 @@ const SocialMediaForm = lazy(() => import('./pages/SocialMedia/SocialMediaForm')
 const OutreachList = lazy(() => import('./pages/Outreach/OutreachList'));
 const OutreachForm = lazy(() => import('./pages/Outreach/OutreachForm'));
 
+// Meeting Trackers
+const MeetingTrackersList = lazy(() => import('./pages/MeetingTrackers/MeetingTrackersList'));
+const MeetingTrackerForm = lazy(() => import('./pages/MeetingTrackers/MeetingTrackerForm'));
+
 // Settings
 const Settings = lazy(() => import('./pages/Settings/Settings'));
 
@@ -157,6 +161,10 @@ function App() {
                             <Route path="outreach" element={<OutreachList />} />
                             <Route path="outreach/new" element={<OutreachForm />} />
                             <Route path="outreach/edit/:id" element={<OutreachForm />} />
+
+                            <Route path="meeting-trackers" element={<MeetingTrackersList />} />
+                            <Route path="meeting-trackers/new" element={<MeetingTrackerForm />} />
+                            <Route path="meeting-trackers/edit/:id" element={<MeetingTrackerForm />} />
 
                             <Route path="pending-actions" element={<ProtectedRoute adminOnly><PendingActions /></ProtectedRoute>} />
                             <Route path="my-requests" element={<MyRequests />} />

@@ -141,13 +141,14 @@ const MouUpdatesList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>University</th><th>Country</th><th>Update Date</th><th>Agreement Type</th><th>Term</th><th>Status</th><th>Department</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>University</th><th>Country</th><th>Update Date</th><th>Completed Date</th><th>Agreement Type</th><th>Term</th><th>Status</th><th>Department</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {updates.length === 0 ? <tr><td colSpan={10} className="text-center py-8">No updates found</td></tr> : updates.map((update) => (
+                                {updates.length === 0 ? <tr><td colSpan={9} className="text-center py-8">No updates found</td></tr> : updates.map((update) => (
                                     <tr key={update._id}>
                                         <td className="font-medium">{update.university}</td>
                                         <td>{update.country || '-'}</td>
                                         <td>{update.date ? formatDate(update.date) : '-'}</td>
+                                        <td>{update.completedDate ? formatDate(update.completedDate) : '-'}</td>
                                         <td>{update.agreementType || '-'}</td>
                                         <td>{update.term || '-'}</td>
                                         <td>

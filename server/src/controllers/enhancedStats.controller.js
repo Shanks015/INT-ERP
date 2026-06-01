@@ -63,6 +63,9 @@ export const getEnhancedStats = (Model) => async (req, res) => {
             case 'DigitalMedia':
                 dateField = 'date'; // post/publication date
                 break;
+            case 'MeetingTracker':
+                dateField = 'date'; // meeting date
+                break;
             default:
                 dateField = 'createdAt'; // fallback for unknown models
         }
@@ -1155,6 +1158,37 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     active: activeExchanges,
                     countryDistribution: studentExchangeCountryDist,
                     universityDistribution: studentExchangeUniversityDist
+                };
+                break;
+
+            case 'MeetingTracker':
+                const todayMeeting = new Date();
+                todayMeeting.setHours(0, 0, 0, 0);
+
+                const [
+                    upcomingCount,
+                    onlineCount,
+                    offlineCount
+                ] = await Promise.all([
+                    Model.countDocuments({
+                        status: 'active',
+                        date: { $gte: todayMeeting }
+                    }),
+                    Model.countDocuments({
+                        status: 'active',
+                        mode: { $regex: /^online$/i }
+                    }),
+                    Model.countDocuments({
+                        status: 'active',
+                        mode: { $regex: /^offline$/i }
+                    })
+                ]);
+
+                stats = {
+                    ...stats,
+                    upcoming: upcomingCount,
+                    onlineCount,
+                    offlineCount
                 };
                 break;
         }

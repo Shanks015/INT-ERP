@@ -14,6 +14,7 @@ import StudentExchange from './src/models/StudentExchange.js';
 import MastersAbroad from './src/models/MastersAbroad.js';
 import Membership from './src/models/Membership.js';
 import DigitalMedia from './src/models/DigitalMedia.js';
+import MeetingTracker from './src/models/MeetingTracker.js';
 
 dotenv.config();
 
@@ -33,7 +34,8 @@ const verifyCounts = async () => {
             StudentExchange.countDocuments(),
             MastersAbroad.countDocuments(),
             Membership.countDocuments(),
-            DigitalMedia.countDocuments()
+            DigitalMedia.countDocuments(),
+            MeetingTracker.countDocuments()
         ]);
 
         console.log('\n--- Database Counts ---');
@@ -48,6 +50,7 @@ const verifyCounts = async () => {
         console.log(`MastersAbroad: ${counts[8]}`);
         console.log(`Membership: ${counts[9]}`);
         console.log(`DigitalMedia: ${counts[10]}`);
+        console.log(`MeetingTracker: ${counts[11]}`);
 
         process.exit(0);
     } catch (error) {

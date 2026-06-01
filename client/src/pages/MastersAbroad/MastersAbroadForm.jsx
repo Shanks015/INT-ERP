@@ -11,7 +11,7 @@ const MastersAbroadForm = () => {
     const { isAdmin } = useAuth();
     const isEdit = Boolean(id);
 
-    const [formData, setFormData] = useState({ studentName: '', country: '', university: '', courseStudying: '', courseTenure: '', usnNumber: '', cgpa: '', schoolOfStudy: '' });
+    const [formData, setFormData] = useState({ studentName: '', country: '', university: '', courseStudying: '', courseTenure: '', usnNumber: '', cgpa: '', schoolOfStudy: '', passportNumber: '', driveLink: '' });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
 
@@ -21,7 +21,7 @@ const MastersAbroadForm = () => {
         try {
             const response = await api.get(`/masters-abroad/${id}`);
             const item = response.data.data;
-            setFormData({ studentName: item.studentName || '', country: item.country || '', university: item.university || '', courseStudying: item.courseStudying || '', courseTenure: item.courseTenure || '', usnNumber: item.usnNumber || '', cgpa: item.cgpa || '', schoolOfStudy: item.schoolOfStudy || '' });
+            setFormData({ studentName: item.studentName || '', country: item.country || '', university: item.university || '', courseStudying: item.courseStudying || '', courseTenure: item.courseTenure || '', usnNumber: item.usnNumber || '', cgpa: item.cgpa || '', schoolOfStudy: item.schoolOfStudy || '', passportNumber: item.passportNumber || '', driveLink: item.driveLink || '' });
         } catch (error) {
             toast.error('Error fetching record');
             navigate('/masters-abroad');
@@ -143,6 +143,18 @@ const MastersAbroadForm = () => {
                                             onChange={handleChange}
                                         />
                                     </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Passport Number</span></label>
+                                        <input
+                                            type="text"
+                                            name="passportNumber"
+                                            placeholder="Passport Number"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.passportNumber}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -202,6 +214,31 @@ const MastersAbroadForm = () => {
                                             placeholder="Duration e.g. 2 Years"
                                             className="input input-bordered w-full focus:input-primary transition-all"
                                             value={formData.courseTenure}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section 3: Resources */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3 border-b border-base-200 pb-4">
+                                    <div className="p-2 bg-accent/10 rounded-lg text-accent">
+                                        {/* We can use LinkIcon or FileText, let's just make it look consistent. We can import Link from lucide-react if needed, but since we didn't, let's use FileText */}
+                                        <User size={24} />
+                                    </div>
+                                    <h3 className="text-xl font-bold">Resources</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-6">
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Drive Link</span></label>
+                                        <input
+                                            type="url"
+                                            name="driveLink"
+                                            placeholder="https://drive.google.com/..."
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.driveLink}
                                             onChange={handleChange}
                                         />
                                     </div>

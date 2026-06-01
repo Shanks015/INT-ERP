@@ -4,9 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, GraduationCap, TrendingUp, Clock, Eye, Globe, CheckCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, GraduationCap, TrendingUp, Clock, Eye, Globe, CheckCircle, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
+import DetailModal from '../../components/Modal/DetailModal';
 import SmartStatsCard from '../../components/SmartStatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
@@ -19,6 +20,7 @@ const MastersAbroadList = () => {
     const [loading, setLoading] = useState(true);
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
+    const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
@@ -136,13 +138,17 @@ const MastersAbroadList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>University</th><th>Country</th><th>Duration</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Student Name</th><th>USN</th><th>University</th><th>Country</th><th>Course</th><th>Tenure</th><th>Passport</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {programs.length === 0 ? <tr><td colSpan={5} className="text-center py-8">No programs found</td></tr> : programs.map((program) => (
+                                {programs.length === 0 ? <tr><td colSpan={9} className="text-center py-8">No programs found</td></tr> : programs.map((program) => (
                                     <tr key={program._id}>
+                                        <td className="font-medium">{program.studentName}</td>
+                                        <td>{program.usnNumber || '-'}</td>
                                         <td>{program.university}</td>
                                         <td>{program.country}</td>
-                                        <td>{program.duration || '-'}</td>
+                                        <td>{program.courseStudying || '-'}</td>
+                                        <td>{program.courseTenure || '-'}</td>
+                                        <td>{program.passportNumber || '-'}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Record Status Badge */}
@@ -161,6 +167,9 @@ const MastersAbroadList = () => {
                                                         <FileText size={16} />
                                                     </a>
                                                 )}
+                                                <button onClick={() => setDetailModal({ isOpen: true, item: program })} className="btn btn-info btn-sm" title="View Details">
+                                                    <Eye size={16} />
+                                                </button>
                                                 <Link to={`/masters-abroad/edit/${program._id}`} className={`btn btn-warning btn-sm ${program.status !== 'active' ? 'btn-disabled' : ''}`}><Edit size={16} /></Link>
                                                 <button onClick={() => setDeleteModal({ isOpen: true, item: program })} className={`btn btn-error btn-sm ${program.status !== 'active' ? 'btn-disabled' : ''}`} disabled={program.status !== 'active'}><Trash2 size={16} /></button>
                                             </div>
@@ -173,8 +182,28 @@ const MastersAbroadList = () => {
                     {totalItems > 0 && <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} onItemsPerPageChange={(newLimit) => { setItemsPerPage(newLimit); setCurrentPage(1); }} />}
                 </div>
             </div>
-            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.programName} requireReason={!isAdmin} />
+            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.studentName} requireReason={!isAdmin} />
             <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchPrograms(); fetchStats(); }} moduleName="masters-abroad" />
+            <DetailModal
+                isOpen={detailModal.isOpen}
+                onClose={() => setDetailModal({ isOpen: false, item: null })}
+                data={detailModal.item}
+                title="Masters Abroad Details"
+                fields={[
+                    { key: 'studentName', label: 'Student Name' },
+                    { key: 'usnNumber', label: 'USN Number' },
+                    { key: 'schoolOfStudy', label: 'School of Study' },
+                    { key: 'cgpa', label: 'CGPA' },
+                    { key: 'passportNumber', label: 'Passport Number' },
+                    { key: 'university', label: 'University' },
+                    { key: 'country', label: 'Country' },
+                    { key: 'courseStudying', label: 'Course Studying' },
+                    { key: 'courseTenure', label: 'Course Tenure' },
+                    { key: 'driveLink', label: 'Drive Link', type: 'link' },
+                    { key: 'createdAt', label: 'Created At', type: 'date' },
+                    { key: 'updatedAt', label: 'Updated At', type: 'date' }
+                ]}
+            />
         </div>
     );
 };

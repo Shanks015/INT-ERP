@@ -13,6 +13,7 @@ import MastersAbroad from '../models/MastersAbroad.js';
 import Membership from '../models/Membership.js';
 import DigitalMedia from '../models/DigitalMedia.js';
 import Outreach from '../models/Outreach.js';
+import MeetingTracker from '../models/MeetingTracker.js';
 
 const getModel = (moduleName) => {
     switch (moduleName) {
@@ -29,6 +30,7 @@ const getModel = (moduleName) => {
         case 'memberships': return Membership;
         case 'digital-media': return DigitalMedia;
         case 'outreach': return Outreach;
+        case 'meeting-trackers': return MeetingTracker;
         default: return null;
     }
 };
@@ -211,6 +213,21 @@ const getDisplayFields = (moduleName) => {
                     item.department || '-'
                 ]
             };
+        case 'meeting-trackers':
+            return {
+                headers: ['Meeting ID', 'Date', 'Meeting Title', 'Mode', 'Country', 'Key Agenda', 'Discussion Summary', 'Action Items', 'Drive Link'],
+                extractor: (item) => [
+                    item.meetingId || '-',
+                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    item.meetingTitle || '-',
+                    item.mode || '-',
+                    item.hostOrganization || item.country || '-',
+                    item.keyAgenda || '-',
+                    item.discussionSummary || '-',
+                    item.actionItems || '-',
+                    item.driveLink || '-'
+                ]
+            };
         default:
             return {
                 headers: ['Module', 'Date', 'Name', 'Details'],
@@ -285,7 +302,7 @@ export const generateReport = async (req, res) => {
         const { format, modules } = filters;
 
         const modulesToFetch = modules === 'all'
-            ? ['partners', 'campus-visits', 'events', 'conferences', 'mou-signing-ceremonies', 'scholars-in-residence', 'mou-updates', 'immersion-programs', 'student-exchange', 'masters-abroad', 'memberships', 'digital-media', 'outreach']
+            ? ['partners', 'campus-visits', 'events', 'conferences', 'mou-signing-ceremonies', 'scholars-in-residence', 'mou-updates', 'immersion-programs', 'student-exchange', 'masters-abroad', 'memberships', 'digital-media', 'outreach', 'meeting-trackers']
             : [modules]; // Single module as array
 
         let allData = [];

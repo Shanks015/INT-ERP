@@ -138,9 +138,9 @@ const ScholarsList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Visitor Name</th><th>University</th><th>Country</th><th>Department</th><th>Duration</th><th>Campus</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Visitor Name</th><th>University</th><th>Country</th><th>Department</th><th>Duration</th><th>Campus</th><th>Scholar Status</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {scholars.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No scholars found</td></tr> : scholars.map((scholar) => (
+                                {scholars.length === 0 ? <tr><td colSpan={9} className="text-center py-8">No scholars found</td></tr> : scholars.map((scholar) => (
                                     <tr key={scholar._id}>
                                         <td className="font-medium">{scholar.scholarName}</td>
                                         <td>{scholar.university || '-'}</td>
@@ -154,6 +154,7 @@ const ScholarsList = () => {
                                             ) : '-'}
                                         </td>
                                         <td>{scholar.campus || '-'}</td>
+                                        <td>{scholar.scholarStatus || '-'}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Record Status Badge */}
@@ -200,6 +201,7 @@ const ScholarsList = () => {
                     { key: 'country', label: 'Country' },
                     { key: 'department', label: 'Department' },
                     { key: 'category', label: 'Category' },
+                    { key: 'scholarStatus', label: 'Scholar Status' },
                     { key: 'fromDate', label: 'From Date', type: 'date' },
                     { key: 'toDate', label: 'To Date', type: 'date' },
                     { key: 'campus', label: 'Campus' },

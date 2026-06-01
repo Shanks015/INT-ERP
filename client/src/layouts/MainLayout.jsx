@@ -58,6 +58,7 @@ const MainLayout = () => {
         { name: 'digital-media', endpoint: '/digital-media' },
         { name: 'social-media', endpoint: '/social-media' },
         { name: 'outreach', endpoint: '/outreach' },
+        { name: 'meeting-trackers', endpoint: '/meeting-trackers' },
     ];
 
     useEffect(() => {
@@ -141,6 +142,7 @@ const MainLayout = () => {
 
             <li><Link to="/events" className={location.pathname.includes('/events') ? 'active' : ''}><Calendar size={18} /> Events</Link></li>
             <li><Link to="/conferences" className={location.pathname.includes('/conferences') ? 'active' : ''}><Globe size={18} /> Conferences</Link></li>
+            <li><Link to="/meeting-trackers" className={location.pathname.includes('/meeting-trackers') ? 'active' : ''}><BookOpen size={18} /> Meeting Trackers</Link></li>
 
             {/* MoU Dropdown Group */}
             <li>

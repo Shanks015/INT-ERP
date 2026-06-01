@@ -24,6 +24,7 @@ const PendingActions = () => {
         { name: 'memberships', label: 'Memberships', endpoint: '/memberships' },
         { name: 'digital-media', label: 'Digital Media', endpoint: '/digital-media' },
         { name: 'outreach', label: 'Outreach', endpoint: '/outreach' },
+        { name: 'meeting-trackers', label: 'Meeting Trackers', endpoint: '/meeting-trackers' },
     ];
 
     useEffect(() => {
@@ -88,7 +89,7 @@ const PendingActions = () => {
 
     const getDisplayValue = (item) => {
         // Try to get a meaningful display value from the item
-        return item.title || item.name || item.studentName || item.visitorName ||
+        return item.meetingTitle || item.title || item.name || item.studentName || item.visitorName ||
             item.scholarName || item.university || item.conferenceName ||
             item.contactName || 'Unknown';
     };

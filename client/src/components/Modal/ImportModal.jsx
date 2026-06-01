@@ -27,6 +27,7 @@ const ImportModal = ({ isOpen, onClose, onSuccess, moduleName }) => {
         { value: 'memberships', label: 'Memberships' },
         { value: 'digital-media', label: 'Digital Media' },
         { value: 'outreach', label: 'Outreach' },
+        { value: 'meeting-trackers', label: 'Meeting Trackers' },
     ];
 
     const handleFileChange = (e) => {

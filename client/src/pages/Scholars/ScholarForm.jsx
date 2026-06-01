@@ -19,6 +19,7 @@ const ScholarForm = () => {
         toDate: '',
         university: '',
         category: '',
+        scholarStatus: '',
         summary: '',
         campus: '',
         driveLink: ''
@@ -40,6 +41,7 @@ const ScholarForm = () => {
                 toDate: item.toDate ? new Date(item.toDate).toISOString().split('T')[0] : '',
                 university: item.university || '',
                 category: item.category || '',
+                scholarStatus: item.scholarStatus || '',
                 summary: item.summary || '',
                 campus: item.campus || '',
                 driveLink: item.driveLink || ''
@@ -164,6 +166,18 @@ const ScholarForm = () => {
                                             value={formData.country}
                                             onChange={handleChange}
                                             required
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Status</span></label>
+                                        <input
+                                            type="text"
+                                            name="scholarStatus"
+                                            placeholder="e.g. Completed, Ongoing"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            value={formData.scholarStatus}
+                                            onChange={handleChange}
                                         />
                                     </div>
                                 </div>
