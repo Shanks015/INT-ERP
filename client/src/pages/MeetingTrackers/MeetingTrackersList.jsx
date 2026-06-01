@@ -44,17 +44,18 @@ const MeetingTrackersList = () => {
 
     useEffect(() => {
         fetchMeetings();
+        fetchStats();
     }, [currentPage, itemsPerPage, debouncedSearch, filters.mode, filters.sheetMonth, filters.startDate, filters.endDate]);
 
     useEffect(() => {
-        fetchStats();
         fetchFilterData();
     }, []);
 
     const fetchStats = async () => {
         try {
             setStatsLoading(true);
-            const response = await api.get('/meeting-trackers/stats');
+            const params = { ...filters, search: debouncedSearch };
+            const response = await api.get('/meeting-trackers/stats', { params });
             setStats(response.data.stats || { total: 0, upcoming: 0, onlineCount: 0, offlineCount: 0 });
         } catch (error) {
             console.error('Error fetching stats:', error);

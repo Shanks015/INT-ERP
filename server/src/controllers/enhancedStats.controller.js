@@ -1161,9 +1161,60 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 };
                 break;
 
-            case 'MeetingTracker':
+            case 'MeetingTracker': {
+                const {
+                    search,
+                    startDate,
+                    endDate,
+                    ...filters
+                } = req.query;
+
+                // Build query
+                const filterQuery = { status: 'active' };
+
+                // Search
+                if (search && search.trim()) {
+                    const searchRegex = { $regex: search.trim(), $options: 'i' };
+                    filterQuery.$or = [
+                        { meetingId: searchRegex },
+                        { meetingTitle: searchRegex },
+                        { mode: searchRegex },
+                        { platformLocation: searchRegex },
+                        { hostOrganization: searchRegex },
+                        { hostName: searchRegex },
+                        { hostEmail: searchRegex },
+                        { participants: searchRegex },
+                        { keyAgenda: searchRegex },
+                        { discussionSummary: searchRegex },
+                        { actionItems: searchRegex },
+                        { remarks: searchRegex },
+                        { sheetMonth: searchRegex }
+                    ];
+                }
+
+                // Date range
+                if (startDate || endDate) {
+                    filterQuery.date = {};
+                    if (startDate) filterQuery.date.$gte = new Date(startDate);
+                    if (endDate) {
+                        const end = new Date(endDate);
+                        end.setHours(23, 59, 59, 999);
+                        filterQuery.date.$lte = end;
+                    }
+                }
+
+                // Other filters
+                Object.keys(filters).forEach(key => {
+                    if (filters[key] && filters[key] !== 'all') {
+                        filterQuery[key] = filters[key];
+                    }
+                });
+
                 const todayMeeting = new Date();
                 todayMeeting.setHours(0, 0, 0, 0);
+
+                // Re-calculate total based on filterQuery
+                const filterTotal = await Model.countDocuments(filterQuery);
 
                 const [
                     upcomingCount,
@@ -1171,26 +1222,33 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     offlineCount
                 ] = await Promise.all([
                     Model.countDocuments({
-                        status: 'active',
-                        date: { $gte: todayMeeting }
+                        $and: [
+                            filterQuery,
+                            { date: { $gte: todayMeeting } }
+                        ]
                     }),
                     Model.countDocuments({
-                        status: 'active',
-                        mode: { $regex: /^online$/i }
+                        $and: [
+                            filterQuery,
+                            { mode: { $regex: /^online$/i } }
+                        ]
                     }),
                     Model.countDocuments({
-                        status: 'active',
-                        mode: { $regex: /^offline$/i }
+                        $and: [
+                            filterQuery,
+                            { mode: { $regex: /^offline$/i } }
+                        ]
                     })
                 ]);
 
                 stats = {
-                    ...stats,
+                    total: filterTotal,
                     upcoming: upcomingCount,
                     onlineCount,
                     offlineCount
                 };
                 break;
+            }
         }
 
         res.json({
