@@ -106,7 +106,7 @@ const MembershipsList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Memberships" value={stats.total} icon={Users2} color="primary" moduleType="memberships" statType="total" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Total Memberships" value={totalItems} icon={Users2} color="primary" moduleType="memberships" statType="total" moduleData={stats} loading={statsLoading} />
                 <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="memberships" statType="countries" moduleData={stats} loading={statsLoading} />
                 <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="memberships" statType="active" moduleData={stats} loading={statsLoading} />
             </div>

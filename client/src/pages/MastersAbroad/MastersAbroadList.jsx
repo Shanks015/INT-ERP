@@ -121,7 +121,7 @@ const MastersAbroadList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Programs" value={stats.total} icon={GraduationCap} color="primary" moduleType="masters-abroad" statType="total" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Total Programs" value={totalItems} icon={GraduationCap} color="primary" moduleType="masters-abroad" statType="total" moduleData={stats} loading={statsLoading} />
                 <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="masters-abroad" statType="countries" moduleData={stats} loading={statsLoading} />
                 <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="masters-abroad" statType="active" moduleData={stats} loading={statsLoading} />
             </div>

@@ -107,7 +107,7 @@ const MouSigningCeremoniesList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <SmartStatsCard title="Total Ceremonies" value={stats.total} icon={Award} color="primary" moduleType="mou-ceremonies" statType="total" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Total Ceremonies" value={totalItems} icon={Award} color="primary" moduleType="mou-ceremonies" statType="total" moduleData={stats} loading={statsLoading} />
                 <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="mou-ceremonies" statType="countries" moduleData={stats} loading={statsLoading} />
             </div>
             <FilterBar

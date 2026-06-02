@@ -209,13 +209,13 @@ const PartnersList = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <SmartStatsCard
                     title="Total Partners"
-                    value={stats.total}
+                    value={totalItems}
                     icon={Users}
                     color="primary"
                     moduleType="partners"
                     statType="total"
                     moduleData={{
-                        total: stats.total,
+                        total: totalItems,
                         active: stats.active,
                         countries: stats.countries,
                         countryDistribution: countries.map(c => ({

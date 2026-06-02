@@ -161,7 +161,7 @@ const MeetingTrackersList = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <SmartStatsCard 
                     title="Total Meetings" 
-                    value={stats.total} 
+                    value={totalItems}
                     icon={Calendar} 
                     color="primary" 
                     moduleType="meeting-trackers" 

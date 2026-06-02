@@ -164,7 +164,7 @@ const OutreachList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Outreach" value={stats.total} icon={Mail} color="primary" moduleType="outreach" statType="total" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Total Outreach" value={totalItems} icon={Mail} color="primary" moduleType="outreach" statType="total" moduleData={stats} loading={statsLoading} />
                 <SmartStatsCard title="Responses" value={stats.responses} icon={CheckCircle} color="success" moduleType="outreach" statType="responses" moduleData={stats} loading={statsLoading} />
                 <SmartStatsCard title="No Response" value={stats.nonResponses} icon={XCircle} color="error" moduleType="outreach" statType="non-responses" moduleData={stats} loading={statsLoading} />
             </div>

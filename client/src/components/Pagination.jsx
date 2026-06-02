@@ -8,6 +8,8 @@ const Pagination = ({
     onPageChange,
     onItemsPerPageChange
 }) => {
+    if (!totalItems) return null;
+
     const startItem = (currentPage - 1) * itemsPerPage + 1;
     const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
@@ -34,48 +36,50 @@ const Pagination = ({
                 Showing {startItem} to {endItem} of {totalItems} entries
             </div>
 
-            {/* Page navigation */}
-            <div className="join">
-                <button
-                    className="join-item btn btn-sm"
-                    onClick={() => onPageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                >
-                    <ChevronLeft size={16} />
-                </button>
+            {/* Page navigation — only render when more than 1 page */}
+            {totalPages > 1 && (
+                <div className="join">
+                    <button
+                        className="join-item btn btn-sm"
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                    >
+                        <ChevronLeft size={16} />
+                    </button>
 
-                {/* Page numbers */}
-                {[...Array(Math.min(5, totalPages))].map((_, idx) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                        pageNum = idx + 1;
-                    } else if (currentPage <= 3) {
-                        pageNum = idx + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + idx;
-                    } else {
-                        pageNum = currentPage - 2 + idx;
-                    }
+                    {/* Page numbers */}
+                    {[...Array(Math.min(5, totalPages))].map((_, idx) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                            pageNum = idx + 1;
+                        } else if (currentPage <= 3) {
+                            pageNum = idx + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + idx;
+                        } else {
+                            pageNum = currentPage - 2 + idx;
+                        }
 
-                    return (
-                        <button
-                            key={pageNum}
-                            className={`join-item btn btn-sm ${currentPage === pageNum ? 'btn-active' : ''}`}
-                            onClick={() => onPageChange(pageNum)}
-                        >
-                            {pageNum}
-                        </button>
-                    );
-                })}
+                        return (
+                            <button
+                                key={pageNum}
+                                className={`join-item btn btn-sm ${currentPage === pageNum ? 'btn-active' : ''}`}
+                                onClick={() => onPageChange(pageNum)}
+                            >
+                                {pageNum}
+                            </button>
+                        );
+                    })}
 
-                <button
-                    className="join-item btn btn-sm"
-                    onClick={() => onPageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                >
-                    <ChevronRight size={16} />
-                </button>
-            </div>
+                    <button
+                        className="join-item btn btn-sm"
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                    >
+                        <ChevronRight size={16} />
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

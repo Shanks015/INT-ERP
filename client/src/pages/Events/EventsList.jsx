@@ -123,7 +123,7 @@ const EventsList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Events" value={stats.total} icon={Calendar} color="primary" moduleType="events" statType="total" moduleData={{ ...stats }} loading={statsLoading} />
+                <SmartStatsCard title="Total Events" value={totalItems} icon={Calendar} color="primary" moduleType="events" statType="total" moduleData={{ ...stats }} loading={statsLoading} />
                 <SmartStatsCard title="Event Types" value={stats.eventTypes} icon={Tag} color="secondary" moduleType="events" statType="types" moduleData={{ ...stats }} loading={statsLoading} />
                 <SmartStatsCard title="Departments" value={stats.departments} icon={Building2} color="info" moduleType="events" statType="departments" moduleData={{ ...stats }} loading={statsLoading} />
             </div>

@@ -131,7 +131,7 @@ const ConferencesList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Conferences" value={stats.total} icon={Users} color="primary" moduleType="conferences" statType="total" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Total Conferences" value={totalItems} icon={Users} color="primary" moduleType="conferences" statType="total" moduleData={stats} loading={statsLoading} />
                 <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="conferences" statType="countries" moduleData={stats} loading={statsLoading} />
                 <SmartStatsCard title="Departments" value={stats.departments} icon={Building2} color="info" moduleType="conferences" statType="departments" moduleData={stats} loading={statsLoading} />
             </div>
