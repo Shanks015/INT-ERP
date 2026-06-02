@@ -110,7 +110,7 @@ const MouUpdatesList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Updates" value={totalItems} icon={FileText} color="primary" moduleType="mou-updates" statType="total" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Total Updates" value={totalItems} icon={FileText} color="primary" moduleType="mou-updates" statType="total" moduleData={stats} loading={loading} />
                 <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="mou-updates" statType="countries" moduleData={stats} loading={statsLoading} />
                 <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="mou-updates" statType="active" moduleData={stats} loading={statsLoading} />
             </div>

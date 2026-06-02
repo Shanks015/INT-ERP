@@ -180,7 +180,7 @@ const CampusVisitsList = () => {
                     moduleType="campus-visits"
                     statType="total"
                     moduleData={{ ...stats }}
-                    loading={statsLoading}
+                    loading={loading}
                 />
                 <SmartStatsCard
                     title="Countries"

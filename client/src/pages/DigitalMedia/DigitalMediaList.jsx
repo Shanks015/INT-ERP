@@ -109,7 +109,7 @@ const DigitalMediaList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <SmartStatsCard title="Total Posts" value={totalItems} icon={Radio} color="primary" moduleType="digital-media" statType="total" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Total Posts" value={totalItems} icon={Radio} color="primary" moduleType="digital-media" statType="total" moduleData={stats} loading={loading} />
                 <SmartStatsCard title="Channels" value={stats.channels} icon={Hash} color="secondary" moduleType="digital-media" statType="channels" moduleData={stats} loading={statsLoading} />
             </div>
 

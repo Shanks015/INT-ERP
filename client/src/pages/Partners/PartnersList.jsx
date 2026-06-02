@@ -224,7 +224,7 @@ const PartnersList = () => {
                         })),
                         trend: { change: 5, percentage: 8.3, direction: 'up' } // Replace with real trend data
                     }}
-                    loading={statsLoading}
+                    loading={loading}
                 />
                 <SmartStatsCard
                     title="Countries"

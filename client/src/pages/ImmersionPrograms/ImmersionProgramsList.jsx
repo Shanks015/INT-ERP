@@ -114,7 +114,7 @@ const ImmersionProgramsList = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Programs" value={totalItems} icon={Plane} color="primary" moduleType="immersion" statType="total" moduleData={stats} loading={statsLoading} />
+                <SmartStatsCard title="Total Programs" value={totalItems} icon={Plane} color="primary" moduleType="immersion" statType="total" moduleData={stats} loading={loading} />
                 <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="immersion" statType="countries" moduleData={stats} loading={statsLoading} />
                 <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="immersion" statType="active" moduleData={stats} loading={statsLoading} />
             </div>

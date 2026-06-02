@@ -121,7 +121,7 @@ const ScholarsList = () => {
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <SmartStatsCard title="Total Scholars" value={totalItems} icon={GraduationCap} color="primary" moduleType="scholars" statType="total" moduleData={{ ...stats }} loading={statsLoading} />
+                <SmartStatsCard title="Total Scholars" value={totalItems} icon={GraduationCap} color="primary" moduleType="scholars" statType="total" moduleData={{ ...stats }} loading={loading} />
                 <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="scholars" statType="countries" moduleData={{ ...stats }} loading={statsLoading} />
                 <SmartStatsCard title="Departments" value={stats.departments} icon={Building2} color="info" moduleType="scholars" statType="departments" moduleData={{ ...stats }} loading={statsLoading} />
             </div>

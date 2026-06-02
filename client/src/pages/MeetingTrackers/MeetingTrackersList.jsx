@@ -167,7 +167,7 @@ const MeetingTrackersList = () => {
                     moduleType="meeting-trackers" 
                     statType="total" 
                     moduleData={{ ...stats }} 
-                    loading={statsLoading} 
+                    loading={loading} 
                 />
                 <SmartStatsCard 
                     title="Upcoming Meetings" 
