@@ -147,7 +147,6 @@ const CampusVisitsList = () => {
     };
 
     const handleClearFilters = () => {
-        setSearchInput('');
         setFilters({ search: '', startDate: '', endDate: '', country: '', university: '' });
         setCurrentPage(1);
     };
@@ -225,7 +224,7 @@ const CampusVisitsList = () => {
                                     placeholder="Search university, visitor..."
                                     className="input input-bordered w-full pr-10"
                                     value={filters.search}
-                                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                                    onChange={(e) => { setFilters(prev => ({ ...prev, search: e.target.value })); setCurrentPage(1); }}
                                 />
                                 <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
                             </div>
@@ -237,7 +236,7 @@ const CampusVisitsList = () => {
                             <select
                                 className="select select-bordered w-full"
                                 value={filters.type || ''}
-                                onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
+                                onChange={(e) => { setFilters(prev => ({ ...prev, type: e.target.value })); setCurrentPage(1); }}
                             >
                                 <option value="">All Types</option>
                                 <option value="University Visit">University Visit</option>
@@ -252,7 +251,7 @@ const CampusVisitsList = () => {
                             <select
                                 className="select select-bordered w-full"
                                 value={filters.country || ''}
-                                onChange={(e) => setFilters(prev => ({ ...prev, country: e.target.value }))}
+                                onChange={(e) => { setFilters(prev => ({ ...prev, country: e.target.value })); setCurrentPage(1); }}
                             >
                                 <option value="">All Countries</option>
                                 {countries.map(country => (
@@ -268,7 +267,7 @@ const CampusVisitsList = () => {
                                 type="date"
                                 className="input input-bordered w-full"
                                 value={filters.startDate || ''}
-                                onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                                onChange={(e) => { setFilters(prev => ({ ...prev, startDate: e.target.value })); setCurrentPage(1); }}
                             />
                         </div>
 
@@ -278,7 +277,7 @@ const CampusVisitsList = () => {
                                 type="date"
                                 className="input input-bordered w-full"
                                 value={filters.endDate || ''}
-                                onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                                onChange={(e) => { setFilters(prev => ({ ...prev, endDate: e.target.value })); setCurrentPage(1); }}
                             />
                         </div>
                     </div>

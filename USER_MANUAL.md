@@ -2,7 +2,7 @@
 
 Welcome to the comprehensive user manual for the **Dayananda Sagar University (DSU) International Affairs ERP System**. This Enterprise Resource Planning (ERP) platform is custom-built to streamline, manage, and audit all international affairs, academic partnerships, and global outreach activities at Dayananda Sagar University.
 
----
+
 
 ## 🏛️ System Overview
 

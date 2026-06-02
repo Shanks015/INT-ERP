@@ -73,7 +73,7 @@ const MastersAbroadList = () => {
     const fetchPrograms = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, country: filters.country, university: filters.university, courseType: filters.courseType, startDate: filters.startDate, endDate: filters.endDate, recordStatus: filters.recordStatus };
             const response = await api.get('/masters-abroad', { params });
             setPrograms(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);

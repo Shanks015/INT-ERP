@@ -63,7 +63,7 @@ const ImmersionProgramsList = () => {
     const fetchPrograms = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, direction: filters.direction, activeStatus: filters.activeStatus, country: filters.country, startDate: filters.startDate, endDate: filters.endDate, recordStatus: filters.recordStatus };
             const response = await api.get('/immersion-programs', { params });
             setPrograms(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -96,7 +96,6 @@ const ImmersionProgramsList = () => {
     };
 
     const handleClearFilters = () => {
-        setSearchInput('');
         setFilters({ search: '', direction: '', activeStatus: '', country: '', startDate: '', endDate: '', recordStatus: '' });
         setCurrentPage(1);
     };
@@ -130,14 +129,14 @@ const ImmersionProgramsList = () => {
                         <div className="form-control">
                             <label className="label"><span className="label-text">Search</span></label>
                             <div className="relative">
-                                <input type="text" placeholder="Search university..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                                <input type="text" placeholder="Search university..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => { setFilters(prev => ({ ...prev, search: e.target.value })); setCurrentPage(1); }} />
                                 <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
                             </div>
                         </div>
 
                         <div className="form-control">
                             <label className="label"><span className="label-text">Direction</span></label>
-                            <select className="select select-bordered w-full" value={filters.direction || ''} onChange={(e) => setFilters(prev => ({ ...prev, direction: e.target.value }))}>
+                            <select className="select select-bordered w-full" value={filters.direction || ''} onChange={(e) => { setFilters(prev => ({ ...prev, direction: e.target.value })); setCurrentPage(1); }}>
                                 <option value="">All Directions</option>
                                 <option value="Outgoing">Outgoing</option>
                                 <option value="Incoming">Incoming</option>
@@ -146,7 +145,7 @@ const ImmersionProgramsList = () => {
 
                         <div className="form-control">
                             <label className="label"><span className="label-text">Country</span></label>
-                            <select className="select select-bordered w-full" value={filters.country || ''} onChange={(e) => setFilters(prev => ({ ...prev, country: e.target.value }))}>
+                            <select className="select select-bordered w-full" value={filters.country || ''} onChange={(e) => { setFilters(prev => ({ ...prev, country: e.target.value })); setCurrentPage(1); }}>
                                 <option value="">All Countries</option>
                                 {countries.map(country => <option key={country} value={country}>{country}</option>)}
                             </select>
@@ -154,7 +153,7 @@ const ImmersionProgramsList = () => {
 
                         <div className="form-control">
                             <label className="label"><span className="label-text">From Date</span></label>
-                            <input type="date" className="input input-bordered w-full" value={filters.startDate || ''} onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))} />
+                            <input type="date" className="input input-bordered w-full" value={filters.startDate || ''} onChange={(e) => { setFilters(prev => ({ ...prev, startDate: e.target.value })); setCurrentPage(1); }} />
                         </div>
                         {/* To Date */}
                         <div className="form-control">
@@ -163,7 +162,7 @@ const ImmersionProgramsList = () => {
                                 type="date"
                                 className="input input-bordered w-full"
                                 value={filters.endDate || ''}
-                                onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                                onChange={(e) => { setFilters(prev => ({ ...prev, endDate: e.target.value })); setCurrentPage(1); }}
                             />
                         </div>
 
@@ -173,7 +172,7 @@ const ImmersionProgramsList = () => {
                             <select
                                 className="select select-bordered w-full"
                                 value={filters.recordStatus || ''}
-                                onChange={(e) => setFilters(prev => ({ ...prev, recordStatus: e.target.value }))}
+                                onChange={(e) => { setFilters(prev => ({ ...prev, recordStatus: e.target.value })); setCurrentPage(1); }}
                             >
                                 <option value="">All Statuses</option>
                                 <option value="active">Active</option>

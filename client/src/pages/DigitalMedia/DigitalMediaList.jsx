@@ -58,7 +58,7 @@ const DigitalMediaList = () => {
     const fetchMedia = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, startDate: filters.startDate, endDate: filters.endDate, channel: filters.channel };
             const response = await api.get('/digital-media', { params });
             setMedia(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -123,14 +123,14 @@ const DigitalMediaList = () => {
                         <div className="form-control">
                             <label className="label"><span className="label-text">Search</span></label>
                             <div className="relative">
-                                <input type="text" placeholder="Search topic, channel..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                                <input type="text" placeholder="Search topic, channel..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => { setFilters(prev => ({ ...prev, search: e.target.value })); setCurrentPage(1); }} />
                                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/50" size={20} />
                             </div>
                         </div>
 
                         <div className="form-control">
                             <label className="label"><span className="label-text">Channel</span></label>
-                            <select className="select select-bordered w-full" value={filters.channel || ''} onChange={(e) => setFilters(prev => ({ ...prev, channel: e.target.value }))}>
+                            <select className="select select-bordered w-full" value={filters.channel || ''} onChange={(e) => { setFilters(prev => ({ ...prev, channel: e.target.value })); setCurrentPage(1); }}>
                                 <option value="">All Channels</option>
                                 {channels.map(channel => <option key={channel} value={channel}>{channel}</option>)}
                             </select>
@@ -138,12 +138,12 @@ const DigitalMediaList = () => {
 
                         <div className="form-control">
                             <label className="label"><span className="label-text">From Date</span></label>
-                            <input type="date" className="input input-bordered w-full" value={filters.startDate || ''} onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))} />
+                            <input type="date" className="input input-bordered w-full" value={filters.startDate || ''} onChange={(e) => { setFilters(prev => ({ ...prev, startDate: e.target.value })); setCurrentPage(1); }} />
                         </div>
 
                         <div className="form-control">
                             <label className="label"><span className="label-text">To Date</span></label>
-                            <input type="date" className="input input-bordered w-full" value={filters.endDate || ''} onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))} />
+                            <input type="date" className="input input-bordered w-full" value={filters.endDate || ''} onChange={(e) => { setFilters(prev => ({ ...prev, endDate: e.target.value })); setCurrentPage(1); }} />
                         </div>
                     </div>
                 </div>

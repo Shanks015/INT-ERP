@@ -62,7 +62,7 @@ const MouUpdatesList = () => {
     const fetchUpdates = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, country: filters.country, agreementType: filters.agreementType, mouStatus: filters.mouStatus, validityStatus: filters.validityStatus, startDate: filters.startDate, endDate: filters.endDate };
             const response = await api.get('/mou-updates', { params });
             setUpdates(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);

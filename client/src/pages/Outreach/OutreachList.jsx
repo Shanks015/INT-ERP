@@ -125,7 +125,6 @@ const OutreachList = () => {
     };
 
     const handleClearFilters = () => {
-        setSearchInput('');
         setFilters({ search: '', country: '', partnershipType: '', outreachType: '', startDate: '', endDate: '' });
         setCurrentPage(1);
     };

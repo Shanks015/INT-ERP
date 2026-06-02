@@ -59,7 +59,7 @@ const MouSigningCeremoniesList = () => {
     const fetchCeremonies = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, country: filters.country, agreementType: filters.agreementType, startDate: filters.startDate, endDate: filters.endDate, recordStatus: filters.recordStatus };
             const response = await api.get('/mou-signing-ceremonies', { params });
             setCeremonies(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);

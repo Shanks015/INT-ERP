@@ -58,7 +58,7 @@ const MembershipsList = () => {
     const fetchMemberships = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, membershipType: filters.membershipType, country: filters.country, startDate: filters.startDate, endDate: filters.endDate, recordStatus: filters.recordStatus };
             const response = await api.get('/memberships', { params });
             setMemberships(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);

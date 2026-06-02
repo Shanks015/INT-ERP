@@ -82,7 +82,7 @@ const MeetingTrackersList = () => {
     const fetchMeetings = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, mode: filters.mode, sheetMonth: filters.sheetMonth, startDate: filters.startDate, endDate: filters.endDate };
             const response = await api.get('/meeting-trackers', { params });
             setMeetings(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -131,6 +131,7 @@ const MeetingTrackersList = () => {
     const handleSearchChange = (e) => {
         setSearchInput(e.target.value);
         setFilters(prev => ({ ...prev, search: e.target.value }));
+        setCurrentPage(1);
     };
 
     if (loading && currentPage === 1) {
@@ -216,7 +217,7 @@ const MeetingTrackersList = () => {
                             <select 
                                 className="select select-bordered w-full" 
                                 value={filters.mode} 
-                                onChange={(e) => setFilters(prev => ({ ...prev, mode: e.target.value }))}
+                                onChange={(e) => { setFilters(prev => ({ ...prev, mode: e.target.value })); setCurrentPage(1); }}
                             >
                                 <option value="">All Modes</option>
                                 {modes.map(mode => (
@@ -230,7 +231,7 @@ const MeetingTrackersList = () => {
                             <select 
                                 className="select select-bordered w-full" 
                                 value={filters.sheetMonth} 
-                                onChange={(e) => setFilters(prev => ({ ...prev, sheetMonth: e.target.value }))}
+                                onChange={(e) => { setFilters(prev => ({ ...prev, sheetMonth: e.target.value })); setCurrentPage(1); }}
                             >
                                 <option value="">All Months</option>
                                 {sheetMonths.map(month => (
@@ -245,7 +246,7 @@ const MeetingTrackersList = () => {
                                 type="date" 
                                 className="input input-bordered w-full" 
                                 value={filters.startDate} 
-                                onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))} 
+                                onChange={(e) => { setFilters(prev => ({ ...prev, startDate: e.target.value })); setCurrentPage(1); }} 
                             />
                         </div>
                     </div>

@@ -41,7 +41,7 @@ const SocialMediaList = () => {
     const fetchPosts = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch };
             const response = await api.get('/social-media', { params });
             setPosts(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -100,7 +100,7 @@ const SocialMediaList = () => {
                     <div className="flex flex-col lg:flex-row gap-4">
                         <div className="form-control flex-1">
                             <div className="relative">
-                                <input type="text" placeholder="Search posts..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                                <input type="text" placeholder="Search posts..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => { setFilters(prev => ({ ...prev, search: e.target.value })); setCurrentPage(1); }} />
                                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/50" size={20} />
                             </div>
                         </div>
@@ -145,7 +145,7 @@ const SocialMediaList = () => {
                             </tbody>
                         </table>
                     </div>
-                    <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} onItemsPerPageChange={setItemsPerPage} />
+                    <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} onItemsPerPageChange={(newLimit) => { setItemsPerPage(newLimit); setCurrentPage(1); }} />
                 </div>
             </div>
 

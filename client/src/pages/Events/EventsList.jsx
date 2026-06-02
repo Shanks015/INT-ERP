@@ -72,7 +72,7 @@ const EventsList = () => {
     const fetchEvents = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, ...filters };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, type: filters.type, department: filters.department, startDate: filters.startDate, endDate: filters.endDate };
             const response = await api.get('/events', { params });
             setEvents(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -105,7 +105,6 @@ const EventsList = () => {
     };
 
     const handleClearFilters = () => {
-        setSearchInput('');
         setFilters({ search: '', type: '', department: '', startDate: '', endDate: '' });
         setCurrentPage(1);
     };
@@ -139,14 +138,14 @@ const EventsList = () => {
                         <div className="form-control">
                             <label className="label"><span className="label-text">Search</span></label>
                             <div className="relative">
-                                <input type="text" placeholder="Search title, department..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                                <input type="text" placeholder="Search title, department..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => { setFilters(prev => ({ ...prev, search: e.target.value })); setCurrentPage(1); }} />
                                 <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
                             </div>
                         </div>
 
                         <div className="form-control">
                             <label className="label"><span className="label-text">Event Type</span></label>
-                            <select className="select select-bordered w-full" value={filters.type || ''} onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}>
+                            <select className="select select-bordered w-full" value={filters.type || ''} onChange={(e) => { setFilters(prev => ({ ...prev, type: e.target.value })); setCurrentPage(1); }}>
                                 <option value="">All Types</option>
                                 {eventTypes.map(type => (
                                     <option key={type} value={type}>{type}</option>
@@ -155,7 +154,7 @@ const EventsList = () => {
                         </div>
                         <div className="form-control">
                             <label className="label"><span className="label-text">Department</span></label>
-                            <select className="select select-bordered w-full" value={filters.department || ''} onChange={(e) => setFilters(prev => ({ ...prev, department: e.target.value }))}>
+                            <select className="select select-bordered w-full" value={filters.department || ''} onChange={(e) => { setFilters(prev => ({ ...prev, department: e.target.value })); setCurrentPage(1); }}>
                                 <option value="">All Departments</option>
                                 {departments.map(dept => (
                                     <option key={dept} value={dept}>{dept}</option>
@@ -165,12 +164,12 @@ const EventsList = () => {
 
                         <div className="form-control">
                             <label className="label"><span className="label-text">From Date</span></label>
-                            <input type="date" className="input input-bordered w-full" value={filters.startDate || ''} onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))} />
+                            <input type="date" className="input input-bordered w-full" value={filters.startDate || ''} onChange={(e) => { setFilters(prev => ({ ...prev, startDate: e.target.value })); setCurrentPage(1); }} />
                         </div>
 
                         <div className="form-control">
                             <label className="label"><span className="label-text">To Date</span></label>
-                            <input type="date" className="input input-bordered w-full" value={filters.endDate || ''} onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))} />
+                            <input type="date" className="input input-bordered w-full" value={filters.endDate || ''} onChange={(e) => { setFilters(prev => ({ ...prev, endDate: e.target.value })); setCurrentPage(1); }} />
                         </div>
                     </div>
                 </div>

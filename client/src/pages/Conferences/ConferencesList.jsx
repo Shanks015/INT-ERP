@@ -148,7 +148,7 @@ const ConferencesList = () => {
                         <div className="form-control">
                             <label className="label"><span className="label-text">Search</span></label>
                             <div className="relative">
-                                <input type="text" placeholder="Search conference, country..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                                <input type="text" placeholder="Search conference, country..." className="input input-bordered w-full pr-10" value={filters.search} onChange={(e) => { setFilters(prev => ({ ...prev, search: e.target.value })); setCurrentPage(1); }} />
                                 <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
                             </div>
                         </div>
@@ -156,7 +156,7 @@ const ConferencesList = () => {
                         {/* Country Filter */}
                         <div className="form-control">
                             <label className="label"><span className="label-text">Country</span></label>
-                            <select className="select select-bordered w-full" value={filters.country || ''} onChange={(e) => setFilters(prev => ({ ...prev, country: e.target.value }))}>
+                            <select className="select select-bordered w-full" value={filters.country || ''} onChange={(e) => { setFilters(prev => ({ ...prev, country: e.target.value })); setCurrentPage(1); }}>
                                 <option value="">All Countries</option>
                                 {countries.map(country => <option key={country} value={country}>{country}</option>)}
                             </select>
@@ -166,7 +166,7 @@ const ConferencesList = () => {
                         {/* Campus Filter */}
                         <div className="form-control">
                             <label className="label"><span className="label-text">Campus</span></label>
-                            <select className="select select-bordered w-full" value={filters.campus || ''} onChange={(e) => setFilters(prev => ({ ...prev, campus: e.target.value }))}>
+                            <select className="select select-bordered w-full" value={filters.campus || ''} onChange={(e) => { setFilters(prev => ({ ...prev, campus: e.target.value })); setCurrentPage(1); }}>
                                 <option value="">All Campuses</option>
                                 {campuses.map(campus => (
                                     <option key={campus} value={campus}>{campus}</option>
@@ -177,13 +177,13 @@ const ConferencesList = () => {
                         {/* From Date */}
                         <div className="form-control">
                             <label className="label"><span className="label-text">From Date</span></label>
-                            <input type="date" className="input input-bordered w-full" value={filters.startDate || ''} onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))} />
+                            <input type="date" className="input input-bordered w-full" value={filters.startDate || ''} onChange={(e) => { setFilters(prev => ({ ...prev, startDate: e.target.value })); setCurrentPage(1); }} />
                         </div>
 
                         {/* To Date */}
                         <div className="form-control">
                             <label className="label"><span className="label-text">To Date</span></label>
-                            <input type="date" className="input input-bordered w-full" value={filters.endDate || ''} onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))} />
+                            <input type="date" className="input input-bordered w-full" value={filters.endDate || ''} onChange={(e) => { setFilters(prev => ({ ...prev, endDate: e.target.value })); setCurrentPage(1); }} />
                         </div>
                     </div>
                 </div>
