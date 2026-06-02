@@ -28,7 +28,18 @@ const CampusVisitsList = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    const [filters, setFilters] = useState({ search: '', type: '', startDate: '', endDate: '', country: '', university: '' });
+    // Read URL search params — declared first so it can seed initial filter state
+    const [searchParams] = useSearchParams();
+
+    // Initialize type from URL param immediately to avoid a stale-fetch race condition on mount
+    const [filters, setFilters] = useState({
+        search: '',
+        type: searchParams.get('type') || '',
+        startDate: '',
+        endDate: '',
+        country: '',
+        university: ''
+    });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
@@ -37,17 +48,11 @@ const CampusVisitsList = () => {
     const [countries, setCountries] = useState([]);
     const [universities, setUniversities] = useState([]);
 
-    // Read URL search params on mount
-    const [searchParams] = useSearchParams();
-
+    // Keep type filter in sync when URL params change (e.g. back/forward navigation)
     useEffect(() => {
-        const typeParam = searchParams.get('type');
-        if (typeParam) {
-            setFilters(prev => ({ ...prev, type: typeParam }));
-        } else {
-            setFilters(prev => ({ ...prev, type: '' }));
-        }
-    }, [searchParams]); // Re-run when URL params change
+        const typeParam = searchParams.get('type') || '';
+        setFilters(prev => ({ ...prev, type: typeParam }));
+    }, [searchParams]);
 
     useEffect(() => {
         fetchVisits();
