@@ -132,7 +132,7 @@ const MainLayout = () => {
                 </div>
                 {openDropdowns.includes('campusVisits') && (
                     <ul className="ml-4 mt-2 space-y-1">
-                        <li><Link to="/campus-visits?type=guest-lecture" className={location.pathname.includes('/campus-visits') && location.search.includes('guest-lecture') ? 'active' : ''}><UserCheck size={16} /> Guest Lecture</Link></li>
+                        <li><Link to="/campus-visits?type=Guest Lecture,Seminar" className={location.pathname.includes('/campus-visits') && location.search.includes('Guest+Lecture') ? 'active' : ''}><UserCheck size={16} /> Guest Lecture / Seminar</Link></li>
                         <li><Link to="/scholars-in-residence" className={location.pathname.includes('/scholars-in-residence') ? 'active' : ''}><GraduationCap size={16} /> Scholars in Residence</Link></li>
                         <li><Link to="/campus-visits" className={location.pathname.includes('/campus-visits') && !location.search ? 'active' : ''}><Building2 size={16} /> Campus Visit</Link></li>
                         <li><Link to="/campus-visits?type=Consultant Visit" className={location.pathname.includes('/campus-visits') && location.search.includes('Consultant') ? 'active' : ''}><UserCheck size={16} /> Consultant Visit</Link></li>

@@ -164,7 +164,11 @@ const CampusVisitsList = () => {
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold">Campus Visits</h1>
+                    <h1 className="text-3xl font-bold">
+                        {filters.type === 'Guest Lecture,Seminar'
+                            ? 'Guest Lecture / Seminar'
+                            : filters.type || 'Campus Visits'}
+                    </h1>
                     <p className="text-base-content/70 mt-2">Manage campus visit records</p>
                 </div>
                 <div className="flex flex-wrap gap-2 w-full md:w-auto">
@@ -244,8 +248,10 @@ const CampusVisitsList = () => {
                                 onChange={(e) => { setFilters(prev => ({ ...prev, type: e.target.value })); setCurrentPage(1); }}
                             >
                                 <option value="">All Types</option>
-                                <option value="University Visit">University Visit</option>
+                                <option value="Guest Lecture,Seminar">Guest Lecture / Seminar</option>
+                                <option value="Guest Lecture">Guest Lecture</option>
                                 <option value="Seminar">Seminar</option>
+                                <option value="University Visit">University Visit</option>
                                 <option value="Consultant Visit">Consultant Visit</option>
                             </select>
                         </div>

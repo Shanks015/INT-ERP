@@ -109,12 +109,18 @@ export const getAll = (Model) => async (req, res) => {
         }
 
         // Apply all other filters dynamically (type, category, visitType, etc.)
-        // This allows module-specific dropdown filters to work automatically
+        // Supports comma-separated multi-values, e.g. type=Guest Lecture,Seminar → $in query
         Object.keys(otherFilters).forEach(key => {
             const value = otherFilters[key];
             if (value && value !== 'all' && value.trim() !== '') {
-                // Use exact match for dropdown filters
-                query[key] = value;
+                const values = value.split(',').map(v => v.trim()).filter(Boolean);
+                if (values.length > 1) {
+                    // Multi-value: use $in for OR matching
+                    query[key] = { $in: values };
+                } else {
+                    // Single value: exact match
+                    query[key] = values[0];
+                }
             }
         });
 
