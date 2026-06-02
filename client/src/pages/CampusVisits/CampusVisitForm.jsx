@@ -181,14 +181,18 @@ const CampusVisitForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Visit Type</span></label>
-                                        <input
-                                            type="text"
+                                        <select
                                             name="type"
-                                            placeholder="e.g. Collaboration, Inspection"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            className="select select-bordered w-full focus:select-primary transition-all"
                                             value={formData.type}
                                             onChange={handleChange}
-                                        />
+                                        >
+                                            <option value="">Select Type</option>
+                                            <option value="Guest Lecture">Guest Lecture</option>
+                                            <option value="Seminar">Seminar</option>
+                                            <option value="University Visit">University Visit</option>
+                                            <option value="Consultant Visit">Consultant Visit</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>

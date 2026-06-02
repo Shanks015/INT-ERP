@@ -110,16 +110,17 @@ export const getAll = (Model) => async (req, res) => {
 
         // Apply all other filters dynamically (type, category, visitType, etc.)
         // Supports comma-separated multi-values, e.g. type=Guest Lecture,Seminar → $in query
+        // Uses case-insensitive regex to match legacy data with inconsistent casing
         Object.keys(otherFilters).forEach(key => {
             const value = otherFilters[key];
             if (value && value !== 'all' && value.trim() !== '') {
                 const values = value.split(',').map(v => v.trim()).filter(Boolean);
                 if (values.length > 1) {
-                    // Multi-value: use $in for OR matching
-                    query[key] = { $in: values };
+                    // Multi-value: case-insensitive OR matching
+                    query[key] = { $in: values.map(v => new RegExp(`^${v}$`, 'i')) };
                 } else {
-                    // Single value: exact match
-                    query[key] = values[0];
+                    // Single value: case-insensitive exact match
+                    query[key] = { $regex: `^${values[0]}$`, $options: 'i' };
                 }
             }
         });
