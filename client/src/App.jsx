@@ -81,6 +81,7 @@ const MeetingTrackerForm = lazy(() => import('./pages/MeetingTrackers/MeetingTra
 
 // Settings
 const Settings = lazy(() => import('./pages/Settings/Settings'));
+const MailboxConnections = lazy(() => import('./pages/Settings/MailboxConnections'));
 
 // Activity Logs (Admin only)
 const ActivityLogs = lazy(() => import('./pages/ActivityLogs/ActivityLogs'));
@@ -171,6 +172,7 @@ function App() {
                             <Route path="reports" element={<Reports />} />
                             <Route path="user-management" element={<ProtectedRoute adminOnly><UserManagement /></ProtectedRoute>} />
                             <Route path="settings" element={<Settings />} />
+                            <Route path="mailbox-connections" element={<ProtectedRoute adminOnly><MailboxConnections /></ProtectedRoute>} />
                             <Route path="activity-logs" element={<ProtectedRoute adminOnly><ActivityLogs /></ProtectedRoute>} />
                         </Route>
 

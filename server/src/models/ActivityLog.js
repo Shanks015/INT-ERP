@@ -14,7 +14,7 @@ const activityLogSchema = new mongoose.Schema({
     action: {
         type: String,
         required: true,
-        enum: ['create', 'update', 'delete', 'login', 'logout', 'export', 'import', 'view'],
+        enum: ['create', 'update', 'delete', 'login', 'logout', 'export', 'import', 'view', 'reminder', 'sync'],
         index: true
     },
     module: {

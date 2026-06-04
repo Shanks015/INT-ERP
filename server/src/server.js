@@ -35,6 +35,11 @@ import activityLogsRoutes from './routes/activityLogs.routes.js';
 import userSettingsRoutes from './routes/userSettings.routes.js';
 
 import googleFormsRoutes from './routes/googleForms.routes.js';
+import mailboxRoutes from './routes/mailbox.routes.js';
+
+// Import cron jobs
+import { startImapSyncJob } from './jobs/imapReplySync.job.js';
+import { startOutreachFollowUpJob } from './jobs/outreachFollowUp.job.js';
 
 // Load environment variables
 dotenv.config();
@@ -95,6 +100,7 @@ app.use('/api/reports', reportsRoutes);
 app.use('/api/google-forms', googleFormsRoutes);
 app.use('/api/activity-logs', activityLogsRoutes);
 app.use('/api/settings', userSettingsRoutes);
+app.use('/api/mailboxes', mailboxRoutes);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -135,6 +141,10 @@ mongoose
     .connect(process.env.MONGODB_URI)
     .then(() => {
         console.log('✅ MongoDB connected successfully');
+
+        // Start cron jobs after DB is ready
+        startImapSyncJob();
+        startOutreachFollowUpJob();
 
         // Start server on all network interfaces
         const HOST = '0.0.0.0';

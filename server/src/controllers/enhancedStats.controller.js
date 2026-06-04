@@ -892,12 +892,17 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
                     Model.countDocuments({
                         status: 'active',
-                        reply: {
-                            $exists: true,
-                            $ne: '',
-                            // Use regex to exclude variations of "No Response", "No Reply", "N/A", "-"
-                            $not: /^(no\s*(reply|response)|n\/?a|-)$/i
-                        }
+                        $or: [
+                            { outreachStatus: { $in: ['Reply Detected', 'Replied'] } },
+                            {
+                                reply: {
+                                    $exists: true,
+                                    $ne: '',
+                                    // Use regex to exclude variations of "No Response", "No Reply", "N/A", "-"
+                                    $not: /^(no\s*(reply|response)|n\/?a|-)$/i
+                                }
+                            }
+                        ]
                     }),
                     Model.aggregate([
                         { $match: { country: { $exists: true, $ne: '' } } },
