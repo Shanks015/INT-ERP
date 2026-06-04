@@ -9,6 +9,7 @@ const MailboxConnections = () => {
     const [connections, setConnections] = useState([]);
     const [loading, setLoading] = useState(true);
     const [addModal, setAddModal] = useState(false);
+    const [deleteConfirmModal, setDeleteConfirmModal] = useState(null);
     const [syncing, setSyncing] = useState(null);
     const [deleting, setDeleting] = useState(null);
     const [form, setForm] = useState({ employeeId: '', employeeName: '', emailAddress: '', appPassword: '' });
@@ -54,15 +55,20 @@ const MailboxConnections = () => {
         finally { setSyncing(null); }
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Remove this mailbox connection?')) return;
+    const triggerDelete = async () => {
+        if (!deleteConfirmModal) return;
+        const id = deleteConfirmModal._id;
         setDeleting(id);
         try {
             await api.delete(`/mailboxes/${id}`);
-            toast.success('Mailbox removed');
+            toast.success('Mailbox removed ✅');
+            setDeleteConfirmModal(null);
             fetchConnections();
-        } catch { toast.error('Failed to remove'); }
-        finally { setDeleting(null); }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to remove mailbox');
+        } finally {
+            setDeleting(null);
+        }
     };
 
     const handleToggleStatus = async (c) => {
@@ -134,7 +140,7 @@ const MailboxConnections = () => {
                                             className={`btn btn-xs gap-1 ${c.status === 'active' ? 'btn-warning' : 'btn-success'}`}>
                                             {c.status === 'active' ? <><WifiOff size={13} /> Pause</> : <><Wifi size={13} /> Resume</>}
                                         </button>
-                                        <button onClick={() => handleDelete(c._id)} disabled={deleting === c._id}
+                                        <button onClick={() => setDeleteConfirmModal(c)} disabled={deleting === c._id}
                                             className="btn btn-error btn-xs gap-1">
                                             <Trash2 size={13} /> Remove
                                         </button>
@@ -204,6 +210,49 @@ const MailboxConnections = () => {
                         </form>
                     </div>
                     <form method="dialog" className="modal-backdrop" onClick={() => setAddModal(false)} />
+                </dialog>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirmModal && (
+                <dialog open className="modal modal-open">
+                    <div className="modal-box max-w-md">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-bold text-lg text-error flex items-center gap-2">
+                                <Trash2 size={20} /> Remove Mailbox Connection
+                            </h3>
+                            <button onClick={() => setDeleteConfirmModal(null)} className="btn btn-sm btn-ghost btn-circle">
+                                <X size={18} />
+                              </button>
+                        </div>
+                        
+                        <div className="py-2">
+                            <p className="text-sm">
+                                Are you sure you want to remove the mailbox connection for <span className="font-semibold text-error">{deleteConfirmModal.employeeName}</span> ({deleteConfirmModal.emailAddress})?
+                            </p>
+                            <p className="text-xs text-base-content/50 mt-2">
+                                This will stop automatic reply detection, follow-up automation, and real-time statistics tracking for all outreach campaigns synchronized through this mailbox.
+                            </p>
+                        </div>
+                        
+                        <div className="flex justify-end gap-2 pt-4">
+                            <button type="button" onClick={() => setDeleteConfirmModal(null)} className="btn btn-ghost">Cancel</button>
+                            <button 
+                                type="button" 
+                                onClick={triggerDelete} 
+                                disabled={deleting === deleteConfirmModal._id} 
+                                className="btn btn-error gap-2"
+                            >
+                                {deleting === deleteConfirmModal._id ? (
+                                    <span className="loading loading-spinner loading-xs" />
+                                ) : (
+                                    <Trash2 size={16} />
+                                )}
+                                Remove Connection
+                            </button>
+                        </div>
+                    </div>
+                    <form method="dialog" className="modal-backdrop" onClick={() => setDeleteConfirmModal(null)} />
                 </dialog>
             )}
         </div>
