@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import { logUserActivity } from './generic.controller.js';
 
 // Get all pending users
 export const getPendingUsers = async (req, res) => {
@@ -152,3 +153,149 @@ export const getPendingCount = async (req, res) => {
         });
     }
 };
+
+// Create user (Admin only)
+export const createUser = async (req, res) => {
+    try {
+        const { name, email, password, role, allowedModules } = req.body;
+
+        if (!name || !email || !password || !role) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists with this email' });
+        }
+
+        const user = new User({
+            name,
+            email,
+            password,
+            role,
+            allowedModules: role === 'intern' ? allowedModules || [] : [],
+            approvalStatus: 'approved',
+            approved: true,
+            approvedBy: req.userId,
+            approvedAt: new Date()
+        });
+
+        await user.save();
+
+        // Log user creation activity
+        await logUserActivity(req, 'create', 'User', user);
+
+        res.status(201).json({
+            success: true,
+            message: 'User created successfully',
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                allowedModules: user.allowedModules,
+                approvalStatus: user.approvalStatus
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error creating user',
+            error: error.message
+        });
+    }
+};
+
+// Update user (Admin only)
+export const updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, password, role, allowedModules, approvalStatus } = req.body;
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (name) user.name = name;
+        if (email) user.email = email;
+        if (role) {
+            user.role = role;
+            if (role === 'intern') {
+                user.allowedModules = allowedModules || [];
+            } else {
+                user.allowedModules = [];
+            }
+        } else if (allowedModules !== undefined) {
+            user.allowedModules = allowedModules;
+        }
+
+        if (password && password.trim() !== '') {
+            user.password = password;
+        }
+
+        if (approvalStatus) {
+            user.approvalStatus = approvalStatus;
+            if (approvalStatus === 'approved') {
+                user.approved = true;
+            } else if (approvalStatus === 'rejected') {
+                user.approved = false;
+            }
+        }
+
+        await user.save();
+
+        // Log user update activity
+        await logUserActivity(req, 'update', 'User', user);
+
+        res.json({
+            success: true,
+            message: 'User updated successfully',
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                allowedModules: user.allowedModules,
+                approvalStatus: user.approvalStatus
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error updating user',
+            error: error.message
+        });
+    }
+};
+
+// Delete user (Admin only)
+export const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (id === req.userId.toString()) {
+            return res.status(400).json({ message: 'Cannot delete your own account' });
+        }
+
+        const user = await User.findByIdAndDelete(id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Log user deletion activity
+        await logUserActivity(req, 'delete', 'User', user);
+
+        res.json({
+            success: true,
+            message: 'User deleted successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting user',
+            error: error.message
+        });
+    }
+};
+

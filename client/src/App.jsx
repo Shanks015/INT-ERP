@@ -105,73 +105,73 @@ function App() {
 
                         <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                             <Route index element={<Navigate to="/dashboard" replace />} />
-                            <Route path="dashboard" element={<Dashboard />} />
+                            <Route path="dashboard" element={<ProtectedRoute module="dashboard"><Dashboard /></ProtectedRoute>} />
 
-                            <Route path="partners" element={<PartnersList />} />
-                            <Route path="partners/new" element={<PartnerForm />} />
-                            <Route path="partners/edit/:id" element={<PartnerForm />} />
+                            <Route path="partners" element={<ProtectedRoute module="partners"><PartnersList /></ProtectedRoute>} />
+                            <Route path="partners/new" element={<ProtectedRoute module="partners"><PartnerForm /></ProtectedRoute>} />
+                            <Route path="partners/edit/:id" element={<ProtectedRoute module="partners"><PartnerForm /></ProtectedRoute>} />
 
-                            <Route path="campus-visits" element={<CampusVisitsList />} />
-                            <Route path="campus-visits/new" element={<CampusVisitForm />} />
-                            <Route path="campus-visits/edit/:id" element={<CampusVisitForm />} />
+                            <Route path="campus-visits" element={<ProtectedRoute module="campus-visits"><CampusVisitsList /></ProtectedRoute>} />
+                            <Route path="campus-visits/new" element={<ProtectedRoute module="campus-visits"><CampusVisitForm /></ProtectedRoute>} />
+                            <Route path="campus-visits/edit/:id" element={<ProtectedRoute module="campus-visits"><CampusVisitForm /></ProtectedRoute>} />
 
-                            <Route path="events" element={<EventsList />} />
-                            <Route path="events/new" element={<EventForm />} />
-                            <Route path="events/edit/:id" element={<EventForm />} />
+                            <Route path="events" element={<ProtectedRoute module="events"><EventsList /></ProtectedRoute>} />
+                            <Route path="events/new" element={<ProtectedRoute module="events"><EventForm /></ProtectedRoute>} />
+                            <Route path="events/edit/:id" element={<ProtectedRoute module="events"><EventForm /></ProtectedRoute>} />
 
-                            <Route path="conferences" element={<ConferencesList />} />
-                            <Route path="conferences/new" element={<ConferenceForm />} />
-                            <Route path="conferences/edit/:id" element={<ConferenceForm />} />
+                            <Route path="conferences" element={<ProtectedRoute module="conferences"><ConferencesList /></ProtectedRoute>} />
+                            <Route path="conferences/new" element={<ProtectedRoute module="conferences"><ConferenceForm /></ProtectedRoute>} />
+                            <Route path="conferences/edit/:id" element={<ProtectedRoute module="conferences"><ConferenceForm /></ProtectedRoute>} />
 
-                            <Route path="mou-signing-ceremonies" element={<MouSigningCeremoniesList />} />
-                            <Route path="mou-signing-ceremonies/new" element={<MouSigningCeremonyForm />} />
-                            <Route path="mou-signing-ceremonies/edit/:id" element={<MouSigningCeremonyForm />} />
+                            <Route path="mou-signing-ceremonies" element={<ProtectedRoute module="mou-signing-ceremonies"><MouSigningCeremoniesList /></ProtectedRoute>} />
+                            <Route path="mou-signing-ceremonies/new" element={<ProtectedRoute module="mou-signing-ceremonies"><MouSigningCeremonyForm /></ProtectedRoute>} />
+                            <Route path="mou-signing-ceremonies/edit/:id" element={<ProtectedRoute module="mou-signing-ceremonies"><MouSigningCeremonyForm /></ProtectedRoute>} />
 
-                            <Route path="scholars-in-residence" element={<ScholarsList />} />
-                            <Route path="scholars-in-residence/new" element={<ScholarForm />} />
-                            <Route path="scholars-in-residence/edit/:id" element={<ScholarForm />} />
+                            <Route path="scholars-in-residence" element={<ProtectedRoute module="scholars-in-residence"><ScholarsList /></ProtectedRoute>} />
+                            <Route path="scholars-in-residence/new" element={<ProtectedRoute module="scholars-in-residence"><ScholarForm /></ProtectedRoute>} />
+                            <Route path="scholars-in-residence/edit/:id" element={<ProtectedRoute module="scholars-in-residence"><ScholarForm /></ProtectedRoute>} />
 
-                            <Route path="mou-updates" element={<MouUpdatesList />} />
-                            <Route path="mou-updates/new" element={<MouUpdateForm />} />
-                            <Route path="mou-updates/edit/:id" element={<MouUpdateForm />} />
+                            <Route path="mou-updates" element={<ProtectedRoute module="mou-updates"><MouUpdatesList /></ProtectedRoute>} />
+                            <Route path="mou-updates/new" element={<ProtectedRoute module="mou-updates"><MouUpdateForm /></ProtectedRoute>} />
+                            <Route path="mou-updates/edit/:id" element={<ProtectedRoute module="mou-updates"><MouUpdateForm /></ProtectedRoute>} />
 
-                            <Route path="immersion-programs" element={<ImmersionProgramsList />} />
-                            <Route path="immersion-programs/new" element={<ImmersionProgramForm />} />
-                            <Route path="immersion-programs/edit/:id" element={<ImmersionProgramForm />} />
+                            <Route path="immersion-programs" element={<ProtectedRoute module="immersion-programs"><ImmersionProgramsList /></ProtectedRoute>} />
+                            <Route path="immersion-programs/new" element={<ProtectedRoute module="immersion-programs"><ImmersionProgramForm /></ProtectedRoute>} />
+                            <Route path="immersion-programs/edit/:id" element={<ProtectedRoute module="immersion-programs"><ImmersionProgramForm /></ProtectedRoute>} />
 
-                            <Route path="student-exchange" element={<StudentExchangeList />} />
-                            <Route path="student-exchange/new" element={<StudentExchangeForm />} />
-                            <Route path="student-exchange/edit/:id" element={<StudentExchangeForm />} />
+                            <Route path="student-exchange" element={<ProtectedRoute module="student-exchange"><StudentExchangeList /></ProtectedRoute>} />
+                            <Route path="student-exchange/new" element={<ProtectedRoute module="student-exchange"><StudentExchangeForm /></ProtectedRoute>} />
+                            <Route path="student-exchange/edit/:id" element={<ProtectedRoute module="student-exchange"><StudentExchangeForm /></ProtectedRoute>} />
 
-                            <Route path="masters-abroad" element={<MastersAbroadList />} />
-                            <Route path="masters-abroad/new" element={<MastersAbroadForm />} />
-                            <Route path="masters-abroad/edit/:id" element={<MastersAbroadForm />} />
+                            <Route path="masters-abroad" element={<ProtectedRoute module="masters-abroad"><MastersAbroadList /></ProtectedRoute>} />
+                            <Route path="masters-abroad/new" element={<ProtectedRoute module="masters-abroad"><MastersAbroadForm /></ProtectedRoute>} />
+                            <Route path="masters-abroad/edit/:id" element={<ProtectedRoute module="masters-abroad"><MastersAbroadForm /></ProtectedRoute>} />
 
-                            <Route path="memberships" element={<MembershipsList />} />
-                            <Route path="memberships/new" element={<MembershipForm />} />
-                            <Route path="memberships/edit/:id" element={<MembershipForm />} />
+                            <Route path="memberships" element={<ProtectedRoute module="memberships"><MembershipsList /></ProtectedRoute>} />
+                            <Route path="memberships/new" element={<ProtectedRoute module="memberships"><MembershipForm /></ProtectedRoute>} />
+                            <Route path="memberships/edit/:id" element={<ProtectedRoute module="memberships"><MembershipForm /></ProtectedRoute>} />
 
-                            <Route path="digital-media" element={<DigitalMediaList />} />
-                            <Route path="digital-media/new" element={<DigitalMediaForm />} />
-                            <Route path="digital-media/edit/:id" element={<DigitalMediaForm />} />
+                            <Route path="digital-media" element={<ProtectedRoute module="digital-media"><DigitalMediaList /></ProtectedRoute>} />
+                            <Route path="digital-media/new" element={<ProtectedRoute module="digital-media"><DigitalMediaForm /></ProtectedRoute>} />
+                            <Route path="digital-media/edit/:id" element={<ProtectedRoute module="digital-media"><DigitalMediaForm /></ProtectedRoute>} />
 
-                            <Route path="social-media" element={<SocialMediaList />} />
-                            <Route path="social-media/new" element={<SocialMediaForm />} />
-                            <Route path="social-media/:id" element={<SocialMediaForm />} />
+                            <Route path="social-media" element={<ProtectedRoute module="social-media"><SocialMediaList /></ProtectedRoute>} />
+                            <Route path="social-media/new" element={<ProtectedRoute module="social-media"><SocialMediaForm /></ProtectedRoute>} />
+                            <Route path="social-media/:id" element={<ProtectedRoute module="social-media"><SocialMediaForm /></ProtectedRoute>} />
 
-                            <Route path="outreach" element={<OutreachList />} />
-                            <Route path="outreach/new" element={<OutreachForm />} />
-                            <Route path="outreach/edit/:id" element={<OutreachForm />} />
+                            <Route path="outreach" element={<ProtectedRoute module="outreach"><OutreachList /></ProtectedRoute>} />
+                            <Route path="outreach/new" element={<ProtectedRoute module="outreach"><OutreachForm /></ProtectedRoute>} />
+                            <Route path="outreach/edit/:id" element={<ProtectedRoute module="outreach"><OutreachForm /></ProtectedRoute>} />
 
-                            <Route path="meeting-trackers" element={<MeetingTrackersList />} />
-                            <Route path="meeting-trackers/new" element={<MeetingTrackerForm />} />
-                            <Route path="meeting-trackers/edit/:id" element={<MeetingTrackerForm />} />
+                            <Route path="meeting-trackers" element={<ProtectedRoute module="meeting-trackers"><MeetingTrackersList /></ProtectedRoute>} />
+                            <Route path="meeting-trackers/new" element={<ProtectedRoute module="meeting-trackers"><MeetingTrackerForm /></ProtectedRoute>} />
+                            <Route path="meeting-trackers/edit/:id" element={<ProtectedRoute module="meeting-trackers"><MeetingTrackerForm /></ProtectedRoute>} />
 
                             <Route path="pending-actions" element={<ProtectedRoute adminOnly><PendingActions /></ProtectedRoute>} />
                             <Route path="my-requests" element={<MyRequests />} />
-                            <Route path="reports" element={<Reports />} />
+                            <Route path="reports" element={<ProtectedRoute module="reports"><Reports /></ProtectedRoute>} />
                             <Route path="user-management" element={<ProtectedRoute adminOnly><UserManagement /></ProtectedRoute>} />
-                            <Route path="settings" element={<Settings />} />
+                            <Route path="settings" element={<ProtectedRoute module="settings"><Settings /></ProtectedRoute>} />
                             <Route path="mailbox-connections" element={<ProtectedRoute adminOnly><MailboxConnections /></ProtectedRoute>} />
                             <Route path="activity-logs" element={<ProtectedRoute adminOnly><ActivityLogs /></ProtectedRoute>} />
                         </Route>

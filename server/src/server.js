@@ -40,6 +40,7 @@ import mailboxRoutes from './routes/mailbox.routes.js';
 // Import cron jobs
 import { startImapSyncJob } from './jobs/imapReplySync.job.js';
 import { startOutreachFollowUpJob } from './jobs/outreachFollowUp.job.js';
+import { startKeepAliveJob } from './jobs/keepAlive.job.js';
 
 // Load environment variables
 dotenv.config();
@@ -105,6 +106,11 @@ app.use('/api/mailboxes', mailboxRoutes);
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', message: 'Server is running' });
+});
+
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {
     const clientBuildPath = path.join(__dirname, '../../client/dist');
@@ -115,11 +121,6 @@ if (process.env.NODE_ENV === 'production') {
         res.sendFile(path.join(clientBuildPath, 'index.html'));
     });
 }
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'Server is running' });
-});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -145,6 +146,7 @@ mongoose
         // Start cron jobs after DB is ready
         startImapSyncJob();
         startOutreachFollowUpJob();
+        startKeepAliveJob();
 
         // Start server on all network interfaces
         const HOST = '0.0.0.0';

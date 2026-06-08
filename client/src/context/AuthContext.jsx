@@ -16,15 +16,45 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        // Check if user is logged in on mount
+    const checkSession = async () => {
         const token = localStorage.getItem('token');
-        const savedUser = localStorage.getItem('user');
-
-        if (token && savedUser) {
-            setUser(JSON.parse(savedUser));
+        if (!token) {
+            if (user) {
+                logout();
+            }
+            return null;
         }
-        setLoading(false);
+
+        try {
+            const response = await api.get('/auth/me');
+            const userData = response.data.user;
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+            return userData;
+        } catch (error) {
+            console.error('Session verification failed:', error);
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                setUser(null);
+                toast.error('Session expired or access revoked');
+            }
+            return null;
+        }
+    };
+
+    useEffect(() => {
+        const initAuth = async () => {
+            const token = localStorage.getItem('token');
+            const savedUser = localStorage.getItem('user');
+
+            if (token && savedUser) {
+                setUser(JSON.parse(savedUser));
+                await checkSession();
+            }
+            setLoading(false);
+        };
+        initAuth();
     }, []);
 
     const login = async (email, password) => {
@@ -87,6 +117,7 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         updateUser,
+        checkSession,
         isAdmin: user?.role === 'admin',
         isEmployee: user?.role === 'employee',
         isIntern: user?.role === 'intern'

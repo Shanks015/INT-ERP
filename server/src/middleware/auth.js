@@ -17,6 +17,10 @@ export const authenticate = async (req, res, next) => {
             return res.status(401).json({ message: 'User not found' });
         }
 
+        if (!user.approved || user.approvalStatus !== 'approved') {
+            return res.status(403).json({ message: 'Access denied. Account is not approved.' });
+        }
+
         req.user = user;
         req.userId = user._id;
         next();

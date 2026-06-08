@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'employee', 'intern'],
     default: 'employee'
   },
+  allowedModules: {
+    type: [String],
+    default: []
+  },
   approved: {
     type: Boolean,
     default: false
