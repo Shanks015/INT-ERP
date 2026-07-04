@@ -74,6 +74,8 @@ const SocialMediaForm = lazy(() => import('./pages/SocialMedia/SocialMediaForm')
 // Outreach
 const OutreachList = lazy(() => import('./pages/Outreach/OutreachList'));
 const OutreachForm = lazy(() => import('./pages/Outreach/OutreachForm'));
+const OutreachNewList = lazy(() => import('./pages/OutreachNew/OutreachNewList'));
+const OutreachNewForm = lazy(() => import('./pages/OutreachNew/OutreachNewForm'));
 
 // Meeting Trackers
 const MeetingTrackersList = lazy(() => import('./pages/MeetingTrackers/MeetingTrackersList'));
@@ -162,6 +164,10 @@ function App() {
                             <Route path="outreach" element={<ProtectedRoute module="outreach"><OutreachList /></ProtectedRoute>} />
                             <Route path="outreach/new" element={<ProtectedRoute module="outreach"><OutreachForm /></ProtectedRoute>} />
                             <Route path="outreach/edit/:id" element={<ProtectedRoute module="outreach"><OutreachForm /></ProtectedRoute>} />
+
+                            <Route path="outreach-new" element={<ProtectedRoute module="outreach"><OutreachNewList /></ProtectedRoute>} />
+                            <Route path="outreach-new/new" element={<ProtectedRoute module="outreach"><OutreachNewForm /></ProtectedRoute>} />
+                            <Route path="outreach-new/edit/:id" element={<ProtectedRoute module="outreach"><OutreachNewForm /></ProtectedRoute>} />
 
                             <Route path="meeting-trackers" element={<ProtectedRoute module="meeting-trackers"><MeetingTrackersList /></ProtectedRoute>} />
                             <Route path="meeting-trackers/new" element={<ProtectedRoute module="meeting-trackers"><MeetingTrackerForm /></ProtectedRoute>} />

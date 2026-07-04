@@ -205,7 +205,10 @@ const MainLayout = () => {
                                 <li><Link to="/mou-signing-ceremonies" className={location.pathname.includes('/mou-signing-ceremonies') ? 'active' : ''}><FileText size={16} /> MoU Ceremonies</Link></li>
                             )}
                             {hasAccess('outreach') && (
-                                <li><Link to="/outreach" className={location.pathname.includes('/outreach') ? 'active' : ''}><Users size={16} /> Outreach</Link></li>
+                                <>
+                                    <li><Link to="/outreach" className={location.pathname === '/outreach' ? 'active' : ''}><Users size={16} /> Outreach</Link></li>
+                                    <li><Link to="/outreach-new" className={location.pathname.includes('/outreach-new') ? 'active' : ''}><Mail size={16} /> Outreach New</Link></li>
+                                </>
                             )}
                         </ul>
                     )}

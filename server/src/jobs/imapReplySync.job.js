@@ -3,6 +3,7 @@ import { ImapFlow } from 'imapflow';
 import { simpleParser } from 'mailparser';
 import MailboxConnection from '../models/MailboxConnection.js';
 import Outreach from '../models/Outreach.js';
+import OutreachNew from '../models/OutreachNew.js';
 import ActivityLog from '../models/ActivityLog.js';
 import { decrypt } from '../services/cryptoService.js';
 import { sendEmail } from '../services/emailService.js';
@@ -72,7 +73,7 @@ export const syncMailbox = async (connection) => {
 
                 const messageId = msg.envelope?.messageId || null;
 
-                // Skip if we've already processed this exact message
+                // Skip if we've already processed this exact message in either model
                 if (messageId) {
                     const alreadyLogged = await Outreach.exists({
                         $or: [
@@ -80,7 +81,10 @@ export const syncMailbox = async (connection) => {
                             { 'detectedReplies.messageId': messageId }
                         ]
                     });
-                    if (alreadyLogged) continue;
+                    const alreadyLoggedNew = await OutreachNew.exists({
+                        'emails.messageId': messageId
+                    });
+                    if (alreadyLogged || alreadyLoggedNew) continue;
                 }
 
                 // Find a matching outreach record (not closed)
@@ -89,7 +93,12 @@ export const syncMailbox = async (connection) => {
                     outreachStatus: { $ne: 'Closed' }
                 });
 
-                if (!outreach) continue;
+                const outreachNew = await OutreachNew.findOne({
+                    email: { $regex: new RegExp(`^${fromEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+                    outreachStatus: { $ne: 'Closed' }
+                });
+
+                if (!outreach && !outreachNew) continue;
 
                 // ── Parse the email body and attachments ──────────────────────
                 let replyBodyContent = null;
@@ -97,7 +106,6 @@ export const syncMailbox = async (connection) => {
                 if (msg.source) {
                     try {
                         const parsed = await simpleParser(msg.source);
-                        // Prefer plain text, fall back to HTML (stripped), then empty
                         const rawBody = parsed.text || parsed.html?.replace(/<[^>]*>/g, ' ') || '';
                         replyBodyContent = rawBody.trim().slice(0, 10000) || null;
 
@@ -111,7 +119,6 @@ export const syncMailbox = async (connection) => {
                             for (const att of parsed.attachments) {
                                 try {
                                     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-                                    // Use a safe filename
                                     const cleanFileName = (att.filename || 'attachment')
                                         .replace(/[^a-zA-Z0-9.\-_]/g, '_');
                                     const safeFilename = `${uniqueSuffix}-${cleanFileName}`;
@@ -134,67 +141,102 @@ export const syncMailbox = async (connection) => {
                     }
                 }
 
-                // ── Construct and Push Reply to Array ─────────────────────────
-                const newReply = {
-                    detectedAt: msg.envelope?.date || new Date(),
-                    fromEmail: fromEmail,
-                    subject: msg.envelope?.subject || '(No Subject)',
-                    messageId: messageId,
-                    bodyContent: replyBodyContent,
-                    matchConfidence: 'high',
-                    reviewStatus: 'pending_review',
-                    detectedIn: connection.employee,
-                    attachments: attachments
-                };
-
-                if (!outreach.detectedReplies) {
-                    outreach.detectedReplies = [];
-                }
-                outreach.detectedReplies.push(newReply);
-
-                // ── Two-step: set to "Reply Detected", not "Replied" ──────────
-                outreach.outreachStatus = 'Reply Detected';
-                outreach.automationActive = false; // suspend reminders immediately
-                outreach.replyDetectedAt = newReply.detectedAt;
-                outreach.replyFromEmail = newReply.fromEmail;
-                outreach.replySubject = newReply.subject;
-                outreach.replyMessageId = newReply.messageId;
-                outreach.replyBodyContent = newReply.bodyContent;
-                outreach.replyDetectedIn = newReply.detectedIn;
-                outreach.replyMatchConfidence = newReply.matchConfidence;
-                outreach.replyReviewStatus = newReply.reviewStatus;
-                outreach.replyAttachments = attachments;
-                outreach.syncSource = 'imap_poll';
-
-                await outreach.save();
-                matched++;
-
-                console.log(`[IMAP] Reply detected: ${fromEmail} → outreach ${outreach._id}`);
-
-                // Log to ActivityLog
-                await ActivityLog.logActivity({
-                    user:       connection.employee,
-                    userName:   connection.employeeName,
-                    action:     'sync',
-                    module:     'outreach',
-                    targetId:   String(outreach._id),
-                    targetName: outreach.university || outreach.name,
-                    details:    { fromEmail, syncSource: 'imap_poll', messageId },
-                    method:     'POST',
-                    path:       '/jobs/imapReplySync',
-                    statusCode: 200
-                });
-
-                // Notify admin by email
-                try {
-                    const { subject, html } = buildAdminNotificationEmail(outreach, { name: connection.employeeName });
-                    await sendEmail({
-                        to: process.env.SMTP_ADMIN_EMAIL,
-                        subject,
-                        html
+                if (outreachNew) {
+                    // Log received email in the thread
+                    outreachNew.emails.push({
+                        messageId,
+                        direction: 'received',
+                        from: fromEmail,
+                        to: connection.emailAddress,
+                        subject: msg.envelope?.subject || '(No Subject)',
+                        body: replyBodyContent || '',
+                        sentAt: msg.envelope?.date || new Date(),
+                        attachments: attachments
                     });
-                } catch (notifyErr) {
-                    console.warn(`[IMAP] Admin notification failed:`, notifyErr.message);
+
+                    outreachNew.outreachStatus = 'Reply Received';
+                    outreachNew.hasUnreadReply = true;
+                    await outreachNew.save();
+                    matched++;
+
+                    console.log(`[IMAP] Reply detected for Outreach New: ${fromEmail} → ${outreachNew._id}`);
+
+                    // Log to ActivityLog
+                    await ActivityLog.logActivity({
+                        user:       connection.employee,
+                        userName:   connection.employeeName,
+                        action:     'sync',
+                        module:     'outreach-new',
+                        targetId:   String(outreachNew._id),
+                        targetName: outreachNew.university,
+                        details:    { fromEmail, syncSource: 'imap_poll', messageId },
+                        method:     'POST',
+                        path:       '/jobs/imapReplySync',
+                        statusCode: 200
+                    });
+                } else if (outreach) {
+                    // ── Construct and Push Reply to Array ─────────────────────────
+                    const newReply = {
+                        detectedAt: msg.envelope?.date || new Date(),
+                        fromEmail: fromEmail,
+                        subject: msg.envelope?.subject || '(No Subject)',
+                        messageId: messageId,
+                        bodyContent: replyBodyContent,
+                        matchConfidence: 'high',
+                        reviewStatus: 'pending_review',
+                        detectedIn: connection.employee,
+                        attachments: attachments
+                    };
+
+                    if (!outreach.detectedReplies) {
+                        outreach.detectedReplies = [];
+                    }
+                    outreach.detectedReplies.push(newReply);
+
+                    // ── Two-step: set to "Reply Detected", not "Replied" ──────────
+                    outreach.outreachStatus = 'Reply Detected';
+                    outreach.automationActive = false; // suspend reminders immediately
+                    outreach.replyDetectedAt = newReply.detectedAt;
+                    outreach.replyFromEmail = newReply.fromEmail;
+                    outreach.replySubject = newReply.subject;
+                    outreach.replyMessageId = newReply.messageId;
+                    outreach.replyBodyContent = newReply.bodyContent;
+                    outreach.replyDetectedIn = newReply.detectedIn;
+                    outreach.replyMatchConfidence = newReply.matchConfidence;
+                    outreach.replyReviewStatus = newReply.reviewStatus;
+                    outreach.replyAttachments = attachments;
+                    outreach.syncSource = 'imap_poll';
+
+                    await outreach.save();
+                    matched++;
+
+                    console.log(`[IMAP] Reply detected: ${fromEmail} → outreach ${outreach._id}`);
+
+                    // Log to ActivityLog
+                    await ActivityLog.logActivity({
+                        user:       connection.employee,
+                        userName:   connection.employeeName,
+                        action:     'sync',
+                        module:     'outreach',
+                        targetId:   String(outreach._id),
+                        targetName: outreach.university || outreach.name,
+                        details:    { fromEmail, syncSource: 'imap_poll', messageId },
+                        method:     'POST',
+                        path:       '/jobs/imapReplySync',
+                        statusCode: 200
+                    });
+
+                    // Notify admin by email
+                    try {
+                        const { subject, html } = buildAdminNotificationEmail(outreach, { name: connection.employeeName });
+                        await sendEmail({
+                            to: process.env.SMTP_ADMIN_EMAIL,
+                            subject,
+                            html
+                        });
+                    } catch (notifyErr) {
+                        console.warn(`[IMAP] Admin notification failed:`, notifyErr.message);
+                    }
                 }
             }
 

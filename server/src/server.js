@@ -36,6 +36,7 @@ import userSettingsRoutes from './routes/userSettings.routes.js';
 
 import googleFormsRoutes from './routes/googleForms.routes.js';
 import mailboxRoutes from './routes/mailbox.routes.js';
+import outreachNewRoutes from './routes/outreachNew.routes.js';
 
 // Import cron jobs
 import { startImapSyncJob } from './jobs/imapReplySync.job.js';
@@ -102,6 +103,7 @@ app.use('/api/google-forms', googleFormsRoutes);
 app.use('/api/activity-logs', activityLogsRoutes);
 app.use('/api/settings', userSettingsRoutes);
 app.use('/api/mailboxes', mailboxRoutes);
+app.use('/api/outreach-new', outreachNewRoutes);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

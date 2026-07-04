@@ -28,7 +28,7 @@ const MouUpdatesList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', country: '', agreementType: '', mouStatus: '', validityStatus: '', startDate: '', endDate: '' });
+    const [filters, setFilters] = useState({ search: '', country: '', agreementType: '', mouStatus: '', validityStatus: '', startDate: '', endDate: '', selectedMonth: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
@@ -37,7 +37,16 @@ const MouUpdatesList = () => {
     const [agreementTypes, setAgreementTypes] = useState([]);
     const [mouStatuses, setMouStatuses] = useState([]);
     const [validityStatuses, setValidityStatuses] = useState([]);
-    useEffect(() => { fetchUpdates(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.agreementType, filters.mouStatus, filters.validityStatus, filters.startDate, filters.endDate]);
+    const [availableMonths, setAvailableMonths] = useState([]);
+
+    const formatMonthKey = (key) => {
+        if (!key) return '';
+        const [year, month] = key.split('-');
+        const date = new Date(year, parseInt(month) - 1, 1);
+        return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+    };
+
+    useEffect(() => { fetchUpdates(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.agreementType, filters.mouStatus, filters.validityStatus, filters.startDate, filters.endDate, filters.selectedMonth]);
 
     const fetchStats = async () => {
         try {
@@ -56,13 +65,29 @@ const MouUpdatesList = () => {
             setAgreementTypes(getCaseInsensitiveUnique(updates, 'agreementType'));
             setMouStatuses(getCaseInsensitiveUnique(updates, 'mouStatus'));
             setValidityStatuses(getCaseInsensitiveUnique(updates, 'validityStatus'));
+
+            // Extract unique months from update date field (format: YYYY-MM)
+            const months = [...new Set(updates.map(u => {
+                if (!u.date) return null;
+                const dStr = typeof u.date === 'string' ? u.date : new Date(u.date).toISOString();
+                return dStr.substring(0, 7);
+            }).filter(Boolean))].sort().reverse();
+            setAvailableMonths(months);
         } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
     const fetchUpdates = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, country: filters.country, agreementType: filters.agreementType, mouStatus: filters.mouStatus, validityStatus: filters.validityStatus, startDate: filters.startDate, endDate: filters.endDate };
+            let start = filters.startDate;
+            let end = filters.endDate;
+            if (filters.selectedMonth) {
+                const [year, month] = filters.selectedMonth.split('-');
+                start = `${year}-${month}-01`;
+                const lastDay = new Date(year, month, 0).getDate();
+                end = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
+            }
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, country: filters.country, agreementType: filters.agreementType, mouStatus: filters.mouStatus, validityStatus: filters.validityStatus, startDate: start, endDate: end };
             const response = await api.get('/mou-updates', { params });
             setUpdates(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -95,7 +120,7 @@ const MouUpdatesList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', status: '', startDate: '', endDate: '', country: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', country: '', agreementType: '', mouStatus: '', validityStatus: '', startDate: '', endDate: '', selectedMonth: '' }); setCurrentPage(1); };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
@@ -114,27 +139,87 @@ const MouUpdatesList = () => {
                 <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="mou-updates" statType="countries" moduleData={stats} loading={statsLoading} />
                 <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="mou-updates" statType="active" moduleData={stats} loading={statsLoading} />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <div className="form-control">
-                    <label className="label"><span className="label-text">Country</span></label>
-                    <select className="select select-bordered w-full" value={filters.country || ''} onChange={(e) => handleFilterChange({ country: e.target.value })}>
-                        <option value="">All Countries</option>
-                        {countries.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                </div>
-                <div className="form-control">
-                    <label className="label"><span className="label-text">Agreement Type</span></label>
-                    <select className="select select-bordered w-full" value={filters.agreementType || ''} onChange={(e) => handleFilterChange({ agreementType: e.target.value })}>
-                        <option value="">All Types</option>
-                        {agreementTypes.map(type => <option key={type} value={type}>{type}</option>)}
-                    </select>
-                </div>
-                <div className="form-control">
-                    <label className="label"><span className="label-text">Validity Status</span></label>
-                    <select className="select select-bordered w-full" value={filters.validityStatus || ''} onChange={(e) => handleFilterChange({ validityStatus: e.target.value })}>
-                        <option value="">All Statuses</option>
-                        {validityStatuses.map(status => <option key={status} value={status}>{status}</option>)}
-                    </select>
+            {/* Filters Card */}
+            <div className="card bg-base-100 shadow-xl mb-6">
+                <div className="card-body">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold">Filters</h3>
+                        <button onClick={handleClearFilters} className="btn btn-ghost btn-sm gap-2">
+                            <X size={16} /> Clear All
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        {/* Search */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Search</span></label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Search university..."
+                                    className="input input-bordered w-full pr-10"
+                                    value={filters.search}
+                                    onChange={(e) => handleFilterChange({ search: e.target.value })}
+                                />
+                                <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
+                            </div>
+                        </div>
+
+                        {/* Country */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Country</span></label>
+                            <select 
+                                className="select select-bordered w-full" 
+                                value={filters.country || ''} 
+                                onChange={(e) => handleFilterChange({ country: e.target.value })}
+                            >
+                                <option value="">All Countries</option>
+                                {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+
+                        {/* Agreement Type */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Agreement Type</span></label>
+                            <select 
+                                className="select select-bordered w-full" 
+                                value={filters.agreementType || ''} 
+                                onChange={(e) => handleFilterChange({ agreementType: e.target.value })}
+                            >
+                                <option value="">All Types</option>
+                                {agreementTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                            </select>
+                        </div>
+
+                        {/* Validity Status */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Validity Status</span></label>
+                            <select 
+                                className="select select-bordered w-full" 
+                                value={filters.validityStatus || ''} 
+                                onChange={(e) => handleFilterChange({ validityStatus: e.target.value })}
+                            >
+                                <option value="">All Statuses</option>
+                                {validityStatuses.map(status => <option key={status} value={status}>{status}</option>)}
+                            </select>
+                        </div>
+
+                        {/* Month Filter */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Month</span></label>
+                            <select 
+                                className="select select-bordered w-full" 
+                                value={filters.selectedMonth || ''} 
+                                onChange={(e) => handleFilterChange({ selectedMonth: e.target.value })}
+                            >
+                                <option value="">All Months</option>
+                                {availableMonths.map(month => (
+                                    <option key={month} value={month}>
+                                        {formatMonthKey(month)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div className="card bg-base-100 shadow-xl">

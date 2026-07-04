@@ -311,7 +311,7 @@ const ActivityLogs = () => {
                                                 </span>
                                             </td>
                                             <td>
-                                                <span className="badge badge-outline badge-sm">{log.module}</span>
+                                                <span className="badge badge-outline badge-sm h-auto py-0.5 text-center whitespace-normal">{log.module}</span>
                                             </td>
                                             <td className="max-w-xs truncate">{log.targetName || '-'}</td>
                                             <td className="text-sm">{formatTime(log.timestamp)}</td>

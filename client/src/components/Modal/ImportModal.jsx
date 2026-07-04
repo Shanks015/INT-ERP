@@ -27,6 +27,7 @@ const ImportModal = ({ isOpen, onClose, onSuccess, moduleName }) => {
         { value: 'memberships', label: 'Memberships' },
         { value: 'digital-media', label: 'Digital Media' },
         { value: 'outreach', label: 'Outreach' },
+        { value: 'outreach-new', label: 'Outreach New' },
         { value: 'meeting-trackers', label: 'Meeting Trackers' },
     ];
 
@@ -49,6 +50,8 @@ const ImportModal = ({ isOpen, onClose, onSuccess, moduleName }) => {
             // Use custom endpoint for outreach to handle specific field mapping
             if (module === 'outreach') {
                 endpoint = '/outreach/import-csv';
+            } else if (module === 'outreach-new') {
+                endpoint = '/outreach-new/import-xlsx';
             }
 
             const response = await api.post(endpoint, formData, {

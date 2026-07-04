@@ -1,0 +1,700 @@
+import { useEffect, useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useDebounce } from '../../hooks/useDebounce';
+import api from '../../api';
+import toast from 'react-hot-toast';
+import { Plus, Edit, Trash2, Download, Upload, Mail, Eye, Send, Paperclip, Check, X, Search, AlertCircle, RefreshCw, FileText } from 'lucide-react';
+import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
+import ImportModal from '../../components/Modal/ImportModal';
+import Pagination from '../../components/Pagination';
+
+const STATUS_BADGES = {
+    'Not Sent': 'badge-neutral',
+    'Sent': 'badge-primary',
+    'Reply Received': 'badge-success',
+    'Closed': 'badge-ghost'
+};
+
+// ── Email Thread & Composer Component ──────────────────────────────────────────
+const EmailThreadModal = ({ isOpen, onClose, recordId, onRefreshList }) => {
+    const { user } = useAuth();
+    const [record, setRecord] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [subject, setSubject] = useState('');
+    const [body, setBody] = useState('');
+    const [signature, setSignature] = useState(localStorage.getItem('outreach_signature') || '');
+    const [attachments, setAttachments] = useState([]);
+    const [sending, setSending] = useState(false);
+    const fileInputRef = useRef(null);
+
+    useEffect(() => {
+        if (isOpen && recordId) {
+            fetchRecordDetails();
+            markAsRead();
+        }
+    }, [isOpen, recordId]);
+
+    const fetchRecordDetails = async () => {
+        try {
+            setLoading(true);
+            const res = await api.get(`/outreach-new/${recordId}`);
+            const data = res.data.data;
+            setRecord(data);
+            
+            // Set default subject if empty
+            if (data.emails && data.emails.length > 0) {
+                const lastEmail = data.emails[data.emails.length - 1];
+                setSubject(lastEmail.subject.startsWith('Re:') ? lastEmail.subject : `Re: ${lastEmail.subject}`);
+            } else {
+                setSubject(`Academic Collaboration Interest — ${data.university}`);
+            }
+        } catch {
+            toast.error('Failed to load thread history');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const markAsRead = async () => {
+        try {
+            await api.put(`/outreach-new/${recordId}/mark-read`);
+            if (onRefreshList) onRefreshList();
+        } catch (e) {
+            console.error('Failed to mark as read:', e);
+        }
+    };
+
+    const handleFileChange = (e) => {
+        setAttachments(Array.from(e.target.files));
+    };
+
+    const handleSendEmail = async (e) => {
+        e.preventDefault();
+        if (!subject.trim() || !body.trim()) {
+            return toast.error('Subject and Body are required');
+        }
+
+        setSending(true);
+        const formData = new FormData();
+        formData.append('subject', subject);
+        formData.append('body', body);
+        formData.append('signature', signature);
+        attachments.forEach(file => {
+            formData.append('attachments', file);
+        });
+
+        try {
+            // Save signature to localstorage for future emails
+            localStorage.setItem('outreach_signature', signature);
+
+            await api.post(`/outreach-new/${recordId}/send-email`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            toast.success('Email sent successfully! ✈️');
+            setBody('');
+            setAttachments([]);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            
+            // Reload thread details
+            await fetchRecordDetails();
+            if (onRefreshList) onRefreshList();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to send email');
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const handleSendWithGmail = async () => {
+        if (!subject.trim() || !body.trim()) {
+            return toast.error('Subject and Body are required to log and open Gmail');
+        }
+
+        setSending(true);
+        try {
+            // Log sent mail in the ERP database thread
+            await api.post(`/outreach-new/${recordId}/log-sent-email`, { subject, body });
+
+            // Clear editor body
+            setBody('');
+
+            // Open Gmail compose tab with pre-filled inputs
+            const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(record.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.open(gmailUrl, '_blank');
+
+            toast.success('Email logged and Gmail composer opened! 📬');
+
+            // Reload thread history details
+            await fetchRecordDetails();
+            if (onRefreshList) onRefreshList();
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to log and redirect to Gmail');
+        } finally {
+            setSending(false);
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <dialog open className="modal modal-open">
+            <div className="modal-box max-w-5xl h-[85vh] flex flex-col p-6 rounded-2xl bg-base-100 shadow-2xl">
+                {/* Header */}
+                <div className="flex justify-between items-center pb-4 border-b border-base-200">
+                    <div>
+                        <h3 className="font-bold text-xl flex items-center gap-2">
+                            <Mail className="text-primary animate-pulse" size={24} />
+                            {record?.university || 'Loading thread...'}
+                        </h3>
+                        <p className="text-xs text-base-content/60 mt-0.5">
+                            {record?.contactName ? `${record.contactName} (${record.contactPerson}) · ` : ''}
+                            <span className="font-semibold text-primary">{record?.email}</span>
+                        </p>
+                    </div>
+                    <button onClick={onClose} className="btn btn-sm btn-ghost btn-circle">
+                        <X size={20} />
+                    </button>
+                </div>
+
+                {loading ? (
+                    <div className="flex-1 flex justify-center items-center">
+                        <span className="loading loading-spinner loading-lg text-primary"></span>
+                    </div>
+                ) : (
+                    <div className="flex-1 flex flex-col md:flex-row gap-6 mt-4 overflow-hidden">
+                        {/* Left Side: Conversation Thread */}
+                        <div className="flex-1 flex flex-col border border-base-200 rounded-xl overflow-hidden bg-base-50">
+                            <div className="bg-base-200 px-4 py-2 font-semibold text-sm flex justify-between items-center border-b border-base-300">
+                                <span>Conversation Thread</span>
+                                <span className="badge badge-sm badge-outline">{record?.emails?.length || 0} messages</span>
+                            </div>
+                            
+                            <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                                {(!record?.emails || record.emails.length === 0) ? (
+                                    <div className="h-full flex flex-col justify-center items-center text-base-content/40 py-12">
+                                        <Mail size={48} className="mb-2 opacity-50" />
+                                        <p className="font-medium">No emails logged yet</p>
+                                        <p className="text-xs">Use the composer on the right to send the first email.</p>
+                                    </div>
+                                ) : (
+                                    record.emails.map((mail, idx) => {
+                                        const isSent = mail.direction === 'sent';
+                                        return (
+                                            <div key={idx} className={`chat ${isSent ? 'chat-end' : 'chat-start'}`}>
+                                                <div className="chat-header text-xs text-base-content/50 mb-1 flex items-center gap-1.5">
+                                                    <span className="font-bold text-base-content">{isSent ? (mail.sentByName || 'Me') : record.university}</span>
+                                                    <span>({new Date(mail.sentAt).toLocaleString('en-IN')})</span>
+                                                </div>
+                                                <div className={`chat-bubble text-sm max-w-[85%] border shadow-sm ${
+                                                    isSent 
+                                                        ? 'bg-primary text-primary-content border-primary-focus' 
+                                                        : 'bg-base-100 text-base-content border-base-300'
+                                                }`}>
+                                                    <p className="font-semibold text-xs opacity-75 border-b border-current/15 pb-1 mb-1">
+                                                        Subject: {mail.subject}
+                                                    </p>
+                                                    <div className="whitespace-pre-wrap break-words">{mail.body}</div>
+                                                    
+                                                    {/* Attachments inside bubble */}
+                                                    {mail.attachments && mail.attachments.length > 0 && (
+                                                        <div className={`mt-3 pt-2 border-t text-xs flex flex-wrap gap-2 ${
+                                                            isSent ? 'border-primary-content/20' : 'border-base-content/10'
+                                                        }`}>
+                                                            {mail.attachments.map((att, aIdx) => (
+                                                                <a 
+                                                                    key={aIdx} 
+                                                                    href={`${api.defaults.baseURL.replace(/\/api$/, '')}${att.path}`} 
+                                                                    target="_blank" 
+                                                                    rel="noopener noreferrer"
+                                                                    className={`flex items-center gap-1 px-2 py-1 rounded border transition-colors hover:underline ${
+                                                                        isSent 
+                                                                            ? 'bg-primary-focus text-primary-content border-primary-content/20' 
+                                                                            : 'bg-base-200 text-base-content border-base-content/15'
+                                                                    }`}
+                                                                >
+                                                                    <Paperclip size={12} />
+                                                                    <span className="truncate max-w-[120px]">{att.filename}</span>
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Right Side: Email Composer */}
+                        <div className="w-full md:w-96 flex flex-col border border-base-200 rounded-xl overflow-hidden bg-base-100">
+                            <div className="bg-base-200 px-4 py-2 font-semibold text-sm border-b border-base-300 flex items-center gap-1.5">
+                                <Send size={14} className="text-primary" />
+                                <span>Compose Message</span>
+                            </div>
+
+                            <form onSubmit={handleSendEmail} className="flex-1 p-4 flex flex-col gap-3 overflow-y-auto">
+                                <div className="form-control">
+                                    <label className="label py-1"><span className="label-text text-xs font-semibold">Subject</span></label>
+                                    <input 
+                                        type="text" 
+                                        className="input input-bordered input-sm w-full font-medium" 
+                                        placeholder="Email Subject" 
+                                        value={subject} 
+                                        onChange={e => setSubject(e.target.value)} 
+                                        required 
+                                        disabled={sending}
+                                    />
+                                </div>
+
+                                <div className="form-control flex-1">
+                                    <label className="label py-1"><span className="label-text text-xs font-semibold">Message Body</span></label>
+                                    <textarea 
+                                        className="textarea textarea-bordered textarea-sm w-full flex-1 min-h-[140px] font-sans" 
+                                        placeholder="Write your email body here..." 
+                                        value={body} 
+                                        onChange={e => setBody(e.target.value)} 
+                                        required 
+                                        disabled={sending}
+                                    ></textarea>
+                                </div>
+
+                                <div className="form-control">
+                                    <label className="label py-1"><span className="label-text text-xs font-semibold">Your Signature</span></label>
+                                    <textarea 
+                                        className="textarea textarea-bordered textarea-xs w-full h-16 font-sans text-xs" 
+                                        placeholder="e.g. Best regards,&#10;Dr. Jane Doe&#10;DSU International Office" 
+                                        value={signature} 
+                                        onChange={e => setSignature(e.target.value)} 
+                                        disabled={sending}
+                                    ></textarea>
+                                </div>
+
+                                <div className="form-control">
+                                    <label className="label py-1"><span className="label-text text-xs font-semibold">Attachments</span></label>
+                                    <input 
+                                        type="file" 
+                                        ref={fileInputRef}
+                                        multiple 
+                                        onChange={handleFileChange} 
+                                        className="file-input file-input-bordered file-input-xs w-full"
+                                        disabled={sending}
+                                    />
+                                    {attachments.length > 0 && (
+                                        <p className="text-[10px] text-base-content/60 mt-1">
+                                            {attachments.length} file(s) selected
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="flex flex-col gap-2 mt-2">
+                                    <button 
+                                        type="submit" 
+                                        className="btn btn-primary btn-sm w-full gap-2"
+                                        disabled={sending}
+                                    >
+                                        {sending ? (
+                                            <>
+                                                <span className="loading loading-spinner loading-xs" />
+                                                Sending via ERP...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send size={14} />
+                                                Send via ERP (SMTP)
+                                            </>
+                                        )}
+                                    </button>
+
+                                    <button 
+                                        type="button" 
+                                        onClick={handleSendWithGmail}
+                                        className="btn btn-outline btn-sm w-full gap-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500"
+                                        disabled={sending}
+                                    >
+                                        <Mail size={14} />
+                                        Compose in Gmail
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </div>
+            <form method="dialog" className="modal-backdrop" onClick={onClose} />
+        </dialog>
+    );
+};
+
+// ── Main Page Component ───────────────────────────────────────────────────────
+const OutreachNewList = () => {
+    const { user, isAdmin } = useAuth();
+    const [records, setRecords] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({ total: 0, sent: 0, replied: 0, pending: 0 });
+    const [statsLoading, setStatsLoading] = useState(true);
+    const [countries, setCountries] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [importModal, setImportModal] = useState(false);
+    const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
+    const [threadModal, setThreadModal] = useState({ isOpen: false, recordId: null });
+
+    const [filters, setFilters] = useState({
+        search: '',
+        country: '',
+        outreachStatus: ''
+    });
+    const debouncedSearch = useDebounce(filters.search, 500);
+
+    useEffect(() => {
+        fetchRecords();
+        fetchStats();
+        fetchCountries();
+    }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.outreachStatus]);
+
+    const fetchRecords = async () => {
+        try {
+            setLoading(true);
+            const res = await api.get('/outreach-new', {
+                params: {
+                    page: currentPage,
+                    limit: itemsPerPage,
+                    search: debouncedSearch,
+                    country: filters.country,
+                    outreachStatus: filters.outreachStatus
+                }
+            });
+            setRecords(res.data.data || []);
+            setTotalItems(res.data.pagination?.total || 0);
+            setTotalPages(res.data.pagination?.pages || 0);
+        } catch {
+            toast.error('Error fetching outreach data');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchStats = async () => {
+        try {
+            setStatsLoading(true);
+            // Fetch stats by counting locally or hitting custom controller endpoints
+            // We can fetch page 1 with high limit to compute stats dynamically
+            const res = await api.get('/outreach-new', { params: { limit: 5000 } });
+            const data = res.data.data || [];
+            
+            const total = data.length;
+            const sent = data.filter(r => r.outreachStatus === 'Sent').length;
+            const replied = data.filter(r => r.outreachStatus === 'Reply Received').length;
+            const pending = data.filter(r => r.outreachStatus === 'Not Sent').length;
+
+            setStats({ total, sent, replied, pending });
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setStatsLoading(false);
+        }
+    };
+
+    const fetchCountries = async () => {
+        try {
+            const res = await api.get('/outreach-new', { params: { limit: 5000 } });
+            const data = res.data.data || [];
+            const uniqueCountries = [...new Set(data.map(r => r.country).filter(Boolean))].sort();
+            setCountries(uniqueCountries);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleDelete = async (reason) => {
+        try {
+            await api.delete(`/outreach-new/${deleteModal.item._id}`, { data: { reason } });
+            toast.success('Outreach record deleted successfully ✅');
+            setDeleteModal({ isOpen: false, item: null });
+            fetchRecords();
+            fetchStats();
+        } catch (e) {
+            toast.error(e.response?.data?.message || 'Error deleting record');
+        }
+    };
+
+    const handleFilterChange = (newFilters) => {
+        setFilters(prev => ({ ...prev, ...newFilters }));
+        setCurrentPage(1);
+    };
+
+    const handleClearFilters = () => {
+        setFilters({ search: '', country: '', outreachStatus: '' });
+        setCurrentPage(1);
+    };
+
+    const handleExportCSV = async () => {
+        try {
+            // Get all items to export
+            const res = await api.get('/outreach-new', { params: { limit: 5000 } });
+            const data = res.data.data || [];
+            if (data.length === 0) return toast.error('No records to export');
+
+            // Format records
+            const headers = ['University', 'Country', 'Contact Name', 'Contact Email', 'Outreach Status', 'Unread Reply', 'Notes'];
+            const rows = data.map(r => [
+                r.university,
+                r.country,
+                r.contactName || '',
+                r.email,
+                r.outreachStatus,
+                r.hasUnreadReply ? 'Yes' : 'No',
+                r.notes || ''
+            ]);
+
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + [headers.join(','), ...rows.map(e => e.map(val => `"${val.replace(/"/g, '""')}"`).join(","))].join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "outreach-new-export.csv");
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            toast.success('CSV exported successfully ✅');
+        } catch {
+            toast.error('Failed to export CSV');
+        }
+    };
+
+    return (
+        <div>
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <h1 className="text-3xl font-bold">Outreach New</h1>
+                    <p className="text-base-content/70 mt-2">Upload country database spreadsheets, email partners directly, and sync email replies</p>
+                </div>
+                <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                    <button onClick={() => setImportModal(true)} className="btn btn-outline flex-1 md:flex-none">
+                        <Upload size={18} /> Import XLSX
+                    </button>
+                    <button onClick={handleExportCSV} className="btn btn-outline flex-1 md:flex-none">
+                        <Download size={18} /> Export CSV
+                    </button>
+                    <Link to="/outreach-new/new" className="btn btn-primary flex-1 md:flex-none">
+                        <Plus size={18} /> Add Outreach
+                    </Link>
+                </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="card bg-base-100 shadow border border-base-200">
+                    <div className="card-body p-4 flex flex-row items-center gap-4">
+                        <div className="p-3 bg-primary/10 rounded-xl text-primary"><FileText size={24} /></div>
+                        <div>
+                            <p className="text-xs text-base-content/60 font-semibold uppercase">Total Database</p>
+                            <p className="text-2xl font-bold mt-0.5">{statsLoading ? '...' : stats.total}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="card bg-base-100 shadow border border-base-200">
+                    <div className="card-body p-4 flex flex-row items-center gap-4">
+                        <div className="p-3 bg-neutral/10 rounded-xl text-neutral"><Mail size={24} /></div>
+                        <div>
+                            <p className="text-xs text-base-content/60 font-semibold uppercase">Not Contacted</p>
+                            <p className="text-2xl font-bold mt-0.5">{statsLoading ? '...' : stats.pending}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="card bg-base-100 shadow border border-base-200">
+                    <div className="card-body p-4 flex flex-row items-center gap-4">
+                        <div className="p-3 bg-primary/10 rounded-xl text-primary"><Mail size={24} /></div>
+                        <div>
+                            <p className="text-xs text-base-content/60 font-semibold uppercase">Emailed / Sent</p>
+                            <p className="text-2xl font-bold mt-0.5">{statsLoading ? '...' : stats.sent}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="card bg-base-100 shadow border border-base-200">
+                    <div className="card-body p-4 flex flex-row items-center gap-4">
+                        <div className="p-3 bg-success/10 rounded-xl text-success"><Check size={24} /></div>
+                        <div>
+                            <p className="text-xs text-base-content/60 font-semibold uppercase">Replies Received</p>
+                            <p className="text-2xl font-bold mt-0.5 text-success">{statsLoading ? '...' : stats.replied}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Filters */}
+            <div className="card bg-base-100 shadow-xl mb-6">
+                <div className="card-body">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold">Filters</h3>
+                        <button onClick={handleClearFilters} className="btn btn-ghost btn-sm gap-2">
+                            <X size={16} /> Clear All
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Search */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Search</span></label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Search university, email..."
+                                    className="input input-bordered w-full pr-10"
+                                    value={filters.search}
+                                    onChange={(e) => handleFilterChange({ search: e.target.value })}
+                                />
+                                <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
+                            </div>
+                        </div>
+
+                        {/* Country */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Country</span></label>
+                            <select 
+                                className="select select-bordered w-full" 
+                                value={filters.country || ''} 
+                                onChange={(e) => handleFilterChange({ country: e.target.value })}
+                            >
+                                <option value="">All Countries</option>
+                                {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+
+                        {/* Status */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Outreach Status</span></label>
+                            <select 
+                                className="select select-bordered w-full" 
+                                value={filters.outreachStatus || ''} 
+                                onChange={(e) => handleFilterChange({ outreachStatus: e.target.value })}
+                            >
+                                <option value="">All Statuses</option>
+                                <option value="Not Sent">Not Sent</option>
+                                <option value="Sent">Sent</option>
+                                <option value="Reply Received">Reply Received</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Table */}
+            <div className="card bg-base-100 shadow-xl">
+                <div className="card-body">
+                    <div className="overflow-x-auto">
+                        <table className="table table-zebra text-sm">
+                            <thead>
+                                <tr>
+                                    <th>University</th>
+                                    <th>Country</th>
+                                    <th>Contact Email</th>
+                                    <th>Outreach Status</th>
+                                    <th>Last Activity</th>
+                                    <th className="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {loading && records.length === 0 ? (
+                                    <tr><td colSpan={6} className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td></tr>
+                                ) : records.length === 0 ? (
+                                    <tr><td colSpan={6} className="text-center py-8">No outreach records found.</td></tr>
+                                ) : records.map(item => (
+                                    <tr key={item._id} className={item.hasUnreadReply ? 'bg-info/5 font-semibold' : ''}>
+                                        <td className="font-semibold flex items-center gap-2">
+                                            {item.university}
+                                            {item.hasUnreadReply && (
+                                                <span className="badge badge-error badge-xs animate-bounce" title="New unread reply!">NEW REPLY</span>
+                                            )}
+                                        </td>
+                                        <td>{item.country}</td>
+                                        <td>{item.email}</td>
+                                        <td>
+                                            <span className={`badge badge-sm whitespace-nowrap ${STATUS_BADGES[item.outreachStatus] || 'badge-ghost'}`}>
+                                                {item.outreachStatus}
+                                            </span>
+                                        </td>
+                                        <td className="text-xs text-base-content/60">
+                                            {item.emails && item.emails.length > 0 
+                                                ? new Date(item.emails[item.emails.length - 1].sentAt).toLocaleDateString('en-IN')
+                                                : 'No communication yet'}
+                                        </td>
+                                        <td>
+                                            <div className="flex gap-2 justify-end">
+                                                <button 
+                                                    onClick={() => setThreadModal({ isOpen: true, recordId: item._id })} 
+                                                    className={`btn btn-sm gap-1 ${item.hasUnreadReply ? 'btn-error text-white' : 'btn-info'}`}
+                                                    title="View Conversation & Reply"
+                                                >
+                                                    <Mail size={16} />
+                                                    {item.hasUnreadReply ? 'Reply (New)' : 'Thread'}
+                                                </button>
+                                                <Link 
+                                                    to={`/outreach-new/edit/${item._id}`} 
+                                                    className="btn btn-warning btn-sm"
+                                                    title="Edit Info"
+                                                >
+                                                    <Edit size={16} />
+                                                </Link>
+                                                <button 
+                                                    onClick={() => setDeleteModal({ isOpen: true, item })} 
+                                                    className="btn btn-error btn-sm"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {totalItems > 0 && (
+                        <Pagination 
+                            currentPage={currentPage} 
+                            totalPages={totalPages} 
+                            totalItems={totalItems} 
+                            itemsPerPage={itemsPerPage} 
+                            onPageChange={setCurrentPage} 
+                            onItemsPerPageChange={(n) => { setItemsPerPage(n); setCurrentPage(1); }} 
+                        />
+                    )}
+                </div>
+            </div>
+
+            {/* Modals */}
+            <ImportModal 
+                isOpen={importModal} 
+                onClose={() => setImportModal(false)} 
+                onSuccess={() => { fetchRecords(); fetchStats(); }} 
+                moduleName="outreach-new" 
+            />
+
+            <DeleteConfirmModal 
+                isOpen={deleteModal.isOpen} 
+                onClose={() => setDeleteModal({ isOpen: false, item: null })} 
+                onConfirm={handleDelete} 
+                itemName={deleteModal.item?.university} 
+                requireReason={false} 
+            />
+
+            <EmailThreadModal 
+                isOpen={threadModal.isOpen} 
+                onClose={() => setThreadModal({ isOpen: false, recordId: null })} 
+                recordId={threadModal.recordId} 
+                onRefreshList={() => { fetchRecords(); fetchStats(); }} 
+            />
+        </div>
+    );
+};
+
+export default OutreachNewList;

@@ -167,7 +167,7 @@ const PendingActions = () => {
                                     {pendingItems.map((item) => (
                                         <tr key={`${item.moduleName}-${item._id}`}>
                                             <td>
-                                                <span className="badge badge-outline">{item.moduleLabel}</span>
+                                                <span className="badge badge-outline h-auto py-1 text-center whitespace-normal">{item.moduleLabel}</span>
                                             </td>
                                             <td>
                                                 {item.status === 'pending_edit' && (

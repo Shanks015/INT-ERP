@@ -139,7 +139,7 @@ const MyRequests = () => {
                                     {requests.map((request) => (
                                         <tr key={`${request.moduleName}-${request._id}`}>
                                             <td>
-                                                <span className="badge badge-outline">{request.moduleLabel}</span>
+                                                <span className="badge badge-outline h-auto py-1 text-center whitespace-normal">{request.moduleLabel}</span>
                                             </td>
                                             <td className="font-medium">{getDisplayValue(request)}</td>
                                             <td>
