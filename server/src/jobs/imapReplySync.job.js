@@ -56,7 +56,7 @@ export const syncMailbox = async (connection) => {
             // we buffer all raw sources here, then process them afterward.
             const rawMessages = [];
             for await (const msg of client.fetch(
-                { since, seen: false },
+                { since },
                 { envelope: true, source: true }
             )) {
                 rawMessages.push({
