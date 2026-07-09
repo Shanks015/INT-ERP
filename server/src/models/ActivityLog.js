@@ -25,7 +25,7 @@ const activityLogSchema = new mongoose.Schema({
             'partners', 'events', 'conferences', 'campus-visits',
             'immersion-programs', 'mou-signing', 'scholars',
             'mou-updates', 'student-exchange', 'masters-abroad',
-            'memberships', 'digital-media', 'outreach', 'users',
+            'memberships', 'digital-media', 'outreach', 'outreach-new', 'users',
             'settings', 'auth'
         ]
     },

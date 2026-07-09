@@ -87,14 +87,22 @@ export const syncMailbox = async (connection) => {
                     if (alreadyLogged || alreadyLoggedNew) continue;
                 }
 
+                const cleanFrom = fromEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
                 // Find a matching outreach record (not closed)
                 const outreach = await Outreach.findOne({
-                    email: { $regex: new RegExp(`^${fromEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+                    $or: [
+                        { email: { $regex: new RegExp(`^${cleanFrom}$`, 'i') } },
+                        { alternativeEmails: { $regex: new RegExp(`^${cleanFrom}$`, 'i') } }
+                    ],
                     outreachStatus: { $ne: 'Closed' }
                 });
 
                 const outreachNew = await OutreachNew.findOne({
-                    email: { $regex: new RegExp(`^${fromEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+                    $or: [
+                        { email: { $regex: new RegExp(`^${cleanFrom}$`, 'i') } },
+                        { alternativeEmails: { $regex: new RegExp(`^${cleanFrom}$`, 'i') } }
+                    ],
                     outreachStatus: { $ne: 'Closed' }
                 });
 
