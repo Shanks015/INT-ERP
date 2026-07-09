@@ -11,7 +11,7 @@ async function query() {
         await mongoose.connect(process.env.MONGODB_URI);
         console.log('Connected.');
 
-        const records = await OutreachNew.find({}, 'university email alternativeEmails outreachStatus hasUnreadReply');
+        const records = await OutreachNew.find({}, 'university email alternativeEmails outreachStatus hasUnreadReply emails');
         console.log('\n--- OutreachNew Records ---');
         records.forEach(r => {
             console.log(`- ID: ${r._id}`);
@@ -20,6 +20,10 @@ async function query() {
             console.log(`  Alternative: ${r.alternativeEmails.join(', ')}`);
             console.log(`  Status: ${r.outreachStatus}`);
             console.log(`  Unread Reply: ${r.hasUnreadReply}`);
+            console.log(`  Emails (${r.emails.length}):`);
+            r.emails.forEach((m, idx) => {
+                console.log(`    [${idx}] Direction: ${m.direction}, From: ${m.from}, Subject: ${m.subject}, Body: "${m.body}"`);
+            });
         });
 
     } catch (error) {

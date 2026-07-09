@@ -182,7 +182,8 @@ export const syncMailbox = async (connection) => {
                         path:       '/jobs/imapReplySync',
                         statusCode: 200
                     });
-                } else if (outreach) {
+                }
+                if (outreach) {
                     // ── Construct and Push Reply to Array ─────────────────────────
                     const newReply = {
                         detectedAt: msg.envelope?.date || new Date(),
