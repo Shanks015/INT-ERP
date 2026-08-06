@@ -1,4 +1,5 @@
 import MeetingTracker from '../models/MeetingTracker.js';
+import { Parser } from 'json2csv';
 import { logUserActivity } from './generic.controller.js';
 
 // Helper to parse date from Excel or user input
@@ -255,14 +256,31 @@ export const remove = async (req, res) => {
     }
 };
 
-// Export CSV (if needed specifically, though reports handles main exports)
+// Export CSV
 export const exportCSV = async (req, res) => {
     try {
-        const meetings = await MeetingTracker.find().lean();
-        res.json({
-            success: true,
-            message: 'Export functionality available via generic or reports controller'
+        const meetings = await MeetingTracker.find({ status: 'active' }).lean();
+
+        if (meetings.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No records to export'
+            });
+        }
+
+        const cleanRecords = meetings.map(record => {
+            const { _id, __v, status, pendingChanges, deletionReason, createdBy, updatedBy, ...rest } = record;
+            return rest;
         });
+
+        const parser = new Parser();
+        const csv = parser.parse(cleanRecords);
+
+        await logUserActivity(req, 'export', 'MeetingTracker', null);
+
+        res.header('Content-Type', 'text/csv');
+        res.header('Content-Disposition', 'attachment; filename="meeting-trackers-export.csv"');
+        res.send(csv);
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -275,7 +293,7 @@ export const exportCSV = async (req, res) => {
 export const getPendingCount = async (req, res) => {
     try {
         const count = await MeetingTracker.countDocuments({
-            status: { $in: ['pending_create', 'pending_edit', 'pending_delete'] }
+            status: { $in: ['pending_edit', 'pending_delete'] }
         });
         res.json({ success: true, count });
     } catch (error) {
@@ -291,7 +309,7 @@ export const getPendingCount = async (req, res) => {
 export const getAllPending = async (req, res) => {
     try {
         const pendingMeetings = await MeetingTracker.find({
-            status: { $in: ['pending_create', 'pending_edit', 'pending_delete'] }
+            status: { $in: ['pending_edit', 'pending_delete'] }
         })
             .populate('createdBy', 'name email')
             .populate('updatedBy', 'name email')

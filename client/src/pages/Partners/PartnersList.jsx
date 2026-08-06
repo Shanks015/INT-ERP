@@ -221,8 +221,7 @@ const PartnersList = () => {
                         countryDistribution: countries.map(c => ({
                             name: c,
                             value: partners.filter(p => p.country === c).length
-                        })),
-                        trend: { change: 5, percentage: 8.3, direction: 'up' } // Replace with real trend data
+                        }))
                     }}
                     loading={loading}
                 />
@@ -252,8 +251,7 @@ const PartnersList = () => {
                     moduleType="partners"
                     statType="active"
                     moduleData={{
-                        ...stats, // Spread all stats from backend (including expiryForecast, agreementTypes, etc.)
-                        trend: { change: 3, percentage: 5.2, direction: 'up' }
+                        ...stats // Spread all stats from backend (including expiryForecast, agreementTypes, etc.)
                     }}
                     loading={statsLoading}
                 />

@@ -149,15 +149,16 @@ const SocialMediaList = () => {
                 </div>
             </div>
 
-            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.postName || ''} />
-            <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} endpoint="/social-media/import" onSuccess={() => { fetchPosts(); fetchStats(); }} title="Import Social Media Posts" />
-            <DetailModal isOpen={detailModal.isOpen} onClose={() => setDetailModal({ isOpen: false, item: null })} item={detailModal.item} title="Post Details" fields={[
-                { label: 'Post Name', value: 'postName' },
-                { label: 'Caption', value: 'caption' },
-                { label: 'Facebook', value: 'fbLink', type: 'link' },
-                { label: 'Instagram', value: 'instaLink', type: 'link' },
-                { label: 'LinkedIn', value: 'linkedinLink', type: 'link' },
-                { label: 'VK', value: 'vkLink', type: 'link' }
+            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.postName || ''} requireReason={!isAdmin} />
+            <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} moduleName="social-media" onSuccess={() => { fetchPosts(); fetchStats(); }} />
+            <DetailModal isOpen={detailModal.isOpen} onClose={() => setDetailModal({ isOpen: false, item: null })} data={detailModal.item} title="Post Details" fields={[
+                { key: 'postName', label: 'Post Name' },
+                { key: 'caption', label: 'Caption' },
+                { key: 'fbLink', label: 'Facebook', type: 'link' },
+                { key: 'instaLink', label: 'Instagram', type: 'link' },
+                { key: 'linkedinLink', label: 'LinkedIn', type: 'link' },
+                { key: 'vkLink', label: 'VK', type: 'link' },
+                { key: 'createdAt', label: 'Created', type: 'date' }
             ]} />
         </div>
     );

@@ -23,8 +23,16 @@ const ActivityLogs = () => {
         limit: 20
     });
 
+    const isAdmin = user?.role === 'admin';
+
+    useEffect(() => {
+        if (!isAdmin) return;
+        fetchLogs();
+        fetchStats();
+    }, [pagination.current, filters, isAdmin]);
+
     // Check if user is admin
-    if (user?.role !== 'admin') {
+    if (!isAdmin) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="text-center">
@@ -35,11 +43,6 @@ const ActivityLogs = () => {
             </div>
         );
     }
-
-    useEffect(() => {
-        fetchLogs();
-        fetchStats();
-    }, [pagination.current, filters]);
 
     const fetchLogs = async () => {
         try {

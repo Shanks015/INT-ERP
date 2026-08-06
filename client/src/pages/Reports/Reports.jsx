@@ -20,8 +20,6 @@ const Reports = () => {
         channel: ''
     });
     const [loading, setLoading] = useState(false);
-    const [recordCount, setRecordCount] = useState(null);
-    const [countLoading, setCountLoading] = useState(false);
 
     const modules = [
         { value: 'partners', label: 'Partners' },

@@ -47,6 +47,32 @@ export const handleFormSubmit = async (req, res) => {
                 driveLink: getAnswer('Drive Document') || getAnswer('Link')
             });
         }
+        else if (normalizedTitle.includes('mou signing')) {
+            const partnerName = getAnswer('University') || getAnswer('Partner');
+            result = await MouSigningCeremony.create({
+                university: partnerName,
+                country: getAnswer('Country') || 'Unknown',
+                date: parseDate(getAnswer('Date')),
+                department: getAnswer('Department'),
+                location: getAnswer('Location'),
+                title: getAnswer('Title') || `MoU Signing with ${partnerName}`,
+                driveLink: getAnswer('Drive Document')
+            });
+        }
+        else if (normalizedTitle.includes('mou update')) {
+            result = await MouUpdate.create({
+                university: getAnswer('University'),
+                country: getAnswer('Country'),
+                date: parseDate(getAnswer('Date')),
+                department: getAnswer('Department'),
+                contactPerson: getAnswer('Contact Person'),
+                contactEmail: getAnswer('Email'),
+                mouStatus: getAnswer('Status') || 'Active',
+                agreementType: getAnswer('Agreement Type') || 'MoU',
+                term: getAnswer('Term'),
+                driveLink: getAnswer('Drive Document')
+            });
+        }
         else if (normalizedTitle.includes('event')) {
             result = await Event.create({
                 title: getAnswer('Title') || 'Untitled Event',
@@ -55,9 +81,9 @@ export const handleFormSubmit = async (req, res) => {
                 date: parseDate(getAnswer('Date')),
                 department: getAnswer('Department'),
                 campus: getAnswer('Campus'),
-                webLink: getAnswer('Web Link'),
+                dignitaries: getAnswer('Dignitaries'),
                 eventSummary: getAnswer('Summary'),
-                driveLink: getAnswer('Drive Document')
+                driveLink: getAnswer('Drive Document') || getAnswer('Web Link')
             });
         }
         else if (normalizedTitle.includes('conference')) {
@@ -81,32 +107,6 @@ export const handleFormSubmit = async (req, res) => {
                 category: getAnswer('Category'),
                 summary: getAnswer('Summary'),
                 campus: getAnswer('Campus'),
-                driveLink: getAnswer('Drive Document')
-            });
-        }
-        else if (normalizedTitle.includes('mou update')) {
-            result = await MouUpdate.create({
-                university: getAnswer('University'),
-                country: getAnswer('Country'),
-                date: parseDate(getAnswer('Date')),
-                department: getAnswer('Department'),
-                contactPerson: getAnswer('Contact Person'),
-                contactEmail: getAnswer('Email'),
-                mouStatus: getAnswer('Status') || 'Active',
-                agreementType: getAnswer('Agreement Type') || 'MoU',
-                term: getAnswer('Term'),
-                driveLink: getAnswer('Drive Document')
-            });
-        }
-        else if (normalizedTitle.includes('mou signing')) {
-            const partnerName = getAnswer('University') || getAnswer('Partner');
-            result = await MouSigningCeremony.create({
-                university: partnerName,
-                country: getAnswer('Country') || 'Unknown',
-                date: parseDate(getAnswer('Date')),
-                department: getAnswer('Department'),
-                location: getAnswer('Location'),
-                title: getAnswer('Title') || `MoU Signing with ${partnerName}`,
                 driveLink: getAnswer('Drive Document')
             });
         }

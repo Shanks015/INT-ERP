@@ -88,16 +88,16 @@ const partnerSchema = new mongoose.Schema({
 });
 
 partnerSchema.virtual('isExpired').get(function () {
-    if (!this.mouValidityPeriod) return false;
-    const endOfValidityDate = new Date(this.mouValidityPeriod);
+    if (!this.expiringDate) return false;
+    const endOfValidityDate = new Date(this.expiringDate);
     endOfValidityDate.setHours(23, 59, 59, 999);
     return new Date() > endOfValidityDate;
 });
 
 // Pre-save middleware to auto-update recordStatus
 partnerSchema.pre('save', function (next) {
-    if (this.mouValidityPeriod) {
-        const endOfValidityDate = new Date(this.mouValidityPeriod);
+    if (this.expiringDate) {
+        const endOfValidityDate = new Date(this.expiringDate);
         endOfValidityDate.setHours(23, 59, 59, 999);
         if (new Date() > endOfValidityDate) {
             this.recordStatus = 'expired';

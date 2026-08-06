@@ -12,6 +12,7 @@ import MastersAbroad from '../models/MastersAbroad.js';
 import Membership from '../models/Membership.js';
 import DigitalMedia from '../models/DigitalMedia.js';
 import MeetingTracker from '../models/MeetingTracker.js';
+import SocialMedia from '../models/SocialMedia.js';
 
 // Helper to parse date from Excel (which might be number or string)
 const parseDate = (value) => {
@@ -294,6 +295,17 @@ export const importData = async (req, res) => {
                     amountPaid: row['Amount Paid'],
                     summary: row['Summary'],
                     driveLink: row['Digital Media -  Upload Zip FIle'] || row['drive link']
+                });
+                break;
+            case 'social-media':
+                Model = SocialMedia;
+                mappingFunction = (row) => ({
+                    postName: row['Post Name'] || row['Post'] || row['Name'],
+                    caption: row['Caption'],
+                    fbLink: row['Facebook'] || row['FB Link'] || row['Facebook Link'],
+                    instaLink: row['Instagram'] || row['Insta Link'] || row['Instagram Link'],
+                    linkedinLink: row['LinkedIn'] || row['Linkedin Link'] || row['LinkedIn Link'],
+                    vkLink: row['VK'] || row['VK Link']
                 });
                 break;
             default:

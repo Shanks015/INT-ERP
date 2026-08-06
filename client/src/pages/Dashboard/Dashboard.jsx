@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import { Users, Globe, Building2, Calendar, TrendingUp } from 'lucide-react';
@@ -138,14 +138,14 @@ const Dashboard = () => {
                 <div className="card-body">
                     <h2 className="card-title mb-4">Quick Access</h2>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <a href="/campus-visits" className="btn btn-outline">Campus Visits</a>
-                        <a href="/events" className="btn btn-outline">Events</a>
-                        <a href="/partners" className="btn btn-outline">Partners</a>
-                        <a href="/outreach" className="btn btn-outline">Outreach</a>
-                        <a href="/conferences" className="btn btn-outline">Conferences</a>
-                        <a href="/scholars-in-residence" className="btn btn-outline">Scholars</a>
-                        <a href="/memberships" className="btn btn-outline">Memberships</a>
-                        <a href="/digital-media" className="btn btn-outline">Digital Media</a>
+                        <Link to="/campus-visits" className="btn btn-outline">Campus Visits</Link>
+                        <Link to="/events" className="btn btn-outline">Events</Link>
+                        <Link to="/partners" className="btn btn-outline">Partners</Link>
+                        <Link to="/outreach" className="btn btn-outline">Outreach</Link>
+                        <Link to="/conferences" className="btn btn-outline">Conferences</Link>
+                        <Link to="/scholars-in-residence" className="btn btn-outline">Scholars</Link>
+                        <Link to="/memberships" className="btn btn-outline">Memberships</Link>
+                        <Link to="/digital-media" className="btn btn-outline">Digital Media</Link>
                     </div>
                 </div>
             </div>

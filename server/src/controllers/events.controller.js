@@ -1,4 +1,5 @@
 import Event from '../models/Event.js';
+import { Parser } from 'json2csv';
 import { logUserActivity } from './generic.controller.js';
 
 // Get all events
@@ -104,7 +105,10 @@ export const getById = async (req, res) => {
 // Create event
 export const create = async (req, res) => {
     try {
-        const event = new Event(req.body);
+        const event = new Event({
+            ...req.body,
+            createdBy: req.userId
+        });
         await event.save();
 
         // Log event creation activity
@@ -243,13 +247,28 @@ export const remove = async (req, res) => {
 // Export CSV
 export const exportCSV = async (req, res) => {
     try {
-        const events = await Event.find().lean();
-        // CSV logic can be handled here or reused if generic, but for now specific implementation
-        // Simplified for this task
-        res.json({
-            success: true,
-            message: 'Export functionality available via generic controller if needed, but switching to direct download'
+        const events = await Event.find({ status: 'active' }).lean();
+
+        if (events.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No records to export'
+            });
+        }
+
+        const cleanRecords = events.map(record => {
+            const { _id, __v, status, pendingChanges, deletionReason, createdBy, updatedBy, ...rest } = record;
+            return rest;
         });
+
+        const parser = new Parser();
+        const csv = parser.parse(cleanRecords);
+
+        await logUserActivity(req, 'export', 'Event', null);
+
+        res.header('Content-Type', 'text/csv');
+        res.header('Content-Disposition', 'attachment; filename="events-export.csv"');
+        res.send(csv);
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -261,7 +280,7 @@ export const exportCSV = async (req, res) => {
 export const getPendingCount = async (req, res) => {
     try {
         const count = await Event.countDocuments({
-            status: { $in: ['pending_create', 'pending_edit', 'pending_delete'] }
+            status: { $in: ['pending_edit', 'pending_delete'] }
         });
         res.json({ success: true, count });
     } catch (error) {
@@ -277,7 +296,7 @@ export const getPendingCount = async (req, res) => {
 export const getAllPending = async (req, res) => {
     try {
         const pendingEvents = await Event.find({
-            status: { $in: ['pending_create', 'pending_edit', 'pending_delete'] }
+            status: { $in: ['pending_edit', 'pending_delete'] }
         })
             .populate('createdBy', 'name email')
             .populate('updatedBy', 'name email')

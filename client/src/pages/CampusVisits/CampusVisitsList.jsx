@@ -152,7 +152,7 @@ const CampusVisitsList = () => {
     };
 
     const handleClearFilters = () => {
-        setFilters({ search: '', startDate: '', endDate: '', country: '', university: '' });
+        setFilters({ search: '', type: '', startDate: '', endDate: '', country: '', university: '' });
         setCurrentPage(1);
     };
 

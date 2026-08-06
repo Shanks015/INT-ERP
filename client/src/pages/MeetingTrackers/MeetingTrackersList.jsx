@@ -242,11 +242,21 @@ const MeetingTrackersList = () => {
 
                         <div className="form-control">
                             <label className="label"><span className="label-text">From Date</span></label>
-                            <input 
-                                type="date" 
-                                className="input input-bordered w-full" 
-                                value={filters.startDate} 
-                                onChange={(e) => { setFilters(prev => ({ ...prev, startDate: e.target.value })); setCurrentPage(1); }} 
+                            <input
+                                type="date"
+                                className="input input-bordered w-full"
+                                value={filters.startDate}
+                                onChange={(e) => { setFilters(prev => ({ ...prev, startDate: e.target.value })); setCurrentPage(1); }}
+                            />
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">To Date</span></label>
+                            <input
+                                type="date"
+                                className="input input-bordered w-full"
+                                value={filters.endDate}
+                                onChange={(e) => { setFilters(prev => ({ ...prev, endDate: e.target.value })); setCurrentPage(1); }}
                             />
                         </div>
                     </div>

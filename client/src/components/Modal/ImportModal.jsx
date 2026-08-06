@@ -26,6 +26,7 @@ const ImportModal = ({ isOpen, onClose, onSuccess, moduleName }) => {
         { value: 'masters-abroad', label: 'Masters Abroad' },
         { value: 'memberships', label: 'Memberships' },
         { value: 'digital-media', label: 'Digital Media' },
+        { value: 'social-media', label: 'Social Media' },
         { value: 'outreach', label: 'Outreach' },
         { value: 'outreach-new', label: 'Outreach New' },
         { value: 'meeting-trackers', label: 'Meeting Trackers' },

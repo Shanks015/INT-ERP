@@ -1126,46 +1126,6 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 };
                 break;
 
-            default:
-                // If no specific stats defined, just return total
-                break;
-
-            case 'StudentExchange':
-                const [
-                    studentExchangeCountries,
-                    studentExchangeUniversities,
-                    activeExchanges,
-                    studentExchangeCountryDist,
-                    studentExchangeUniversityDist
-                ] = await Promise.all([
-                    Model.distinct('country').then(arr => arr.filter(Boolean).length),
-                    Model.distinct('university').then(arr => arr.filter(Boolean).length),
-                    Model.countDocuments({ recordStatus: 'active', status: 'active' }),
-                    Model.aggregate([
-                        { $match: { country: { $exists: true, $ne: '' } } },
-                        { $group: { _id: '$country', value: { $sum: 1 } } },
-                        { $sort: { value: -1 } },
-                        { $limit: 15 },
-                        { $project: { _id: 0, name: '$_id', value: 1 } }
-                    ]),
-                    Model.aggregate([
-                        { $match: { university: { $exists: true, $ne: '' } } },
-                        { $group: { _id: '$university', value: { $sum: 1 } } },
-                        { $sort: { value: -1 } },
-                        { $limit: 10 },
-                        { $project: { _id: 0, name: '$_id', value: 1 } }
-                    ])
-                ]);
-                stats = {
-                    ...stats,
-                    countries: studentExchangeCountries,
-                    universities: studentExchangeUniversities,
-                    active: activeExchanges,
-                    countryDistribution: studentExchangeCountryDist,
-                    universityDistribution: studentExchangeUniversityDist
-                };
-                break;
-
             case 'MeetingTracker': {
                 const {
                     search,
@@ -1254,6 +1214,10 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 };
                 break;
             }
+
+            default:
+                // If no specific stats defined, just return total
+                break;
         }
 
         res.json({

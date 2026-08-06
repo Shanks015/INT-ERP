@@ -33,7 +33,7 @@ export const startKeepAliveJob = () => {
     ping();
 
     // Ping every 10 minutes (cron: */10 * * * *)
-    cron.schedule('*/10 * * * *', ping);
+    cron.schedule('*/10 * * * *', ping, { timezone: 'Asia/Kolkata' });
 
     console.log(`✅ Keep-alive self-ping job registered (interval: every 10 minutes to ${url})`);
 };
