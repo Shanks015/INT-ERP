@@ -24,6 +24,31 @@ const getModuleName = (modelName) => {
     return mapping[modelName] || modelName.toLowerCase();
 };
 
+// Fields that are controlled by the server and must never be set from a request
+// body. Without this, `Object.assign(record, req.body)` lets a client set its own
+// `status` (bypassing the maker-checker workflow) or rewrite `createdBy`.
+const PROTECTED_FIELDS = [
+    '_id',
+    '__v',
+    'status',
+    'pendingChanges',
+    'deletionReason',
+    'createdBy',
+    'updatedBy',
+    'createdAt',
+    'updatedAt'
+];
+
+// Strip server-controlled fields from a client-supplied object.
+// Used on every path where request data reaches a document: create, update,
+// and — importantly — approve, which applies previously-stored pendingChanges.
+export const sanitizeInput = (payload) => {
+    if (!payload || typeof payload !== 'object') return {};
+    const clean = { ...payload };
+    PROTECTED_FIELDS.forEach(field => delete clean[field]);
+    return clean;
+};
+
 export const logUserActivity = async (req, action, modelName, record) => {
     try {
         if (!req.user) return; // Must have authenticated user to log
@@ -228,7 +253,7 @@ export const getById = (Model) => async (req, res) => {
 export const create = (Model) => async (req, res) => {
     try {
         const record = new Model({
-            ...req.body,
+            ...sanitizeInput(req.body),
             createdBy: req.userId,
             status: 'active'
         });
@@ -274,7 +299,7 @@ export const update = (Model) => async (req, res) => {
 
         // Admin can directly update
         if (req.user.role === 'admin') {
-            Object.assign(record, req.body);
+            Object.assign(record, sanitizeInput(req.body));
             record.updatedBy = req.userId;
             await record.save();
 
@@ -290,7 +315,7 @@ export const update = (Model) => async (req, res) => {
 
         // Employee/Intern creates pending edit
         record.status = 'pending_edit';
-        record.pendingChanges = req.body;
+        record.pendingChanges = sanitizeInput(req.body);
         record.updatedBy = req.userId;
         await record.save();
 
@@ -398,8 +423,11 @@ export const approve = (Model) => async (req, res) => {
         }
 
         if (record.status === 'pending_edit') {
-            // Apply pending changes
-            Object.assign(record, record.pendingChanges);
+            // Apply pending changes. Sanitized again on the way out, not only on
+            // the way in: records staged before this safeguard existed may hold
+            // protected fields in pendingChanges, and applying them here would
+            // let a non-admin escalate through the approval step itself.
+            Object.assign(record, sanitizeInput(record.pendingChanges));
             record.status = 'active';
             record.pendingChanges = null;
             record.updatedBy = req.userId;

@@ -3,27 +3,14 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { APPROVAL_MODULES } from '../../constants/modules';
 
 const MyRequests = () => {
     const { user } = useAuth();
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const modules = [
-        { name: 'partners', label: 'Partners', endpoint: '/partners' },
-        { name: 'campus-visits', label: 'Campus Visits', endpoint: '/campus-visits' },
-        { name: 'events', label: 'Events', endpoint: '/events' },
-        { name: 'conferences', label: 'Conferences', endpoint: '/conferences' },
-        { name: 'mou-signing-ceremonies', label: 'MoU Signing Ceremonies', endpoint: '/mou-signing-ceremonies' },
-        { name: 'scholars-in-residence', label: 'Scholars', endpoint: '/scholars-in-residence' },
-        { name: 'mou-updates', label: 'MoU Updates', endpoint: '/mou-updates' },
-        { name: 'immersion-programs', label: 'Immersion Programs', endpoint: '/immersion-programs' },
-        { name: 'student-exchange', label: 'Student Exchange', endpoint: '/student-exchange' },
-        { name: 'masters-abroad', label: 'Masters Abroad', endpoint: '/masters-abroad' },
-        { name: 'memberships', label: 'Memberships', endpoint: '/memberships' },
-        { name: 'digital-media', label: 'Digital Media', endpoint: '/digital-media' },
-        { name: 'outreach', label: 'Outreach', endpoint: '/outreach' },
-    ];
+    const modules = APPROVAL_MODULES;
 
     useEffect(() => {
         fetchMyRequests();

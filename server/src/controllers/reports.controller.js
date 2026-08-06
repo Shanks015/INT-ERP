@@ -14,6 +14,7 @@ import Membership from '../models/Membership.js';
 import DigitalMedia from '../models/DigitalMedia.js';
 import Outreach from '../models/Outreach.js';
 import MeetingTracker from '../models/MeetingTracker.js';
+import SocialMedia from '../models/SocialMedia.js';
 
 const getModel = (moduleName) => {
     switch (moduleName) {
@@ -31,6 +32,7 @@ const getModel = (moduleName) => {
         case 'digital-media': return DigitalMedia;
         case 'outreach': return Outreach;
         case 'meeting-trackers': return MeetingTracker;
+        case 'social-media': return SocialMedia;
         default: return null;
     }
 };
@@ -228,6 +230,19 @@ const getDisplayFields = (moduleName) => {
                     item.driveLink || '-'
                 ]
             };
+        case 'social-media':
+            return {
+                headers: ['Post Name', 'Caption', 'Facebook', 'Instagram', 'LinkedIn', 'VK', 'Created'],
+                extractor: (item) => [
+                    item.postName || '-',
+                    item.caption || '-',
+                    item.fbLink || '-',
+                    item.instaLink || '-',
+                    item.linkedinLink || '-',
+                    item.vkLink || '-',
+                    item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-'
+                ]
+            };
         default:
             return {
                 headers: ['Module', 'Date', 'Name', 'Details'],
@@ -247,8 +262,11 @@ const fetchData = async (module, filters) => {
     // Date range filtering
     if (filters.startDate && filters.endDate) {
         // Determine date field name (mostly 'date', but sometimes 'arrivalDate', 'fromDate' etc)
+        // social-media has no domain date field at all — fall back to createdAt,
+        // otherwise every date-filtered social-media report returns zero rows.
         const dateField = ['scholars-in-residence', 'student-exchange'].includes(module) ? 'fromDate' :
-            ['immersion-programs'].includes(module) ? 'arrivalDate' : 'date';
+            ['immersion-programs'].includes(module) ? 'arrivalDate' :
+            ['social-media'].includes(module) ? 'createdAt' : 'date';
         query[dateField] = { $gte: new Date(filters.startDate), $lte: new Date(filters.endDate) };
     }
 
@@ -302,7 +320,7 @@ export const generateReport = async (req, res) => {
         const { format, modules } = filters;
 
         const modulesToFetch = modules === 'all'
-            ? ['partners', 'campus-visits', 'events', 'conferences', 'mou-signing-ceremonies', 'scholars-in-residence', 'mou-updates', 'immersion-programs', 'student-exchange', 'masters-abroad', 'memberships', 'digital-media', 'outreach', 'meeting-trackers']
+            ? ['partners', 'campus-visits', 'events', 'conferences', 'mou-signing-ceremonies', 'scholars-in-residence', 'mou-updates', 'immersion-programs', 'student-exchange', 'masters-abroad', 'memberships', 'digital-media', 'social-media', 'outreach', 'meeting-trackers']
             : [modules]; // Single module as array
 
         let allData = [];

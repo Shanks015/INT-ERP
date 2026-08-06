@@ -12,6 +12,7 @@ uploads/*
 *.doc
 *.docx
 .env*
+!.env.example
 .DS_Store
 Thumbs.db
 node_modules

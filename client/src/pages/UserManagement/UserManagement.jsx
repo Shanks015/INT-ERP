@@ -3,27 +3,9 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Users, Check, X, Clock, UserCheck, UserX, Edit, Trash2, Plus, Shield, Search } from 'lucide-react';
+import { PERMISSION_MODULES } from '../../constants/modules';
 
-const ALL_MODULES = [
-    { id: 'dashboard', name: 'Dashboard' },
-    { id: 'partners', name: 'Partners' },
-    { id: 'campus-visits', name: 'Campus Visits' },
-    { id: 'scholars-in-residence', name: 'Scholars in Residence' },
-    { id: 'events', name: 'Events' },
-    { id: 'conferences', name: 'Conferences' },
-    { id: 'mou-updates', name: 'MoU Updates' },
-    { id: 'mou-signing-ceremonies', name: 'MoU Ceremonies' },
-    { id: 'student-exchange', name: 'Student Exchange' },
-    { id: 'immersion-programs', name: 'Immersion Programs' },
-    { id: 'masters-abroad', name: 'Masters Abroad' },
-    { id: 'memberships', name: 'Memberships' },
-    { id: 'social-media', name: 'Social Media' },
-    { id: 'digital-media', name: 'Digital Media' },
-    { id: 'outreach', name: 'Outreach' },
-    { id: 'meeting-trackers', name: 'Meeting Trackers' },
-    { id: 'reports', name: 'Reports' },
-    { id: 'settings', name: 'Settings' }
-];
+const ALL_MODULES = PERMISSION_MODULES;
 
 const UserManagement = () => {
     const { isAdmin, user: currentUser } = useAuth();

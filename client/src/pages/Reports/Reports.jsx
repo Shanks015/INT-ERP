@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { FileText, Download, Filter, Calendar, X, BarChart3 } from 'lucide-react';
+import { MODULE_OPTIONS } from '../../constants/modules';
 
 const Reports = () => {
     const [filters, setFilters] = useState({
@@ -21,21 +22,7 @@ const Reports = () => {
     });
     const [loading, setLoading] = useState(false);
 
-    const modules = [
-        { value: 'partners', label: 'Partners' },
-        { value: 'campus-visits', label: 'Campus Visits' },
-        { value: 'events', label: 'Events' },
-        { value: 'conferences', label: 'Conferences' },
-        { value: 'mou-signing-ceremonies', label: 'MoU Signing Ceremonies' },
-        { value: 'scholars-in-residence', label: 'Scholars in Residence' },
-        { value: 'mou-updates', label: 'MoU Updates' },
-        { value: 'immersion-programs', label: 'Immersion Programs' },
-        { value: 'student-exchange', label: 'Student Exchange' },
-        { value: 'masters-abroad', label: 'Masters Abroad' },
-        { value: 'memberships', label: 'Memberships' },
-        { value: 'digital-media', label: 'Digital Media' },
-        { value: 'outreach', label: 'Outreach' }
-    ];
+    const modules = MODULE_OPTIONS;
 
     // Module-specific filter configurations
     const moduleFilters = {
