@@ -1,6 +1,6 @@
 import MeetingTracker from '../models/MeetingTracker.js';
 import { Parser } from 'json2csv';
-import { logUserActivity } from './generic.controller.js';
+import { logUserActivity, sanitizeInput } from './generic.controller.js';
 
 // Helper to parse date from Excel or user input
 const parseDate = (value) => {
@@ -119,8 +119,11 @@ export const getById = async (req, res) => {
 // Create meeting tracker
 export const create = async (req, res) => {
     try {
-        const meeting = new MeetingTracker(req.body);
-        meeting.createdBy = req.userId;
+        const meeting = new MeetingTracker({
+            ...sanitizeInput(req.body),
+            createdBy: req.userId,
+            status: 'active'
+        });
         await meeting.save();
 
         // Log creation activity
@@ -162,7 +165,7 @@ export const update = async (req, res) => {
 
         // Admin can directly update
         if (req.user.role === 'admin') {
-            Object.assign(meeting, req.body);
+            Object.assign(meeting, sanitizeInput(req.body));
             meeting.updatedBy = req.userId;
             await meeting.save();
 
@@ -178,7 +181,7 @@ export const update = async (req, res) => {
 
         // Employee/Intern creates pending edit
         meeting.status = 'pending_edit';
-        meeting.pendingChanges = req.body;
+        meeting.pendingChanges = sanitizeInput(req.body);
         meeting.updatedBy = req.userId;
         await meeting.save();
 

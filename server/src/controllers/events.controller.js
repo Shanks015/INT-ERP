@@ -1,6 +1,6 @@
 import Event from '../models/Event.js';
 import { Parser } from 'json2csv';
-import { logUserActivity } from './generic.controller.js';
+import { logUserActivity, sanitizeInput } from './generic.controller.js';
 
 // Get all events
 export const getAll = async (req, res) => {
@@ -106,8 +106,9 @@ export const getById = async (req, res) => {
 export const create = async (req, res) => {
     try {
         const event = new Event({
-            ...req.body,
-            createdBy: req.userId
+            ...sanitizeInput(req.body),
+            createdBy: req.userId,
+            status: 'active'
         });
         await event.save();
 
@@ -150,7 +151,7 @@ export const update = async (req, res) => {
 
         // Admin can directly update
         if (req.user.role === 'admin') {
-            Object.assign(event, req.body);
+            Object.assign(event, sanitizeInput(req.body));
             event.updatedBy = req.userId;
             await event.save();
 
@@ -166,7 +167,7 @@ export const update = async (req, res) => {
 
         // Employee/Intern creates pending edit
         event.status = 'pending_edit';
-        event.pendingChanges = req.body;
+        event.pendingChanges = sanitizeInput(req.body);
         event.updatedBy = req.userId;
         await event.save();
 

@@ -8,6 +8,7 @@ import ImmersionProgram from '../models/ImmersionProgram.js';
 import StudentExchange from '../models/StudentExchange.js';
 import MastersAbroad from '../models/MastersAbroad.js';
 import DigitalMedia from '../models/DigitalMedia.js';
+import { resolveFormModule, buildAnswerLookup, parseFormDate } from '../utils/formRouting.js';
 
 export const handleFormSubmit = async (req, res) => {
     try {
@@ -17,24 +18,19 @@ export const handleFormSubmit = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid payload: responses array missing' });
         }
 
+        // Routing rules live in utils/formRouting.js so their ordering is unit-tested.
+        // Module ids here match the FORM_ROUTES table exactly.
+        const targetModule = resolveFormModule(formTitle);
+
+        // Helper to find answer by question text (partial match)
+        const getAnswer = buildAnswerLookup(responses);
+
+        // Date helper
+        const parseDate = parseFormDate;
 
         let result;
 
-        // Normalize form title to lowercase for matching
-        const normalizedTitle = formTitle ? formTitle.toLowerCase() : '';
-
-        // Helper to find answer by question text (partial match)
-        const getAnswer = (keyword) => {
-            const entry = responses.find(r => r.question.toLowerCase().includes(keyword.toLowerCase()));
-            return entry ? entry.answer : null;
-        };
-
-        // Date helper
-        const parseDate = (dateStr) => {
-            return dateStr ? new Date(dateStr) : new Date();
-        };
-
-        if (normalizedTitle.includes('campus visit')) {
+        if (targetModule === 'campus-visits') {
             result = await CampusVisit.create({
                 universityName: getAnswer('University') || 'Unknown University',
                 country: getAnswer('Country') || 'Unknown',
@@ -44,22 +40,24 @@ export const handleFormSubmit = async (req, res) => {
                 department: getAnswer('Department'),
                 campus: getAnswer('Campus'),
                 summary: getAnswer('Summary') || getAnswer('Purpose'),
+                purpose: getAnswer('Purpose'),
                 driveLink: getAnswer('Drive Document') || getAnswer('Link')
             });
         }
-        else if (normalizedTitle.includes('mou signing')) {
+        else if (targetModule === 'mou-signing-ceremonies') {
             const partnerName = getAnswer('University') || getAnswer('Partner');
             result = await MouSigningCeremony.create({
                 university: partnerName,
-                country: getAnswer('Country') || 'Unknown',
                 date: parseDate(getAnswer('Date')),
+                type: getAnswer('Type'),
+                visitorName: getAnswer('Visitor') || getAnswer('Dignitary'),
                 department: getAnswer('Department'),
-                location: getAnswer('Location'),
-                title: getAnswer('Title') || `MoU Signing with ${partnerName}`,
+                campus: getAnswer('Campus'),
+                eventSummary: getAnswer('Summary') || `MoU Signing with ${partnerName}`,
                 driveLink: getAnswer('Drive Document')
             });
         }
-        else if (normalizedTitle.includes('mou update')) {
+        else if (targetModule === 'mou-updates') {
             result = await MouUpdate.create({
                 university: getAnswer('University'),
                 country: getAnswer('Country'),
@@ -70,10 +68,11 @@ export const handleFormSubmit = async (req, res) => {
                 mouStatus: getAnswer('Status') || 'Active',
                 agreementType: getAnswer('Agreement Type') || 'MoU',
                 term: getAnswer('Term'),
+                validityStatus: getAnswer('Validity'),
                 driveLink: getAnswer('Drive Document')
             });
         }
-        else if (normalizedTitle.includes('event')) {
+        else if (targetModule === 'events') {
             result = await Event.create({
                 title: getAnswer('Title') || 'Untitled Event',
                 type: getAnswer('Type') || 'Guest Lecture',
@@ -86,7 +85,7 @@ export const handleFormSubmit = async (req, res) => {
                 driveLink: getAnswer('Drive Document') || getAnswer('Web Link')
             });
         }
-        else if (normalizedTitle.includes('conference')) {
+        else if (targetModule === 'conferences') {
             result = await Conference.create({
                 conferenceName: getAnswer('Conference') || 'Untitled Conference',
                 country: getAnswer('Country'),
@@ -97,20 +96,21 @@ export const handleFormSubmit = async (req, res) => {
                 driveLink: getAnswer('Drive Document')
             });
         }
-        else if (normalizedTitle.includes('scholar')) {
+        else if (targetModule === 'scholars-in-residence') {
             result = await ScholarInResidence.create({
                 scholarName: getAnswer('Scholar') || getAnswer('Name'),
-                institution: getAnswer('Institution'),
+                university: getAnswer('University') || getAnswer('Institution'),
                 country: getAnswer('Country'),
-                residencePeriod: getAnswer('Period') || getAnswer('Duration'),
-                university: getAnswer('University'),
                 category: getAnswer('Category'),
+                department: getAnswer('Department'),
+                fromDate: getAnswer('From') ? parseDate(getAnswer('From')) : undefined,
+                toDate: getAnswer('To') ? parseDate(getAnswer('To')) : undefined,
                 summary: getAnswer('Summary'),
                 campus: getAnswer('Campus'),
                 driveLink: getAnswer('Drive Document')
             });
         }
-        else if (normalizedTitle.includes('immersion')) {
+        else if (targetModule === 'immersion-programs') {
             result = await ImmersionProgram.create({
                 university: getAnswer('University'),
                 country: getAnswer('Country'),
@@ -124,32 +124,40 @@ export const handleFormSubmit = async (req, res) => {
                 driveLink: getAnswer('Drive Document')
             });
         }
-        else if (normalizedTitle.includes('student exchange')) {
+        else if (targetModule === 'student-exchange') {
             result = await StudentExchange.create({
                 studentName: getAnswer('Student'),
                 exchangeUniversity: getAnswer('University'),
                 country: getAnswer('Country'),
-                duration: getAnswer('Duration'),
-                startDate: parseDate(getAnswer('Start Date')),
-                endDate: parseDate(getAnswer('End Date')),
+                course: getAnswer('Course'),
+                semesterYear: getAnswer('Semester'),
+                direction: getAnswer('Direction'),
+                fromDate: getAnswer('Start Date') ? parseDate(getAnswer('Start Date')) : undefined,
+                toDate: getAnswer('End Date') ? parseDate(getAnswer('End Date')) : undefined,
                 usnNo: getAnswer('USN'),
                 driveLink: getAnswer('Drive Document')
             });
         }
-        else if (normalizedTitle.includes('masters abroad')) {
+        else if (targetModule === 'masters-abroad') {
             result = await MastersAbroad.create({
+                studentName: getAnswer('Student') || getAnswer('Name'),
                 university: getAnswer('University'),
                 country: getAnswer('Country'),
-                duration: getAnswer('Duration')
+                courseStudying: getAnswer('Course'),
+                courseTenure: getAnswer('Duration') || getAnswer('Tenure'),
+                usnNumber: getAnswer('USN'),
+                schoolOfStudy: getAnswer('School'),
+                driveLink: getAnswer('Drive Document')
             });
         }
-        else if (normalizedTitle.includes('digital media')) {
+        else if (targetModule === 'digital-media') {
             result = await DigitalMedia.create({
                 articleTopic: getAnswer('Topic') || getAnswer('Article'),
                 channel: getAnswer('Channel'),
                 date: parseDate(getAnswer('Date')),
                 amountPaid: parseFloat(getAnswer('Amount') || '0'),
                 articleLink: getAnswer('Link'),
+                summary: getAnswer('Summary'),
                 driveLink: getAnswer('Drive Document')
             });
         }

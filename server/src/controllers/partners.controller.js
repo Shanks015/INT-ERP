@@ -1,6 +1,6 @@
 import Partner from '../models/Partner.js';
 import { Parser } from 'json2csv';
-import { logUserActivity } from './generic.controller.js';
+import { logUserActivity, sanitizeInput } from './generic.controller.js';
 
 // Get all partners
 export const getAll = async (req, res) => {
@@ -98,8 +98,9 @@ export const getById = async (req, res) => {
 export const create = async (req, res) => {
     try {
         const partner = new Partner({
-            ...req.body,
-            createdBy: req.userId
+            ...sanitizeInput(req.body),
+            createdBy: req.userId,
+            status: 'active'
         });
         await partner.save();
 
@@ -142,7 +143,7 @@ export const update = async (req, res) => {
 
         // Admin can directly update
         if (req.user.role === 'admin') {
-            Object.assign(partner, req.body);
+            Object.assign(partner, sanitizeInput(req.body));
             partner.updatedBy = req.userId;
             await partner.save();
 
@@ -158,7 +159,7 @@ export const update = async (req, res) => {
 
         // Employee/Intern creates pending edit
         partner.status = 'pending_edit';
-        partner.pendingChanges = req.body;
+        partner.pendingChanges = sanitizeInput(req.body);
         partner.updatedBy = req.userId;
         await partner.save();
 

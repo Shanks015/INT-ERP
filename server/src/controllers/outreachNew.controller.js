@@ -2,7 +2,7 @@ import OutreachNew from '../models/OutreachNew.js';
 import MailboxConnection from '../models/MailboxConnection.js';
 import { decrypt } from '../services/cryptoService.js';
 import nodemailer from 'nodemailer';
-import { logUserActivity } from './generic.controller.js';
+import { logUserActivity, sanitizeInput } from './generic.controller.js';
 import * as XLSX from 'xlsx';
 import path from 'path';
 import fs from 'fs';
@@ -98,7 +98,7 @@ export const getOutreachNewById = async (req, res) => {
 export const createOutreachNew = async (req, res) => {
     try {
         const record = new OutreachNew({
-            ...req.body,
+            ...sanitizeInput(req.body),
             createdBy: req.user._id,
             updatedBy: req.user._id
         });
@@ -117,7 +117,7 @@ export const updateOutreachNew = async (req, res) => {
     try {
         const record = await OutreachNew.findByIdAndUpdate(
             req.params.id,
-            { ...req.body, updatedBy: req.user._id },
+            { ...sanitizeInput(req.body), updatedBy: req.user._id },
             { new: true }
         );
 
@@ -134,21 +134,17 @@ export const updateOutreachNew = async (req, res) => {
 };
 
 // DELETE record
+// OutreachNew has no maker-checker workflow (no approve/reject routes, direct
+// updates) — so deletion is a direct hard delete, consistent with the rest of
+// this module. The previous implementation set status: 'deleted', which is not
+// in the schema enum and made every delete fail with a ValidationError.
 export const deleteOutreachNew = async (req, res) => {
     try {
-        const record = await OutreachNew.findByIdAndUpdate(
-            req.params.id,
-            { status: 'pending_delete', deletionReason: req.body.reason || 'Manual deletion' },
-            { new: true }
-        );
+        const record = await OutreachNew.findByIdAndDelete(req.params.id);
 
         if (!record) {
             return res.status(404).json({ success: false, message: 'Record not found' });
         }
-
-        // Hard delete / soft delete based on role, for consistency we'll soft delete to active: false
-        record.status = 'deleted';
-        await record.save();
 
         await logUserActivity(req, 'delete', 'OutreachNew', record);
 

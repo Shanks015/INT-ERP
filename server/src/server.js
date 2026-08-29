@@ -2,6 +2,8 @@ import express from 'express'; // server restart trigger
 import mongoose from 'mongoose';
 import cors from 'cors';
 import compression from 'compression';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -49,6 +51,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Render (and most PaaS hosts) sit behind a reverse proxy — without this,
+// req.ip is the proxy's IP and rate limiting applies to everyone at once.
+app.set('trust proxy', 1);
+
 // Middleware
 const allowedOrigins = [
     process.env.CLIENT_URL,
@@ -62,6 +68,36 @@ app.use(cors({
         : true, // Allow all origins in development
     credentials: true
 }));
+
+// Security headers. CSP is disabled: the server also serves the bundled React
+// app and user-uploaded files, and the default policy breaks both. COEP is
+// disabled so cross-origin images (e.g. profile photos) keep loading.
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false
+}));
+
+// Rate limiting — global ceiling for the API, plus a much stricter budget on
+// the auth endpoints to blunt credential brute-forcing.
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 500,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { success: false, message: 'Too many requests, please try again later.' }
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 20,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    skipSuccessfulRequests: true, // only count failed attempts against the budget
+    message: { success: false, message: 'Too many login attempts, please try again later.' }
+});
+
+app.use('/api/auth', authLimiter);
+app.use('/api', apiLimiter);
 
 // Enable compression middleware for all responses
 app.use(compression());
