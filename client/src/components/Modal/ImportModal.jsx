@@ -16,6 +16,8 @@ const ImportModal = ({ isOpen, onClose, onSuccess, moduleName }) => {
     const modules = [
         { value: 'partners', label: 'Partners' },
         { value: 'campus-visits', label: 'Campus Visits' },
+        { value: 'seminars', label: 'Seminars / Guest Lectures' },
+        { value: 'consultant-visits', label: 'Consultant Visits / Masters Desk' },
         { value: 'events', label: 'Events' },
         { value: 'conferences', label: 'Conferences' },
         { value: 'mou-signing-ceremonies', label: 'MoU Signing Ceremonies' },

@@ -23,9 +23,13 @@ const UserManagement = lazy(() => import('./pages/UserManagement/UserManagement'
 const PartnersList = lazy(() => import('./pages/Partners/PartnersList'));
 const PartnerForm = lazy(() => import('./pages/Partners/PartnerForm'));
 
-// Campus Visits
+// Campus Visits (split into three modules sharing the campus-visits permission)
 const CampusVisitsList = lazy(() => import('./pages/CampusVisits/CampusVisitsList'));
 const CampusVisitForm = lazy(() => import('./pages/CampusVisits/CampusVisitForm'));
+const SeminarsList = lazy(() => import('./pages/Seminars/SeminarsList'));
+const SeminarForm = lazy(() => import('./pages/Seminars/SeminarForm'));
+const ConsultantVisitsList = lazy(() => import('./pages/ConsultantVisits/ConsultantVisitsList'));
+const ConsultantVisitForm = lazy(() => import('./pages/ConsultantVisits/ConsultantVisitForm'));
 
 // Events
 const EventsList = lazy(() => import('./pages/Events/EventsList'));
@@ -116,6 +120,14 @@ function App() {
                             <Route path="campus-visits" element={<ProtectedRoute module="campus-visits"><CampusVisitsList /></ProtectedRoute>} />
                             <Route path="campus-visits/new" element={<ProtectedRoute module="campus-visits"><CampusVisitForm /></ProtectedRoute>} />
                             <Route path="campus-visits/edit/:id" element={<ProtectedRoute module="campus-visits"><CampusVisitForm /></ProtectedRoute>} />
+
+                            <Route path="seminars" element={<ProtectedRoute module="campus-visits"><SeminarsList /></ProtectedRoute>} />
+                            <Route path="seminars/new" element={<ProtectedRoute module="campus-visits"><SeminarForm /></ProtectedRoute>} />
+                            <Route path="seminars/edit/:id" element={<ProtectedRoute module="campus-visits"><SeminarForm /></ProtectedRoute>} />
+
+                            <Route path="consultant-visits" element={<ProtectedRoute module="campus-visits"><ConsultantVisitsList /></ProtectedRoute>} />
+                            <Route path="consultant-visits/new" element={<ProtectedRoute module="campus-visits"><ConsultantVisitForm /></ProtectedRoute>} />
+                            <Route path="consultant-visits/edit/:id" element={<ProtectedRoute module="campus-visits"><ConsultantVisitForm /></ProtectedRoute>} />
 
                             <Route path="events" element={<ProtectedRoute module="events"><EventsList /></ProtectedRoute>} />
                             <Route path="events/new" element={<ProtectedRoute module="events"><EventForm /></ProtectedRoute>} />

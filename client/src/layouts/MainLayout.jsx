@@ -134,7 +134,7 @@ const MainLayout = () => {
             {(hasAccess('campus-visits') || hasAccess('scholars-in-residence')) && (
                 <li>
                     <div
-                        className={`flex items-center gap-3 cursor-pointer ${location.pathname.includes('/campus-visits') || location.pathname.includes('/scholars') ? 'active' : ''}`}
+                        className={`flex items-center gap-3 cursor-pointer ${location.pathname.includes('/campus-visits') || location.pathname.includes('/seminars') || location.pathname.includes('/consultant-visits') || location.pathname.includes('/scholars') ? 'active' : ''}`}
                         onClick={(e) => {
                             e.stopPropagation();
                             toggleDropdown('campusVisits');
@@ -150,16 +150,14 @@ const MainLayout = () => {
                     {openDropdowns.includes('campusVisits') && (
                         <ul className="ml-4 mt-2 space-y-1">
                             {hasAccess('campus-visits') && (
-                                <li><Link to="/campus-visits?type=Guest Lecture,Seminar" className={location.pathname.includes('/campus-visits') && location.search.includes('Guest+Lecture') ? 'active' : ''}><UserCheck size={16} /> Guest Lecture / Seminar</Link></li>
+                                <>
+                                    <li><Link to="/campus-visits" className={location.pathname.includes('/campus-visits') ? 'active' : ''}><Building2 size={16} /> Campus Visit</Link></li>
+                                    <li><Link to="/seminars" className={location.pathname.includes('/seminars') ? 'active' : ''}><UserCheck size={16} /> Guest Lecture / Seminar</Link></li>
+                                    <li><Link to="/consultant-visits" className={location.pathname.includes('/consultant-visits') ? 'active' : ''}><UserCheck size={16} /> Consultant Visit / Masters Desk</Link></li>
+                                </>
                             )}
                             {hasAccess('scholars-in-residence') && (
                                 <li><Link to="/scholars-in-residence" className={location.pathname.includes('/scholars-in-residence') ? 'active' : ''}><GraduationCap size={16} /> Scholars in Residence</Link></li>
-                            )}
-                            {hasAccess('campus-visits') && (
-                                <>
-                                    <li><Link to="/campus-visits" className={location.pathname.includes('/campus-visits') && !location.search ? 'active' : ''}><Building2 size={16} /> Campus Visit</Link></li>
-                                    <li><Link to="/campus-visits?type=Consultant Visit" className={location.pathname.includes('/campus-visits') && location.search.includes('Consultant') ? 'active' : ''}><UserCheck size={16} /> Consultant Visit</Link></li>
-                                </>
                             )}
                         </ul>
                     )}
