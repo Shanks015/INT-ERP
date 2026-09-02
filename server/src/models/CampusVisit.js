@@ -44,6 +44,12 @@ const campusVisitSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    // Notes — short internal/tracking note. Kept separate from `summary`; shown
+    // as a list column, mirroring the Student Exchange / Immersion modules.
+    notes: {
+        type: String,
+        trim: true
+    },
     // Approval workflow fields
     status: {
         type: String,

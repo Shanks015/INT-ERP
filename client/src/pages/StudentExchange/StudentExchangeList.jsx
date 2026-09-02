@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
-import { useDateFormat } from '../../utils/dateFormat';
+import { toDDMMM } from '../../utils/dateFormat';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
@@ -16,7 +16,6 @@ import Pagination from '../../components/Pagination';
 
 const StudentExchangeList = () => {
     const { isAdmin } = useAuth();
-    const formatDate = useDateFormat();
     const [exchanges, setExchanges] = useState([]);
     const [stats, setStats] = useState({ total: 0, universities: 0, active: 0 });
     const [statsLoading, setStatsLoading] = useState(true);
@@ -28,15 +27,15 @@ const StudentExchangeList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', country: '', exchangeType: '', direction: '', startDate: '', endDate: '', recordStatus: '' });
+    const [filters, setFilters] = useState({ search: '', country: '', direction: '', exchangeStatus: '', startDate: '', endDate: '', recordStatus: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
 
     const [countries, setCountries] = useState([]);
-    const [exchangeTypes, setExchangeTypes] = useState([]);
+    const [exchangeStatuses, setExchangeStatuses] = useState([]);
 
-    useEffect(() => { fetchExchanges(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.exchangeType, filters.direction, filters.startDate, filters.endDate, filters.recordStatus]);
+    useEffect(() => { fetchExchanges(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.direction, filters.exchangeStatus, filters.startDate, filters.endDate, filters.recordStatus]);
 
     const fetchStats = async () => {
         try {
@@ -52,7 +51,7 @@ const StudentExchangeList = () => {
             const response = await api.get('/student-exchange', { params: { limit: 1000 } });
             const exchanges = response.data.data || [];
             setCountries([...new Set(exchanges.map(e => e.country).filter(Boolean))].sort());
-            setExchangeTypes(getCaseInsensitiveUnique(exchanges, 'exchangeType'));
+            setExchangeStatuses(getCaseInsensitiveUnique(exchanges, 'exchangeStatus'));
         } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
@@ -64,8 +63,8 @@ const StudentExchangeList = () => {
                 limit: itemsPerPage,
                 search: debouncedSearch,
                 country: filters.country,
-                exchangeType: filters.exchangeType,
                 direction: filters.direction,
+                exchangeStatus: filters.exchangeStatus,
                 startDate: filters.startDate,
                 endDate: filters.endDate,
                 recordStatus: filters.recordStatus
@@ -102,7 +101,7 @@ const StudentExchangeList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', country: '', exchangeType: '', direction: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', country: '', direction: '', exchangeStatus: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
@@ -127,15 +126,18 @@ const StudentExchangeList = () => {
                 onClearFilters={handleClearFilters}
                 showCountryFilter={true}
                 countries={countries}
-                exchangeTypes={exchangeTypes}
+                selectFilters={[
+                    { key: 'direction', label: 'Direction', options: ['Incoming', 'Outgoing'] },
+                    { key: 'exchangeStatus', label: 'Exchange Status', options: exchangeStatuses }
+                ]}
             />
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Student Name</th><th>Exchange University</th><th>Country</th><th>Direction</th><th>Date Range</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Student Name</th><th>Exchange University</th><th>Country</th><th>Direction</th><th>Date Range</th><th>Status</th><th>Notes</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {exchanges.length === 0 ? <tr><td colSpan={7} className="text-center py-8">No exchanges found</td></tr> : exchanges.map((exchange) => (
+                                {exchanges.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No exchanges found</td></tr> : exchanges.map((exchange) => (
                                     <tr key={exchange._id}>
                                         <td>{exchange.studentName}</td>
                                         <td>{exchange.exchangeUniversity}</td>
@@ -147,19 +149,25 @@ const StudentExchangeList = () => {
                                         </td>
                                         <td>
                                             {exchange.fromDate && exchange.toDate
-                                                ? `${formatDate(exchange.fromDate)} - ${formatDate(exchange.toDate)}`
+                                                ? `${toDDMMM(exchange.fromDate)} - ${toDDMMM(exchange.toDate)}`
                                                 : '-'}
                                         </td>
                                         <td>
                                             <div className="flex flex-col gap-1">
-                                                {/* Record Status Badge */}
-                                                {exchange.recordStatus === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
+                                                {/* Module status */}
+                                                <span>{exchange.exchangeStatus || '-'}</span>
+                                                {/* System flags — shown only when they add info */}
                                                 {exchange.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
-
-                                                {/* Approval Workflow Badges */}
                                                 {exchange.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
                                                 {exchange.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
                                             </div>
+                                        </td>
+                                        <td>
+                                            {exchange.notes ? (
+                                                <div className="max-w-[220px]" title={exchange.notes}>
+                                                    <span className="text-xs text-base-content/80 line-clamp-2 break-words">{exchange.notes}</span>
+                                                </div>
+                                            ) : '-'}
                                         </td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
@@ -198,13 +206,11 @@ const StudentExchangeList = () => {
                     { key: 'usnNo', label: 'USN Number' },
                     { key: 'exchangeUniversity', label: 'Exchange University' },
                     { key: 'country', label: 'Country' },
-                    { key: 'fromDate', label: 'From Date', type: 'date' },
-                    { key: 'toDate', label: 'To Date', type: 'date' },
+                    { key: 'fromDate', label: 'From Date', type: 'date', format: 'DD/MMM/YYYY' },
+                    { key: 'toDate', label: 'To Date', type: 'date', format: 'DD/MMM/YYYY' },
                     { key: 'exchangeStatus', label: 'Exchange Status' },
                     { key: 'driveLink', label: 'Drive Link', type: 'link' },
-                    { key: 'status', label: 'Status' },
-                    { key: 'createdAt', label: 'Created At', type: 'date' },
-                    { key: 'updatedAt', label: 'Updated At', type: 'date' }
+                    { key: 'notes', label: 'Notes' }
                 ]}
             />
         </div>

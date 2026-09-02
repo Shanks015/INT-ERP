@@ -46,6 +46,12 @@ const studentExchangeSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    // Notes — short internal/tracking note (e.g. "Wrong link - should be
+    // updated"). Kept separate from `remarks`; shown as a list column.
+    notes: {
+        type: String,
+        trim: true
+    },
     // Approval workflow fields
     status: {
         type: String,

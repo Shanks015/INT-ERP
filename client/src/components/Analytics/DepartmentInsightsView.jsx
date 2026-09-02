@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { Building2, GraduationCap, Users, TrendingUp, Calendar, Award } from 'lucide-react';
+import { toDDMMM } from '../../utils/dateFormat';
 
 const DepartmentInsightsView = ({ data }) => {
     const COLORS = {
@@ -23,7 +24,7 @@ const DepartmentInsightsView = ({ data }) => {
 
     // Data safely extracted
     const departmentDist = data?.departmentDistribution || [];
-    const categoryDist = data?.categoryDistribution || [];
+    const designationDist = data?.designationDistribution || [];
     const activeScholars = data?.activeScholars || [];
     const recentScholars = data?.recentScholars || [];
     const totalDepartments = data?.departments || 0;
@@ -144,14 +145,14 @@ const DepartmentInsightsView = ({ data }) => {
                     <div className="card-body">
                         <h3 className="card-title text-lg flex items-center gap-2">
                             <Award size={20} />
-                            Scholar Categories
+                            Scholar Designations
                         </h3>
-                        {categoryDist.length > 0 ? (
+                        {designationDist.length > 0 ? (
                             <div style={{ minHeight: '300px' }}>
                                 <ResponsiveContainer width="100%" height={300}>
                                     <PieChart>
                                         <Pie
-                                            data={categoryDist}
+                                            data={designationDist}
                                             dataKey="value"
                                             nameKey="name"
                                             cx="50%"
@@ -159,7 +160,7 @@ const DepartmentInsightsView = ({ data }) => {
                                             outerRadius={100}
                                             label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                                         >
-                                            {categoryDist.map((entry, index) => (
+                                            {designationDist.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                                             ))}
                                         </Pie>
@@ -175,7 +176,7 @@ const DepartmentInsightsView = ({ data }) => {
                             </div>
                         ) : (
                             <div className="text-center py-8 text-base-content/50">
-                                No category data available
+                                No designation data available
                             </div>
                         )}
                     </div>
@@ -226,11 +227,12 @@ const DepartmentInsightsView = ({ data }) => {
                             <thead>
                                 <tr>
                                     <th>Scholar Name</th>
+                                    <th>Designation</th>
                                     <th>Country</th>
                                     <th>University</th>
                                     <th>Department</th>
-                                    <th>From Date</th>
-                                    <th>To Date</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -238,11 +240,12 @@ const DepartmentInsightsView = ({ data }) => {
                                 {recentScholars.map((scholar, index) => (
                                     <tr key={index}>
                                         <td className="font-medium">{scholar.scholarName}</td>
+                                        <td>{scholar.designation || '-'}</td>
                                         <td>{scholar.country}</td>
                                         <td>{scholar.university || '-'}</td>
                                         <td>{scholar.department || '-'}</td>
-                                        <td>{new Date(scholar.fromDate).toLocaleDateString()}</td>
-                                        <td>{new Date(scholar.toDate).toLocaleDateString()}</td>
+                                        <td>{toDDMMM(scholar.startDate) || '-'}</td>
+                                        <td>{toDDMMM(scholar.endDate) || '-'}</td>
                                         <td>
                                             <span className={`badge ${scholar.recordStatus === 'active' ? 'badge-success' : 'badge-error'} badge-sm whitespace-nowrap`}>
                                                 {scholar.recordStatus}

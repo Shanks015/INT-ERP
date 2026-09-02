@@ -11,6 +11,8 @@ const getModuleName = (modelName) => {
         'Event': 'events',
         'Conference': 'conferences',
         'CampusVisit': 'campus-visits',
+        'Seminar': 'seminars',
+        'ConsultantVisit': 'consultant-visits',
         'ImmersionProgram': 'immersion-programs',
         'MouSigningCeremony': 'mou-signing',
         'ScholarInResidence': 'scholars',
@@ -108,8 +110,10 @@ export const getAll = (Model) => async (req, res) => {
                 { title: searchRegex },
                 { university: searchRegex },
                 { universityName: searchRegex },  // Added for Campus Visits
+                { exchangeUniversity: searchRegex }, // Student Exchange
                 { visitorName: searchRegex },
                 { scholarName: searchRegex },
+                { designation: searchRegex },     // Scholar in Residence
                 { studentName: searchRegex },
                 { conferenceName: searchRegex },
                 { contactName: searchRegex },
@@ -119,7 +123,8 @@ export const getAll = (Model) => async (req, res) => {
                 { programName: searchRegex },
                 { organizationName: searchRegex },
                 { channel: searchRegex },
-                { email: searchRegex }
+                { email: searchRegex },
+                { mobile: searchRegex }           // Scholar in Residence
             ];
         }
 
@@ -157,6 +162,11 @@ export const getAll = (Model) => async (req, res) => {
             const dateField = dateFieldConfig.field || 'createdAt';
             const hasFromToFields = dateFieldConfig.isRange || false;
             const arrivalDeparture = dateFieldConfig.arrivalDeparture || false;
+            // Range models can override the two boundary fields (defaults keep
+            // StudentExchange's fromDate/toDate behaviour unchanged; Scholar in
+            // Residence now uses startDate/endDate).
+            const startField = dateFieldConfig.startField || 'fromDate';
+            const endField = dateFieldConfig.endField || 'toDate';
 
             if (arrivalDeparture) {
                 // For Immersion Programs with arrivalDate and departureDate fields
@@ -169,15 +179,15 @@ export const getAll = (Model) => async (req, res) => {
                     query.arrivalDate = { $lte: end };
                 }
             } else if (hasFromToFields) {
-                // For models with fromDate and toDate fields
+                // For models with a start/end date range pair
                 // Filter records where the date range overlaps with the search range
                 if (startDate) {
-                    query.toDate = { $gte: new Date(startDate) };
+                    query[endField] = { $gte: new Date(startDate) };
                 }
                 if (endDate) {
                     const end = new Date(endDate);
                     end.setHours(23, 59, 59, 999);
-                    query.fromDate = { $lte: end };
+                    query[startField] = { $lte: end };
                 }
             } else {
                 // For models with a single date field

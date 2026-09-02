@@ -24,12 +24,25 @@ const EXCEL_PATH = path.join(__dirname, '..', '..', 'Internationalisation (Respo
 
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
+const MONTH_ABBR = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
 const excelDateToJSDate = (serial) => {
     if (!serial) return null;
     if (serial instanceof Date) return serial;
     if (typeof serial === 'string') {
         const cleaned = serial.trim();
         if (!cleaned) return null;
+        // project date text format dd/MMM/yyyy, e.g. "02/Sep/2026"
+        let m = cleaned.match(/^(\d{1,2})[/\-.\s]\s*([A-Za-z]{3,9})[/\-.\s]\s*(\d{2,4})$/);
+        if (m) {
+            const day = +m[1];
+            const mon = String(m[2]).slice(0, 3).toLowerCase();
+            let yr = +m[3];
+            if (yr < 100) yr += 2000;
+            if (MONTH_ABBR[mon] !== undefined) {
+                const d = new Date(Date.UTC(yr, MONTH_ABBR[mon], day));
+                if (d.getUTCFullYear() === yr && d.getUTCMonth() === MONTH_ABBR[mon] && d.getUTCDate() === day) return d;
+            }
+        }
         const parsed = new Date(cleaned);
         return isNaN(parsed.getTime()) ? null : parsed;
     }
@@ -112,10 +125,11 @@ const cleanAndImport = async (sheetName, Model, mappingConfig, uniqueKeys = [], 
                 }
 
                 // Handle numbers
-                if (modelField === 'numberOfPax' || modelField === 'feesPerPax' || modelField === 'cgpa') {
-                    if (value !== undefined && value !== null) {
-                        const num = Number(value);
-                        value = isNaN(num) ? undefined : num;
+                if (modelField === 'numberOfPax' || modelField === 'feesPerPax' || modelField === 'cgpa' ||
+                    modelField === 'qsRanking' || modelField === 'durationDays') {
+                    if (value !== undefined && value !== null && value !== '') {
+                        const num = Number(String(value).replace(/,/g, ''));
+                        value = isNaN(num) || num <= 0 ? undefined : num;
                     }
                 }
 
@@ -247,17 +261,23 @@ const runReimport = async () => {
 
         // 5. Scholars in Residence
         await cleanAndImport('Scholars in Residence', ScholarInResidence, {
-            'Status': 'scholarStatus', // Map excel Status -> scholarStatus in model
-            'Category': 'category',
-            'Scholars Name': 'scholarName',
+            'Scholar Name': 'scholarName',
+            'Designation': 'designation',
             'University': 'university',
             'Country': 'country',
-            'From Date': 'fromDate',
-            'To Date': 'toDate',
-            'Department': 'department',
-            'Summary': 'summary',
-            'Campus': 'campus'
-        }, ['scholarName', 'fromDate'], createdBy);
+            'QS Ranking': 'qsRanking',
+            'Duration / Days': 'durationDays',
+            'Start Date': 'startDate',
+            'End Date': 'endDate',
+            'Schools / Department': 'department',
+            'Accommodation / Campus': 'campus',
+            'Status': 'scholarStatus', // Map excel Status -> scholarStatus in model
+            'Email': 'email',
+            'Mobile': 'mobile',
+            'Remarks / Summary': 'summary',
+            'Drive Link': 'driveLink',
+            'Notes': 'notes'
+        }, ['scholarName', 'startDate'], createdBy);
 
         // 6. MoU Update
         await cleanAndImport('MoU Update', MouUpdate, {
@@ -285,7 +305,8 @@ const runReimport = async () => {
             'Arrival Date': 'arrivalDate',
             'Departure Date': 'departureDate',
             'Fees Per Pax': 'feesPerPax',
-            'Department': 'department'
+            'Department': 'department',
+            'Notes': 'notes'
         }, ['university', 'arrivalDate', 'direction'], createdBy);
 
         // 8. Student Exchange
@@ -298,7 +319,8 @@ const runReimport = async () => {
             'Exchange University': 'exchangeUniversity',
             'From Date': 'fromDate',
             'To Date': 'toDate',
-            'Status': 'exchangeStatus' // Maps to exchangeStatus in model, leaving system workflow status as default 'active'
+            'Status': 'exchangeStatus', // Maps to exchangeStatus in model, leaving system workflow status as default 'active'
+            'Notes': 'notes'
         }, ['studentName', 'exchangeUniversity'], createdBy);
 
         // 9. Masters Abroad

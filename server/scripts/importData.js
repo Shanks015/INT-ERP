@@ -26,10 +26,27 @@ const excelPath = path.join(__dirname, '..', '..', 'Internationalisation (Respon
 // Load env
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-// Helper to convert Excel date to JS Date
+const MONTH_ABBR = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+// Helper to convert Excel date to JS Date (serial number, ISO, or dd/MMM/yyyy text)
 function excelDateToJSDate(serial) {
     if (!serial) return null;
-    if (typeof serial === 'string') return new Date(serial);
+    if (serial instanceof Date) return serial;
+    if (typeof serial === 'string') {
+        const s = serial.trim();
+        let m = s.match(/^(\d{1,2})[/\-.\s]\s*([A-Za-z]{3,9})[/\-.\s]\s*(\d{2,4})$/);
+        if (m) {
+            const day = +m[1];
+            const mon = String(m[2]).slice(0, 3).toLowerCase();
+            let yr = +m[3];
+            if (yr < 100) yr += 2000;
+            if (MONTH_ABBR[mon] !== undefined) {
+                const d = new Date(Date.UTC(yr, MONTH_ABBR[mon], day));
+                if (d.getUTCFullYear() === yr && d.getUTCMonth() === MONTH_ABBR[mon] && d.getUTCDate() === day) return d;
+            }
+        }
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? null : d;
+    }
     if (typeof serial !== 'number') return null;
 
     const utc_days = Math.floor(serial - 25569);
@@ -37,6 +54,13 @@ function excelDateToJSDate(serial) {
     const date_info = new Date(utc_value * 1000);
     return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate());
 }
+
+// Parse an optional positive number (accepts commas, ignores non-numeric like "101-150")
+const toNum = (v) => {
+    if (v === undefined || v === null || v === '') return undefined;
+    const n = Number(String(v).replace(/,/g, '').trim());
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+};
 
 // Helper to clean strings
 const cleanStr = (str) => {
@@ -217,16 +241,22 @@ const importData = async () => {
 
         // 5. Scholars in Residence
         await processSheet('Scholars in Residence', ScholarInResidence, (row) => ({
-            scholarName: cleanStr(getVal(row, 'Scholars Name')),
+            scholarName: cleanStr(getVal(row, 'Scholar Name', 'Scholars Name')),
+            designation: cleanStr(getVal(row, 'Designation', 'Category')),
             university: cleanStr(getVal(row, 'University')),
             country: cleanStr(getVal(row, 'Country')),
-            department: cleanStr(getVal(row, 'Department')),
-            fromDate: excelDateToJSDate(getVal(row, 'From Date')),
-            toDate: excelDateToJSDate(getVal(row, 'To Date')),
-            category: cleanStr(getVal(row, 'Category')),
-            summary: cleanStr(getVal(row, 'Summary')),
-            campus: cleanStr(getVal(row, 'Campus')),
-            driveLink: cleanStr(getVal(row, 'Scholars in Residence - Upload Zip File', 'Upload'))
+            qsRanking: toNum(getVal(row, 'QS Ranking', 'QS Rank')),
+            durationDays: toNum(getVal(row, 'Duration / Days', 'Duration/Days', 'Duration', 'No of Days')),
+            startDate: excelDateToJSDate(getVal(row, 'Start Date', 'From Date')),
+            endDate: excelDateToJSDate(getVal(row, 'End Date', 'To Date')),
+            department: cleanStr(getVal(row, 'Schools / Department', 'Schools/Department', 'Department')),
+            campus: cleanStr(getVal(row, 'Accommodation / Campus', 'Accommodation/Campus', 'Campus')),
+            scholarStatus: cleanStr(getVal(row, 'Status')),
+            email: cleanStr(getVal(row, 'Email')),
+            mobile: cleanStr(getVal(row, 'Mobile', 'Mobile Number', 'Phone')),
+            summary: cleanStr(getVal(row, 'Remarks / Summary', 'Remarks/Summary', 'Summary')),
+            driveLink: cleanStr(getVal(row, 'Drive Link', 'Scholars in Residence - Upload Zip File', 'Upload')),
+            notes: cleanStr(getVal(row, 'Notes', 'Note'))
         }));
 
         // 6. MoU Update
@@ -257,7 +287,8 @@ const importData = async () => {
             departureDate: excelDateToJSDate(getVal(row, 'Departure Date')),
             feesPerPax: getVal(row, 'Fees Per Pax'),
             department: cleanStr(getVal(row, 'Department')),
-            driveLink: cleanStr(getVal(row, 'Immersion Program - Upload Zip File', 'Upload'))
+            driveLink: cleanStr(getVal(row, 'Immersion Program - Upload Zip File', 'Upload')),
+            notes: cleanStr(getVal(row, 'Notes', 'Note'))
         }));
 
         // 8. Student Exchange
@@ -294,7 +325,8 @@ const importData = async () => {
                 fromDate: excelDateToJSDate(getVal(row, 'From Date')),
                 toDate: excelDateToJSDate(getVal(row, 'To Date')),
                 exchangeStatus: cleanStr(getVal(row, 'Status')),
-                driveLink: cleanStr(getVal(row, 'Student Exchange - Upload Zip File', 'Upload'))
+                driveLink: cleanStr(getVal(row, 'Student Exchange - Upload Zip File', 'Upload')),
+                notes: cleanStr(getVal(row, 'Notes', 'Note'))
             };
         });
 

@@ -1,6 +1,8 @@
 import ExcelJS from 'xlsx';
 import Partner from '../models/Partner.js';
 import CampusVisit from '../models/CampusVisit.js';
+import Seminar from '../models/Seminar.js';
+import ConsultantVisit from '../models/ConsultantVisit.js';
 import Event from '../models/Event.js';
 import Conference from '../models/Conference.js';
 import MouSigningCeremony from '../models/MouSigningCeremony.js';
@@ -14,7 +16,9 @@ import DigitalMedia from '../models/DigitalMedia.js';
 import MeetingTracker from '../models/MeetingTracker.js';
 import SocialMedia from '../models/SocialMedia.js';
 
-// Helper to parse date from Excel (which might be number or string)
+// Helper to parse date from Excel (which might be a serial number, ISO string,
+// or the project's dd/MMM/yyyy text format, e.g. "02/Sep/2026")
+const MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
 const parseDate = (value) => {
     if (!value) return null;
     if (value instanceof Date) return value;
@@ -22,7 +26,21 @@ const parseDate = (value) => {
         // Excel date serial number
         return new Date(Math.round((value - 25569) * 86400 * 1000));
     }
-    return new Date(value);
+    const s = String(value).trim();
+    // dd/MMM/yyyy (also tolerates "-", "." and month spelled out)
+    let m = s.match(/^(\d{1,2})[/\-.\s]\s*([A-Za-z]{3,9})[/\-.\s]\s*(\d{2,4})$/);
+    if (m) {
+        const day = +m[1];
+        const month = String(m[2]).slice(0, 3).toLowerCase();
+        let year = +m[3];
+        if (year < 100) year += 2000;
+        if (MONTHS[month] !== undefined) {
+            const d = new Date(Date.UTC(year, MONTHS[month], day));
+            if (d.getUTCFullYear() === year && d.getUTCMonth() === MONTHS[month] && d.getUTCDate() === day) return d;
+        }
+    }
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? null : d;
 };
 
 // Helper to parse time from Excel (which might be decimal fraction of 24h or string)
@@ -35,6 +53,40 @@ const parseExcelTime = (value) => {
         return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     }
     return String(value).trim();
+};
+
+// Pick the first present/non-empty value among accepted header spellings
+const pick = (row, keys) => {
+    for (const k of keys) {
+        const v = row[k];
+        if (v !== undefined && v !== null && String(v).trim() !== '') return v;
+    }
+    return undefined;
+};
+// Parse an optional positive number (handles commas, rejects "101-150" bands -> undefined)
+const num = (v) => {
+    if (v === undefined || v === null || v === '') return undefined;
+    const n = Number(String(v).replace(/,/g, '').trim());
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+};
+// Parse an optional money amount that may be bare or carry a currency suffix
+// (e.g. "2800", "2800 AUD", "₹25,000"). Strips the unit so a text cell can't
+// fail Mongoose's Number cast; returns undefined when nothing numeric remains.
+const money = (v) => {
+    if (v === undefined || v === null || v === '') return undefined;
+    const n = Number(String(v).replace(/[^0-9.]/g, '').trim());
+    return Number.isFinite(n) ? n : undefined;
+};
+// Currency unit trailing an amount (e.g. "2800 AUD" -> "AUD", "550 GBP" -> "GBP").
+// Falls back to any alphabetic token in the cell so codes in other positions
+// (₹ handled separately) are still captured; undefined when only digits/₹.
+const currency = (v) => {
+    if (v === undefined || v === null || v === '') return undefined;
+    const s = String(v).trim();
+    const m = s.match(/[A-Za-z]{2,4}$/); // trailing code
+    if (m) return m[0].toUpperCase();
+    const any = s.match(/[A-Za-z]{2,4}/); // fallback: any alphabetic run
+    return any ? any[0].toUpperCase() : undefined;
 };
 
 export const importData = async (req, res) => {
@@ -141,19 +193,26 @@ export const importData = async (req, res) => {
                 });
                 break;
             case 'campus-visits':
-                Model = CampusVisit;
+            case 'seminars':
+            case 'consultant-visits': {
+                // The three campus modules share the same workbook shape/headers; only the
+                // collection differs. Type values are authored per module (cleaned workbooks
+                // carry 'University Visit' / 'Seminar' / 'Consultant Visit' respectively).
+                Model = { 'campus-visits': CampusVisit, 'seminars': Seminar, 'consultant-visits': ConsultantVisit }[moduleName];
                 mappingFunction = (row) => ({
                     date: parseDate(row['Date']),
-                    visitType: row['Type'],
+                    type: row['Type'],
                     visitorName: row['Visitor\'s Name & Details'],
                     country: row['Country'],
                     universityName: row['University Name'],
                     summary: row['Summary'],
                     department: row['Department'],
                     campus: row['Campus'],
-                    driveLink: row['drive link']
+                    driveLink: pick(row, ['Campus Visit- Upload Zip FIle', 'drive link', 'Drive Link', 'Upload Zip File']),
+                    notes: pick(row, ['Notes', 'Note'])
                 });
                 break;
+            }
             case 'mou-signing-ceremonies':
                 Model = MouSigningCeremony;
                 mappingFunction = (row) => ({
@@ -196,17 +255,22 @@ export const importData = async (req, res) => {
             case 'scholars-in-residence':
                 Model = Scholar;
                 mappingFunction = (row) => ({
-                    status: row['Status'], // Careful with mapped values
-                    category: row['Category'],
-                    scholarName: row['Scholars NAme'],
-                    university: row['University'],
-                    country: row['Country'],
-                    fromDate: parseDate(row['FRom Date']),
-                    toDate: parseDate(row['To Date']),
-                    department: row['Department'],
-                    summary: row['Summary'],
-                    campus: row['Campus(Kudlu,Harohalli)'],
-                    driveLink: row['drive link']
+                    scholarName: String(pick(row, ['Scholar Name', 'Scholars Name', 'Scholars NAme', 'Scholar']) || '').trim(),
+                    designation: String(pick(row, ['Designation', 'Category']) || '').trim(),
+                    university: String(pick(row, ['University', 'Institution']) || '').trim(),
+                    country: String(pick(row, ['Country']) || '').trim(),
+                    qsRanking: num(pick(row, ['QS Ranking', 'QS Rank', 'Ranking'])),
+                    durationDays: num(pick(row, ['Duration / Days', 'Duration/Days', 'Duration', 'No of Days', 'Days'])),
+                    startDate: parseDate(pick(row, ['Start Date', 'From Date', 'FRom Date', 'Arrival Date'])),
+                    endDate: parseDate(pick(row, ['End Date', 'To Date', 'Departure Date'])),
+                    department: String(pick(row, ['Schools / Department', 'Schools/Department', 'Department']) || '').trim(),
+                    campus: String(pick(row, ['Accommodation / Campus', 'Accommodation/Campus', 'Campus', 'Campus(Kudlu,Harohalli)']) || '').trim(),
+                    scholarStatus: String(pick(row, ['Status']) || '').trim(),
+                    email: String(pick(row, ['Email', 'Email Address', 'Contact Email']) || '').trim(),
+                    mobile: String(pick(row, ['Mobile', 'Mobile Number', 'Phone', 'Contact Number']) || '').trim(),
+                    summary: String(pick(row, ['Remarks / Summary', 'Remarks/Summary', 'Remarks', 'Summary']) || '').trim(),
+                    driveLink: String(pick(row, ['Drive Link', 'drive link', 'Drive Document', 'Scholars in Residence - Upload Zip File', 'Upload']) || '').trim(),
+                    notes: String(pick(row, ['Notes', 'Note']) || '').trim()
                 });
                 break;
             case 'mou-updates':
@@ -215,7 +279,7 @@ export const importData = async (req, res) => {
                     date: parseDate(row['Date']),
                     country: row['Country'],
                     university: row['University'],
-                    department: row['Departmnet'],
+                    department: row['Department'],
                     completedDate: parseDate(row['Completed Date']), // Schema check needed
                     mouStatus: row['MoU Status'],
                     contactPerson: row['Contact Person'],
@@ -223,37 +287,45 @@ export const importData = async (req, res) => {
                     agreementType: row['Agreement Type'],
                     term: row['Term'],
                     validityStatus: row['Validity Status'],
-                    driveLink: row['drive link']
+                    driveLink: row['Drive Link']
                 });
                 break;
             case 'immersion-programs':
                 Model = ImmersionProgram;
-                mappingFunction = (row) => ({
-                    programStatus: row['Status'],
-                    direction: row['Incoming/Outgoing'],
-                    country: row['Country'],
-                    university: row['University'],
-                    numberOfPax: row['No of Day'], // Check if this maps to Pax or Duration
-                    summary: row['Summary'],
-                    arrivalDate: parseDate(row['Arrival Date']),
-                    departureDate: parseDate(row['Departure Date']),
-                    feesPerPax: row['Fees Per Pax'],
-                    department: row['Department '], // Note the space in Excel header
-                    driveLink: row['Immersion Program -  Upload Zip FIle'] || row['drive link']
-                });
+                mappingFunction = (row) => {
+                    const fees = pick(row, ['Fees Per Pax', 'Fees']);
+                    return {
+                        programStatus: String(pick(row, ['Status', 'Program Status']) || '').trim(),
+                        direction: String(pick(row, ['Incoming/Outgoing', 'Direction']) || '').trim(),
+                        university: String(pick(row, ['University']) || '').trim(),
+                        country: String(pick(row, ['Country']) || '').trim(),
+                        numberOfPax: num(pick(row, ['No of Pax', 'No. of Pax', 'Number of Pax', 'No of Day'])) ?? 0,
+                        department: String(pick(row, ['Department']) || '').trim(),
+                        arrivalDate: parseDate(pick(row, ['Arrival Date'])),
+                        departureDate: parseDate(pick(row, ['Departure Date'])),
+                        summary: String(pick(row, ['Summary']) || '').trim(),
+                        feesPerPax: money(fees),
+                        feesCurrency: currency(fees),
+                        driveLink: String(pick(row, ['Drive Link', 'drive link', 'Immersion Program -  Upload Zip FIle', 'Immersion Program - Upload Zip File', 'Upload']) || '').trim(),
+                        notes: String(pick(row, ['Notes', 'Note']) || '').trim()
+                    };
+                };
                 break;
             case 'student-exchange':
                 Model = StudentExchange;
                 mappingFunction = (row) => ({
-                    direction: row['Incoming/Outgoing'],
-                    studentName: row['Students Name'],
-                    semesterYear: row['Course Semester Year'],
-                    usnNo: row['USN NO'],
-                    exchangeUniversity: row['Exchange University'],
-                    fromDate: parseDate(row['From Date']),
-                    toDate: parseDate(row['To Date']),
-                    status: row['Status'] || 'active',
-                    driveLink: row['Student Exchange -   Upload Zip FIle'] || row['Student Exchange -  Upload Zip FIle'] || row['drive link']
+                    direction: String(pick(row, ['Direction', 'Incoming/Outgoing', 'Incoming / Outgoing']) || '').trim(),
+                    studentName: String(pick(row, ['Student Name', 'Students Name']) || '').trim(),
+                    exchangeUniversity: String(pick(row, ['Exchange University']) || '').trim(),
+                    country: String(pick(row, ['Country']) || '').trim(),
+                    course: String(pick(row, ['Course']) || '').trim(),
+                    semesterYear: String(pick(row, ['Semester / Year', 'Semester /Year', 'Semester/Year', 'Course Semester Year']) || '').trim(),
+                    usnNo: String(pick(row, ['USN', 'USN NO', 'USN Number', 'USN No']) || '').trim(),
+                    fromDate: parseDate(pick(row, ['From Date'])),
+                    toDate: parseDate(pick(row, ['To Date'])),
+                    exchangeStatus: String(pick(row, ['Status', 'Exchange Status']) || '').trim(),
+                    driveLink: String(pick(row, ['Document Link', 'Drive Link', 'drive link', 'Student Exchange -  Upload Zip FIle', 'Student Exchange - Upload Zip File', 'Upload']) || '').trim(),
+                    notes: String(pick(row, ['Notes', 'Note']) || '').trim()
                 });
                 break;
             case 'masters-abroad':

@@ -2,6 +2,8 @@ import PDFDocument from 'pdfkit-table';
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, HeadingLevel } from 'docx';
 import Partner from '../models/Partner.js';
 import CampusVisit from '../models/CampusVisit.js';
+import Seminar from '../models/Seminar.js';
+import ConsultantVisit from '../models/ConsultantVisit.js';
 import Event from '../models/Event.js';
 import Conference from '../models/Conference.js';
 import MouSigningCeremony from '../models/MouSigningCeremony.js';
@@ -16,10 +18,21 @@ import Outreach from '../models/Outreach.js';
 import MeetingTracker from '../models/MeetingTracker.js';
 import SocialMedia from '../models/SocialMedia.js';
 
+// dd/MMM/yyyy date formatter for scholar reports
+const fmtDDMMM = (v) => {
+    if (!v) return '-';
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return '-';
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${String(d.getDate()).padStart(2, '0')}/${MONTHS[d.getMonth()]}/${d.getFullYear()}`;
+};
+
 const getModel = (moduleName) => {
     switch (moduleName) {
         case 'partners': return Partner;
         case 'campus-visits': return CampusVisit;
+        case 'seminars': return Seminar;
+        case 'consultant-visits': return ConsultantVisit;
         case 'events': return Event;
         case 'conferences': return Conference;
         case 'mou-signing-ceremonies': return MouSigningCeremony;
@@ -61,7 +74,33 @@ const getDisplayFields = (moduleName) => {
             return {
                 headers: ['Date', 'University', 'Country', 'Visitor Name', 'Type', 'Department', 'Campus'],
                 extractor: (item) => [
-                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    fmtDDMMM(item.date),
+                    item.universityName || '-',
+                    item.country || '-',
+                    item.visitorName || '-',
+                    item.type || '-',
+                    item.department || '-',
+                    item.campus || '-'
+                ]
+            };
+        case 'seminars':
+            return {
+                headers: ['Date', 'University', 'Country', 'Visitor Name', 'Type', 'Department', 'Campus'],
+                extractor: (item) => [
+                    fmtDDMMM(item.date),
+                    item.universityName || '-',
+                    item.country || '-',
+                    item.visitorName || '-',
+                    item.type || '-',
+                    item.department || '-',
+                    item.campus || '-'
+                ]
+            };
+        case 'consultant-visits':
+            return {
+                headers: ['Date', 'University', 'Country', 'Visitor Name', 'Type', 'Department', 'Campus'],
+                extractor: (item) => [
+                    fmtDDMMM(item.date),
                     item.universityName || '-',
                     item.country || '-',
                     item.visitorName || '-',
@@ -110,16 +149,24 @@ const getDisplayFields = (moduleName) => {
             };
         case 'scholars-in-residence':
             return {
-                headers: ['Scholar Name', 'University', 'Country', 'From Date', 'To Date', 'Category', 'Department', 'Campus', 'Record Status'],
+                headers: ['Scholar Name', 'Designation', 'University', 'Country', 'QS Ranking', 'Duration / Days', 'Start Date', 'End Date', 'Schools / Department', 'Accommodation / Campus', 'Status', 'Email', 'Mobile', 'Remarks / Summary', 'Drive Link', 'Notes', 'Record Status'],
                 extractor: (item) => [
                     item.scholarName || '-',
+                    item.designation || '-',
                     item.university || '-',
                     item.country || '-',
-                    item.fromDate ? new Date(item.fromDate).toLocaleDateString() : '-',
-                    item.toDate ? new Date(item.toDate).toLocaleDateString() : '-',
-                    item.category || '-',
+                    item.qsRanking || '-',
+                    item.durationDays || '-',
+                    fmtDDMMM(item.startDate),
+                    fmtDDMMM(item.endDate),
                     item.department || '-',
                     item.campus || '-',
+                    item.scholarStatus || '-',
+                    item.email || '-',
+                    item.mobile || '-',
+                    item.summary || '-',
+                    item.driveLink || '-',
+                    item.notes || '-',
                     item.recordStatus || 'active'
                 ]
             };
@@ -142,30 +189,38 @@ const getDisplayFields = (moduleName) => {
             };
         case 'immersion-programs':
             return {
-                headers: ['Direction', 'University', 'Country', 'Arrival Date', 'Departure Date', 'Number of Pax', 'Department', 'Record Status'],
+                headers: ['Status', 'Direction', 'University', 'Country', 'Number of Pax', 'Department', 'Arrival Date', 'Departure Date', 'Fees Per Pax', 'Drive Link', 'Notes', 'Record Status'],
                 extractor: (item) => [
+                    item.programStatus || '-',
                     item.direction || '-',
                     item.university || '-',
                     item.country || '-',
-                    item.arrivalDate ? new Date(item.arrivalDate).toLocaleDateString() : '-',
-                    item.departureDate ? new Date(item.departureDate).toLocaleDateString() : '-',
-                    item.numberOfPax || '-',
+                    item.numberOfPax ?? '-',
                     item.department || '-',
+                    fmtDDMMM(item.arrivalDate),
+                    fmtDDMMM(item.departureDate),
+                    item.feesPerPax != null && item.feesCurrency ? `${item.feesPerPax} ${item.feesCurrency}` : (item.feesPerPax ?? '-'),
+                    item.driveLink || '-',
+                    item.notes || '-',
                     item.recordStatus || 'active'
                 ]
             };
         case 'student-exchange':
             return {
-                headers: ['Direction', 'Student Name', 'University', 'Country', 'From Date', 'To Date', 'Department', 'Program Name', 'Record Status'],
+                headers: ['Direction', 'Student Name', 'Exchange University', 'Country', 'Course', 'Semester / Year', 'USN', 'Status', 'From Date', 'To Date', 'Drive Link', 'Notes', 'Record Status'],
                 extractor: (item) => [
                     item.direction || '-',
                     item.studentName || '-',
-                    item.university || '-',
+                    item.exchangeUniversity || '-',
                     item.country || '-',
-                    item.fromDate ? new Date(item.fromDate).toLocaleDateString() : '-',
-                    item.toDate ? new Date(item.toDate).toLocaleDateString() : '-',
-                    item.department || '-',
-                    item.programName || '-',
+                    item.course || '-',
+                    item.semesterYear || '-',
+                    item.usnNo || '-',
+                    item.exchangeStatus || '-',
+                    fmtDDMMM(item.fromDate),
+                    fmtDDMMM(item.toDate),
+                    item.driveLink || '-',
+                    item.notes || '-',
                     item.recordStatus || 'active'
                 ]
             };

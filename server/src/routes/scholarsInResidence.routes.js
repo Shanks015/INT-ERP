@@ -15,7 +15,7 @@ router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPendin
 // Add date range fields config for filtering
 router.get('/', authenticate, (req, res, next) => {
     req.locals = req.locals || {};
-    req.locals.dateFieldConfig = { isRange: true };
+    req.locals.dateFieldConfig = { isRange: true, startField: 'startDate', endField: 'endDate' };
     next();
 }, ctrl.getAll(ScholarInResidence));
 router.get('/:id', authenticate, ctrl.getById(ScholarInResidence));

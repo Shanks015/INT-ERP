@@ -41,7 +41,19 @@ const immersionProgramSchema = new mongoose.Schema({
     feesPerPax: {
         type: Number
     },
+    // Currency unit of the fee (e.g. "AUD", "GBP", "USD"). Kept separate so the
+    // numeric `feesPerPax` stays castable while the original unit is not lost.
+    feesCurrency: {
+        type: String,
+        trim: true
+    },
     driveLink: {
+        type: String,
+        trim: true
+    },
+    // Notes — short internal/tracking note (e.g. "Wrong link - should be
+    // updated"). Kept separate from `summary`; shown as a list column.
+    notes: {
         type: String,
         trim: true
     },

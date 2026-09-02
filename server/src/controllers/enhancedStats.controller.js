@@ -25,7 +25,9 @@ export const getEnhancedStats = (Model) => async (req, res) => {
         let dateField = 'createdAt'; // fallback
         switch (modelName) {
             case 'CampusVisit':
-                dateField = 'date'; // visitDate field is called 'date'
+            case 'Seminar':
+            case 'ConsultantVisit':
+                dateField = 'date'; // visit/activity date field is called 'date'
                 break;
             case 'Event':
                 dateField = 'date'; // event date
@@ -43,7 +45,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 dateField = 'date'; // ceremony date
                 break;
             case 'ScholarInResidence':
-                dateField = 'arrivalDate'; // when scholar arrived
+                dateField = 'startDate'; // when the scholar's visit began
                 break;
             case 'MouUpdate':
                 dateField = 'date'; // update date
@@ -211,6 +213,75 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 };
                 break;
 
+            case 'Seminar':
+            case 'ConsultantVisit':
+                {
+                    // Same visit/activity shape as CampusVisit: country/university/purpose
+                    // distributions plus recent activity. Identifiers are block-scoped so the
+                    // names may mirror the CampusVisit case without colliding in this switch.
+                    const [countries, universities] = await Promise.all([
+                        Model.distinct('country').then(arr => arr.filter(Boolean).length),
+                        Model.distinct('universityName').then(arr => arr.filter(Boolean).length)
+                    ]);
+
+                    const [countryDistribution, universityDistribution, purposeDistribution, typeDistribution, recentVisits] = await Promise.all([
+                        Model.aggregate([
+                            { $match: { status: 'active', country: { $exists: true, $ne: '' } } },
+                            { $group: { _id: '$country', value: { $sum: 1 } } },
+                            { $sort: { value: -1 } },
+                            { $limit: 10 },
+                            { $project: { _id: 0, name: '$_id', value: 1 } }
+                        ]),
+                        Model.aggregate([
+                            { $match: { status: 'active', universityName: { $exists: true, $ne: '' } } },
+                            { $group: { _id: '$universityName', value: { $sum: 1 } } },
+                            { $sort: { value: -1 } },
+                            { $limit: 10 },
+                            { $project: { _id: 0, name: '$_id', value: 1 } }
+                        ]),
+                        Model.aggregate([
+                            { $match: { status: 'active', purpose: { $exists: true, $ne: '' } } },
+                            { $group: { _id: '$purpose', value: { $sum: 1 } } },
+                            { $sort: { value: -1 } },
+                            { $limit: 10 },
+                            { $project: { _id: 0, name: '$_id', value: 1 } }
+                        ]),
+                        Model.aggregate([
+                            { $match: { status: 'active', type: { $exists: true, $ne: '' } } },
+                            { $group: { _id: '$type', value: { $sum: 1 } } },
+                            { $sort: { value: -1 } },
+                            { $project: { _id: 0, name: '$_id', value: 1 } }
+                        ]),
+                        Model.aggregate([
+                            { $match: { status: 'active' } },
+                            { $sort: { date: -1 } },
+                            { $limit: 10 },
+                            {
+                                $project: {
+                                    _id: 0,
+                                    universityName: 1,
+                                    country: 1,
+                                    visitorName: 1,
+                                    date: 1,
+                                    type: 1
+                                }
+                            }
+                        ])
+                    ]);
+
+                    stats = {
+                        ...stats,
+                        countries,
+                        universities,
+                        countryDistribution,
+                        universityDistribution,
+                        purposeDistribution,
+                        typeDistribution,
+                        recentVisits
+                    };
+                    break;
+                }
+
             case 'Event':
                 const [eventTypes, departments, eventCountries, eventTypeDistribution, departmentDistribution, recentEvents] = await Promise.all([
                     Model.distinct('type').then(arr => arr.filter(Boolean).length),
@@ -350,7 +421,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 break;
 
             case 'ScholarInResidence':
-                const [scholarCountries, scholarDepartments, countryDist, departmentDist, universityDist, categoryDist, activeScholarsDist, recentScholars] = await Promise.all([
+                const [scholarCountries, scholarDepartments, countryDist, departmentDist, universityDist, designationDist, activeScholarsDist, recentScholars] = await Promise.all([
                     // Basic counts
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
                     Model.distinct('department').then(arr => arr.filter(Boolean).length),
@@ -381,11 +452,12 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                         { $project: { _id: 0, name: '$_id', value: 1 } }
                     ]),
 
-                    // Category distribution
+                    // Designation distribution (top 10)
                     Model.aggregate([
-                        { $match: { status: 'active', category: { $exists: true, $ne: '' } } },
-                        { $group: { _id: '$category', value: { $sum: 1 } } },
+                        { $match: { status: 'active', designation: { $exists: true, $ne: '' } } },
+                        { $group: { _id: '$designation', value: { $sum: 1 } } },
                         { $sort: { value: -1 } },
+                        { $limit: 10 },
                         { $project: { _id: 0, name: '$_id', value: 1 } }
                     ]),
 
@@ -399,7 +471,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     // Recent scholars (last 10)
                     Model.aggregate([
                         { $match: { status: 'active' } },
-                        { $sort: { fromDate: -1 } },
+                        { $sort: { startDate: -1 } },
                         { $limit: 10 },
                         {
                             $project: {
@@ -407,9 +479,11 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                                 scholarName: 1,
                                 country: 1,
                                 university: 1,
+                                designation: 1,
                                 department: 1,
-                                fromDate: 1,
-                                toDate: 1,
+                                startDate: 1,
+                                endDate: 1,
+                                scholarStatus: 1,
                                 recordStatus: 1
                             }
                         }
@@ -423,7 +497,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     countryDistribution: countryDist,
                     departmentDistribution: departmentDist,
                     universityDistribution: universityDist,
-                    categoryDistribution: categoryDist,
+                    designationDistribution: designationDist,
                     activeScholars: activeScholarsDist,
                     recentScholars
                 };

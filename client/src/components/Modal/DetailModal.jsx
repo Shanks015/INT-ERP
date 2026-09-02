@@ -13,6 +13,7 @@ import {
     ShieldCheck,
     Paperclip
 } from 'lucide-react';
+import { formatDate } from '../../utils/dateFormat';
 
 
 const DetailModal = ({ isOpen, onClose, data, title, fields }) => {
@@ -283,6 +284,10 @@ const DetailModal = ({ isOpen, onClose, data, title, fields }) => {
         // Handle dates
         if (field.type === 'date') {
             try {
+                if (field.format) {
+                    const formatted = formatDate(value, field.format);
+                    return formatted || value;
+                }
                 return new Date(value).toLocaleDateString(undefined, {
                     weekday: 'short',
                     year: 'numeric',

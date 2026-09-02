@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
-import { useDateFormat } from '../../utils/dateFormat';
+import { toDDMMM } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, Plane, TrendingUp, Clock, Eye, Globe, CheckCircle, X, Search, FileText } from 'lucide-react';
@@ -14,7 +14,6 @@ import Pagination from '../../components/Pagination';
 
 const ImmersionProgramsList = () => {
     const { isAdmin } = useAuth();
-    const formatDate = useDateFormat();
     const [programs, setPrograms] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, active: 0 });
     const [statsLoading, setStatsLoading] = useState(true);
@@ -26,15 +25,16 @@ const ImmersionProgramsList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', direction: '', activeStatus: '', country: '', startDate: '', endDate: '', recordStatus: '' });
+    const [filters, setFilters] = useState({ search: '', direction: '', programStatus: '', department: '', country: '', startDate: '', endDate: '', recordStatus: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
 
     const [countries, setCountries] = useState([]);
-    const [activeStatuses, setActiveStatuses] = useState([]);
+    const [programStatuses, setProgramStatuses] = useState([]);
+    const [departments, setDepartments] = useState([]);
 
-    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.direction, filters.activeStatus, filters.country, filters.startDate, filters.endDate, filters.recordStatus]);
+    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.direction, filters.programStatus, filters.department, filters.country, filters.startDate, filters.endDate, filters.recordStatus]);
 
     const fetchStats = async () => {
         try {
@@ -54,16 +54,18 @@ const ImmersionProgramsList = () => {
             const uniqueCountries = [...new Set(programs.map(p => p.country).filter(Boolean))].sort();
             setCountries(uniqueCountries);
 
-            // Extract unique active statuses
-            const uniqueStatuses = [...new Set(programs.map(p => p.activeStatus).filter(Boolean))].sort();
-            setActiveStatuses(uniqueStatuses);
+            // Extract unique program statuses and departments
+            const uniqueStatuses = [...new Set(programs.map(p => p.programStatus).filter(Boolean))].sort();
+            setProgramStatuses(uniqueStatuses);
+            const uniqueDepartments = [...new Set(programs.map(p => p.department).filter(Boolean))].sort();
+            setDepartments(uniqueDepartments);
         } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
     const fetchPrograms = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, direction: filters.direction, activeStatus: filters.activeStatus, country: filters.country, startDate: filters.startDate, endDate: filters.endDate, recordStatus: filters.recordStatus };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, direction: filters.direction, programStatus: filters.programStatus, department: filters.department, country: filters.country, startDate: filters.startDate, endDate: filters.endDate, recordStatus: filters.recordStatus };
             const response = await api.get('/immersion-programs', { params });
             setPrograms(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -96,7 +98,7 @@ const ImmersionProgramsList = () => {
     };
 
     const handleClearFilters = () => {
-        setFilters({ search: '', direction: '', activeStatus: '', country: '', startDate: '', endDate: '', recordStatus: '' });
+        setFilters({ search: '', direction: '', programStatus: '', department: '', country: '', startDate: '', endDate: '', recordStatus: '' });
         setCurrentPage(1);
     };
 
@@ -125,7 +127,7 @@ const ImmersionProgramsList = () => {
                         <h3 className="text-lg font-semibold">Filters</h3>
                         <button onClick={handleClearFilters} className="btn btn-ghost btn-sm gap-2"><X size={16} /> Clear All</button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="form-control">
                             <label className="label"><span className="label-text">Search</span></label>
                             <div className="relative">
@@ -148,6 +150,22 @@ const ImmersionProgramsList = () => {
                             <select className="select select-bordered w-full" value={filters.country || ''} onChange={(e) => { setFilters(prev => ({ ...prev, country: e.target.value })); setCurrentPage(1); }}>
                                 <option value="">All Countries</option>
                                 {countries.map(country => <option key={country} value={country}>{country}</option>)}
+                            </select>
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Program Status</span></label>
+                            <select className="select select-bordered w-full" value={filters.programStatus || ''} onChange={(e) => { setFilters(prev => ({ ...prev, programStatus: e.target.value })); setCurrentPage(1); }}>
+                                <option value="">All Program Statuses</option>
+                                {programStatuses.map(status => <option key={status} value={status}>{status}</option>)}
+                            </select>
+                        </div>
+
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">Department</span></label>
+                            <select className="select select-bordered w-full" value={filters.department || ''} onChange={(e) => { setFilters(prev => ({ ...prev, department: e.target.value })); setCurrentPage(1); }}>
+                                <option value="">All Departments</option>
+                                {departments.map(dept => <option key={dept} value={dept}>{dept}</option>)}
                             </select>
                         </div>
 
@@ -187,9 +205,9 @@ const ImmersionProgramsList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>University</th><th>Country</th><th>Direction</th><th>Participants</th><th>Status</th><th>Duration</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>University</th><th>Country</th><th>Direction</th><th>Participants</th><th>Status</th><th>Duration</th><th>Notes</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {programs.length === 0 ? <tr><td colSpan={7} className="text-center py-8">No programs found</td></tr> : programs.map((program) => (
+                                {programs.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No programs found</td></tr> : programs.map((program) => (
                                     <tr key={program._id}>
                                         <td className="max-w-xs" title={program.university}>{program.university}</td>
                                         <td>{program.country}</td>
@@ -197,16 +215,22 @@ const ImmersionProgramsList = () => {
                                         <td>{program.numberOfPax}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
-                                                {/* Record Status Badge */}
-                                                {program.recordStatus === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
+                                                {/* Module status */}
+                                                <span>{program.programStatus || '-'}</span>
+                                                {/* System flags — shown only when they add info */}
                                                 {program.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
-
-                                                {/* Approval Workflow Badges */}
                                                 {program.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
                                                 {program.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
                                             </div>
                                         </td>
-                                        <td>{program.arrivalDate ? `${formatDate(program.arrivalDate)} - ${formatDate(program.departureDate)}` : '-'}</td>
+                                        <td>{program.arrivalDate ? `${toDDMMM(program.arrivalDate)} - ${toDDMMM(program.departureDate)}` : '-'}</td>
+                                        <td>
+                                            {program.notes ? (
+                                                <div className="max-w-[220px]" title={program.notes}>
+                                                    <span className="text-xs text-base-content/80 line-clamp-2 break-words">{program.notes}</span>
+                                                </div>
+                                            ) : '-'}
+                                        </td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
                                                 {program.driveLink && (
@@ -244,14 +268,13 @@ const ImmersionProgramsList = () => {
                     { key: 'country', label: 'Country' },
                     { key: 'numberOfPax', label: 'Number of Participants' },
                     { key: 'summary', label: 'Summary' },
-                    { key: 'arrivalDate', label: 'Arrival Date', type: 'date' },
-                    { key: 'departureDate', label: 'Departure Date', type: 'date' },
+                    { key: 'arrivalDate', label: 'Arrival Date', type: 'date', format: 'DD/MMM/YYYY' },
+                    { key: 'departureDate', label: 'Departure Date', type: 'date', format: 'DD/MMM/YYYY' },
                     { key: 'feesPerPax', label: 'Fees Per Participant' },
+                    { key: 'feesCurrency', label: 'Fees Currency' },
                     { key: 'department', label: 'Department' },
                     { key: 'driveLink', label: 'Drive Link', type: 'link' },
-                    { key: 'status', label: 'Status' },
-                    { key: 'createdAt', label: 'Created At', type: 'date' },
-                    { key: 'updatedAt', label: 'Updated At', type: 'date' }
+                    { key: 'notes', label: 'Notes' }
                 ]}
             />
         </div>

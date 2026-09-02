@@ -99,14 +99,17 @@ export const handleFormSubmit = async (req, res) => {
         else if (targetModule === 'scholars-in-residence') {
             result = await ScholarInResidence.create({
                 scholarName: getAnswer('Scholar') || getAnswer('Name'),
+                designation: getAnswer('Designation') || getAnswer('Category'),
                 university: getAnswer('University') || getAnswer('Institution'),
                 country: getAnswer('Country'),
-                category: getAnswer('Category'),
+                startDate: getAnswer('Start Date') || getAnswer('From') ? parseDate(getAnswer('Start Date') || getAnswer('From')) : undefined,
+                endDate: getAnswer('End Date') || getAnswer('To') ? parseDate(getAnswer('End Date') || getAnswer('To')) : undefined,
                 department: getAnswer('Department'),
-                fromDate: getAnswer('From') ? parseDate(getAnswer('From')) : undefined,
-                toDate: getAnswer('To') ? parseDate(getAnswer('To')) : undefined,
-                summary: getAnswer('Summary'),
                 campus: getAnswer('Campus'),
+                scholarStatus: getAnswer('Status'),
+                email: getAnswer('Email'),
+                mobile: getAnswer('Mobile'),
+                summary: getAnswer('Summary'),
                 driveLink: getAnswer('Drive Document')
             });
         }

@@ -21,7 +21,8 @@ const StudentExchangeForm = () => {
         usnNo: '',
         fromDate: '',
         toDate: '',
-        driveLink: ''
+        driveLink: '',
+        notes: ''
     });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
@@ -42,7 +43,8 @@ const StudentExchangeForm = () => {
                 usnNo: item.usnNo || '',
                 fromDate: item.fromDate ? new Date(item.fromDate).toISOString().split('T')[0] : '',
                 toDate: item.toDate ? new Date(item.toDate).toISOString().split('T')[0] : '',
-                driveLink: item.driveLink || ''
+                driveLink: item.driveLink || '',
+                notes: item.notes || ''
             });
         } catch (error) {
             toast.error('Error fetching record');
@@ -260,6 +262,21 @@ const StudentExchangeForm = () => {
                                             placeholder="https://drive.google.com/..."
                                             className="input input-bordered w-full focus:input-primary transition-all"
                                             value={formData.driveLink}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full md:col-span-3">
+                                        <label className="label font-medium">
+                                            <span className="label-text">Notes</span>
+                                            <span className="label-text-alt text-base-content/40">Short note shown on the list page</span>
+                                        </label>
+                                        <textarea
+                                            name="notes"
+                                            placeholder="e.g. Wrong link - should be updated"
+                                            className="textarea textarea-bordered w-full focus:textarea-primary transition-all"
+                                            rows="2"
+                                            value={formData.notes}
                                             onChange={handleChange}
                                         />
                                     </div>

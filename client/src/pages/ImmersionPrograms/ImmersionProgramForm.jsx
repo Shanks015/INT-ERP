@@ -22,7 +22,9 @@ const ImmersionProgramForm = () => {
         departureDate: '',
         summary: '',
         feesPerPax: '',
-        driveLink: ''
+        feesCurrency: '',
+        driveLink: '',
+        notes: ''
     });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
@@ -44,7 +46,9 @@ const ImmersionProgramForm = () => {
                 departureDate: item.departureDate ? new Date(item.departureDate).toISOString().split('T')[0] : '',
                 summary: item.summary || '',
                 feesPerPax: item.feesPerPax || '',
-                driveLink: item.driveLink || ''
+                feesCurrency: item.feesCurrency || '',
+                driveLink: item.driveLink || '',
+                notes: item.notes || ''
             });
         } catch (error) {
             toast.error('Error fetching program');
@@ -220,14 +224,25 @@ const ImmersionProgramForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Fees Per Pax</span></label>
-                                        <input
-                                            type="number"
-                                            name="feesPerPax"
-                                            placeholder="Fees Amount"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.feesPerPax}
-                                            onChange={handleChange}
-                                        />
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="number"
+                                                name="feesPerPax"
+                                                placeholder="Amount"
+                                                className="input input-bordered w-full focus:input-primary transition-all"
+                                                value={formData.feesPerPax}
+                                                onChange={handleChange}
+                                            />
+                                            <input
+                                                type="text"
+                                                name="feesCurrency"
+                                                placeholder="AUD"
+                                                title="Currency code, e.g. AUD, GBP, USD"
+                                                className="input input-bordered w-24 focus:input-primary transition-all"
+                                                value={formData.feesCurrency}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -273,6 +288,21 @@ const ImmersionProgramForm = () => {
                                             placeholder="Brief summary of the program..."
                                             className="textarea textarea-bordered w-full h-24 focus:textarea-primary transition-all"
                                             value={formData.summary}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full md:col-span-2">
+                                        <label className="label font-medium">
+                                            <span className="label-text">Notes</span>
+                                            <span className="label-text-alt text-base-content/40">Short note shown on the list page</span>
+                                        </label>
+                                        <textarea
+                                            name="notes"
+                                            placeholder="e.g. Wrong link - should be updated"
+                                            className="textarea textarea-bordered w-full focus:textarea-primary transition-all"
+                                            rows="2"
+                                            value={formData.notes}
                                             onChange={handleChange}
                                         />
                                     </div>

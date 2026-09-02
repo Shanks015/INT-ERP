@@ -76,11 +76,11 @@ const updateExpiredRecords = async () => {
         console.log(`   ✅ Updated ${activeMemberships.modifiedCount} active memberships\n`);
         totalUpdated += activeMemberships.modifiedCount;
 
-        // Update Scholars with expired toDate
+        // Update Scholars with expired endDate
         console.log('🎓 Checking Scholars in Residence...');
         const expiredScholars = await ScholarInResidence.updateMany(
             {
-                toDate: { $lt: currentDate },
+                endDate: { $lt: currentDate },
                 recordStatus: { $ne: 'expired' }
             },
             { $set: { recordStatus: 'expired' } }
@@ -91,8 +91,8 @@ const updateExpiredRecords = async () => {
         const activeScholars = await ScholarInResidence.updateMany(
             {
                 $or: [
-                    { toDate: { $gte: currentDate } },
-                    { toDate: null }
+                    { endDate: { $gte: currentDate } },
+                    { endDate: null }
                 ],
                 recordStatus: 'expired'
             },

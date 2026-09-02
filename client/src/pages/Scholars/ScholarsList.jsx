@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
-import { useDateFormat } from '../../utils/dateFormat';
+import { toDDMMM } from '../../utils/dateFormat';
+import { COUNTRIES, SCHOLAR_DESIGNATIONS, SCHOLAR_CAMPUSES } from '../../constants/options';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
@@ -16,7 +17,6 @@ import Pagination from '../../components/Pagination';
 
 const ScholarsList = () => {
     const { isAdmin } = useAuth();
-    const formatDate = useDateFormat();
     const [scholars, setScholars] = useState([]);
     const [stats, setStats] = useState({ total: 0, countries: 0, departments: 0 });
     const [statsLoading, setStatsLoading] = useState(true);
@@ -28,15 +28,14 @@ const ScholarsList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', country: '', department: '', designation: '', recordStatus: '', startDate: '', endDate: '' });
+    const [filters, setFilters] = useState({ search: '', country: '', department: '', designation: '', campus: '', scholarStatus: '', recordStatus: '', startDate: '', endDate: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
 
-    const [countries, setCountries] = useState([]);
     const [departments, setDepartments] = useState([]);
-    const [designations, setDesignations] = useState([]);
-    useEffect(() => { fetchScholars(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.department, filters.designation, filters.recordStatus, filters.startDate, filters.endDate]);
+    const [scholarStatuses, setScholarStatuses] = useState([]);
+    useEffect(() => { fetchScholars(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.department, filters.designation, filters.campus, filters.scholarStatus, filters.recordStatus, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {
@@ -51,12 +50,10 @@ const ScholarsList = () => {
         try {
             const response = await api.get('/scholars-in-residence', { params: { limit: 1000 } });
             const scholars = response.data.data || [];
-            const uniqueCountries = [...new Set(scholars.map(s => s.country).filter(Boolean))].sort();
-            setCountries(uniqueCountries);
-            const uniqueDepts = getCaseInsensitiveUnique(scholars, 'department');
-            setDepartments(uniqueDepts);
-            const uniqueDesigs = getCaseInsensitiveUnique(scholars, 'designation');
-            setDesignations(uniqueDesigs);
+            // Lists that have no fixed canonical set are derived from live data so
+            // the dropdown options always match exactly what is stored.
+            setDepartments(getCaseInsensitiveUnique(scholars, 'department'));
+            setScholarStatuses(getCaseInsensitiveUnique(scholars, 'scholarStatus'));
         } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
@@ -70,6 +67,8 @@ const ScholarsList = () => {
                 country: filters.country,
                 department: filters.department,
                 designation: filters.designation,
+                campus: filters.campus,
+                scholarStatus: filters.scholarStatus,
                 recordStatus: filters.recordStatus,
                 startDate: filters.startDate,
                 endDate: filters.endDate
@@ -106,7 +105,7 @@ const ScholarsList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', country: '', department: '', designation: '', recordStatus: '', startDate: '', endDate: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', country: '', department: '', designation: '', campus: '', scholarStatus: '', recordStatus: '', startDate: '', endDate: '' }); setCurrentPage(1); };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
@@ -129,42 +128,49 @@ const ScholarsList = () => {
                 filters={filters}
                 onFilterChange={handleFilterChange}
                 onClearFilters={handleClearFilters}
-                showCountryFilter={true}
-                countries={countries}
-                departments={departments}
-                designations={designations}
+                selectFilters={[
+                    { key: 'country', label: 'Country', options: COUNTRIES },
+                    { key: 'designation', label: 'Designation', options: SCHOLAR_DESIGNATIONS },
+                    { key: 'campus', label: 'Campus', options: SCHOLAR_CAMPUSES },
+                    { key: 'department', label: 'Department', options: departments },
+                    { key: 'scholarStatus', label: 'Scholar Status', options: scholarStatuses }
+                ]}
             />
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Visitor Name</th><th>University</th><th>Country</th><th>Department</th><th>Duration</th><th>Campus</th><th>Scholar Status</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Scholar Name</th><th>University</th><th>Country</th><th>Duration</th><th>Campus</th><th>Status</th><th>Notes</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {scholars.length === 0 ? <tr><td colSpan={9} className="text-center py-8">No scholars found</td></tr> : scholars.map((scholar) => (
+                                {scholars.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No scholars found</td></tr> : scholars.map((scholar) => (
                                     <tr key={scholar._id}>
                                         <td className="font-medium">{scholar.scholarName}</td>
                                         <td>{scholar.university || '-'}</td>
                                         <td>{scholar.country}</td>
-                                        <td>{scholar.department || '-'}</td>
                                         <td>
-                                            {scholar.fromDate ? (
-                                                <span className="text-xs">
-                                                    {formatDate(scholar.fromDate)} - {scholar.toDate ? formatDate(scholar.toDate) : 'Present'}
+                                            {scholar.startDate ? (
+                                                <span className="text-xs whitespace-nowrap">
+                                                    {toDDMMM(scholar.startDate)}{scholar.endDate ? ` - ${toDDMMM(scholar.endDate)}` : ' - Present'}
+                                                    {scholar.durationDays ? ` (${scholar.durationDays}d)` : ''}
                                                 </span>
                                             ) : '-'}
                                         </td>
                                         <td>{scholar.campus || '-'}</td>
-                                        <td>{scholar.scholarStatus || '-'}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
-                                                {/* Record Status Badge */}
-                                                {scholar.recordStatus === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
+                                                <span>{scholar.scholarStatus || '-'}</span>
+                                                {/* System flags — shown only when they add info */}
                                                 {scholar.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
-
-                                                {/* Approval Workflow Badges */}
                                                 {scholar.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
                                                 {scholar.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
                                             </div>
+                                        </td>
+                                        <td>
+                                            {scholar.notes ? (
+                                                <div className="max-w-[220px]" title={scholar.notes}>
+                                                    <span className="text-xs text-base-content/80 line-clamp-2 break-words">{scholar.notes}</span>
+                                                </div>
+                                            ) : '-'}
                                         </td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
@@ -197,19 +203,21 @@ const ScholarsList = () => {
                 title="Scholar Details"
                 fields={[
                     { key: 'scholarName', label: 'Scholar Name' },
+                    { key: 'designation', label: 'Designation' },
                     { key: 'university', label: 'University' },
                     { key: 'country', label: 'Country' },
-                    { key: 'department', label: 'Department' },
-                    { key: 'category', label: 'Category' },
-                    { key: 'scholarStatus', label: 'Scholar Status' },
-                    { key: 'fromDate', label: 'From Date', type: 'date' },
-                    { key: 'toDate', label: 'To Date', type: 'date' },
-                    { key: 'campus', label: 'Campus' },
-                    { key: 'summary', label: 'Summary' },
+                    { key: 'qsRanking', label: 'QS Ranking' },
+                    { key: 'durationDays', label: 'Duration / Days' },
+                    { key: 'startDate', label: 'Start Date', type: 'date', format: 'DD/MMM/YYYY' },
+                    { key: 'endDate', label: 'End Date', type: 'date', format: 'DD/MMM/YYYY' },
+                    { key: 'department', label: 'Schools / Department' },
+                    { key: 'campus', label: 'Accommodation / Campus' },
+                    { key: 'scholarStatus', label: 'Status' },
+                    { key: 'email', label: 'Email', type: 'email' },
+                    { key: 'mobile', label: 'Mobile' },
+                    { key: 'summary', label: 'Remarks / Summary' },
                     { key: 'driveLink', label: 'Drive Link', type: 'link' },
-                    { key: 'status', label: 'Status' },
-                    { key: 'createdAt', label: 'Created At', type: 'date' },
-                    { key: 'updatedAt', label: 'Updated At', type: 'date' }
+                    { key: 'notes', label: 'Notes' }
                 ]}
             />
         </div>

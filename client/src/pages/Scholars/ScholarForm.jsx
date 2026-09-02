@@ -3,7 +3,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Save, ArrowLeft, GraduationCap, Calendar, FileText } from 'lucide-react';
+import { Save, ArrowLeft, GraduationCap, Calendar, FileText, Phone, Mail, Award, Timer } from 'lucide-react';
+import ScholarsDateField from '../../components/ScholarsDateField';
+import CountrySelect from '../../components/CountrySelect';
+import { SCHOLAR_DESIGNATIONS, SCHOLAR_CAMPUSES } from '../../constants/options';
+
+// For a <select>, offer the standard list but never silently drop a stored value
+// that isn't part of it (legacy records) — append it as a one-off option.
+const withCurrentOption = (options, current) =>
+    current && options.indexOf(current) === -1 ? [...options, current] : options;
 
 const ScholarForm = () => {
     const navigate = useNavigate();
@@ -13,21 +21,29 @@ const ScholarForm = () => {
 
     const [formData, setFormData] = useState({
         scholarName: '',
-        country: '',
-        department: '',
-        fromDate: '',
-        toDate: '',
+        designation: '',
         university: '',
-        category: '',
-        scholarStatus: '',
-        summary: '',
+        country: '',
+        qsRanking: '',
+        durationDays: '',
+        startDate: null,
+        endDate: null,
+        department: '',
         campus: '',
-        driveLink: ''
+        scholarStatus: '',
+        email: '',
+        mobile: '',
+        summary: '',
+        driveLink: '',
+        notes: ''
     });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
 
-    useEffect(() => { if (isEdit) fetchItem(); }, [id]);
+    useEffect(() => {
+        if (isEdit) fetchItem();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
 
     const fetchItem = async () => {
         try {
@@ -35,16 +51,21 @@ const ScholarForm = () => {
             const item = response.data.data;
             setFormData({
                 scholarName: item.scholarName || '',
-                country: item.country || '',
-                department: item.department || '',
-                fromDate: item.fromDate ? new Date(item.fromDate).toISOString().split('T')[0] : '',
-                toDate: item.toDate ? new Date(item.toDate).toISOString().split('T')[0] : '',
+                designation: item.designation || '',
                 university: item.university || '',
-                category: item.category || '',
-                scholarStatus: item.scholarStatus || '',
-                summary: item.summary || '',
+                country: item.country || '',
+                qsRanking: item.qsRanking ? String(item.qsRanking) : '',
+                durationDays: item.durationDays ? String(item.durationDays) : '',
+                startDate: item.startDate ? new Date(item.startDate) : null,
+                endDate: item.endDate ? new Date(item.endDate) : null,
+                department: item.department || '',
                 campus: item.campus || '',
-                driveLink: item.driveLink || ''
+                scholarStatus: item.scholarStatus || '',
+                email: item.email || '',
+                mobile: item.mobile || '',
+                summary: item.summary || '',
+                driveLink: item.driveLink || '',
+                notes: item.notes || ''
             });
         } catch (error) {
             toast.error('Error fetching scholar');
@@ -56,15 +77,47 @@ const ScholarForm = () => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+    const setDate = (key) => (value) => setFormData((prev) => ({ ...prev, [key]: value }));
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.startDate) {
+            toast.error('Start Date is required (dd/MMM/yyyy)');
+            return;
+        }
+        if (formData.endDate && formData.startDate && formData.endDate < formData.startDate) {
+            toast.error('End Date cannot be before Start Date');
+            return;
+        }
+
+        // Convert '' -> null for optional numbers and strings the model validates
+        const payload = {
+            scholarName: formData.scholarName.trim(),
+            designation: formData.designation.trim(),
+            university: formData.university.trim(),
+            country: formData.country.trim(),
+            qsRanking: formData.qsRanking === '' || formData.qsRanking == null ? null : Number(formData.qsRanking),
+            durationDays: formData.durationDays === '' || formData.durationDays == null ? null : Number(formData.durationDays),
+            startDate: formData.startDate.toISOString(),
+            endDate: formData.endDate ? formData.endDate.toISOString() : null,
+            department: formData.department.trim(),
+            campus: formData.campus.trim(),
+            scholarStatus: formData.scholarStatus.trim(),
+            email: formData.email.trim() || null,
+            mobile: formData.mobile.trim() || null,
+            summary: formData.summary.trim(),
+            driveLink: formData.driveLink.trim() || null,
+            notes: formData.notes.trim()
+        };
+
         setLoading(true);
         try {
             if (isEdit) {
-                await api.put(`/scholars-in-residence/${id}`, formData);
+                await api.put(`/scholars-in-residence/${id}`, payload);
                 toast.success(isAdmin ? 'Scholar updated successfully' : 'Update request submitted for approval');
             } else {
-                await api.post('/scholars-in-residence', formData);
+                await api.post('/scholars-in-residence', payload);
                 toast.success('Scholar created successfully');
             }
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -133,15 +186,18 @@ const ScholarForm = () => {
                                     </div>
 
                                     <div className="form-control w-full">
-                                        <label className="label font-medium"><span className="label-text">Category</span></label>
-                                        <input
-                                            type="text"
-                                            name="category"
-                                            placeholder="e.g. Professor, Researcher"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.category}
+                                        <label className="label font-medium"><span className="label-text">Designation</span></label>
+                                        <select
+                                            name="designation"
+                                            className="select select-bordered w-full focus:select-primary transition-all"
+                                            value={formData.designation}
                                             onChange={handleChange}
-                                        />
+                                        >
+                                            <option value="">Select Designation</option>
+                                            {withCurrentOption(SCHOLAR_DESIGNATIONS, formData.designation).map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                     <div className="form-control w-full">
@@ -158,15 +214,27 @@ const ScholarForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Country *</span></label>
-                                        <input
-                                            type="text"
-                                            name="country"
-                                            placeholder="Country"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                        <CountrySelect
                                             value={formData.country}
-                                            onChange={handleChange}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, country: value }))}
                                             required
                                         />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">QS Ranking</span></label>
+                                        <div className="relative">
+                                            <Award size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
+                                            <input
+                                                type="number"
+                                                name="qsRanking"
+                                                min="1"
+                                                placeholder="e.g. 251"
+                                                className="input input-bordered w-full pl-9 focus:input-primary transition-all"
+                                                value={formData.qsRanking}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
                                     </div>
 
                                     <div className="form-control w-full">
@@ -189,67 +257,116 @@ const ScholarForm = () => {
                                     <div className="p-2 bg-secondary/10 rounded-lg text-secondary">
                                         <Calendar size={24} />
                                     </div>
-                                    <h3 className="text-xl font-bold">Visit & Timeline</h3>
+                                    <h3 className="text-xl font-bold">Visit &amp; Timeline</h3>
+                                    <span className="text-sm text-base-content/40 ml-auto hidden sm:inline">Dates use dd/MMM/yyyy</span>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="form-control w-full">
-                                        <label className="label font-medium"><span className="label-text">From Date *</span></label>
-                                        <input
-                                            type="date"
-                                            name="fromDate"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.fromDate}
-                                            onChange={handleChange}
-                                            required
-                                        />
+                                        <label className="label font-medium"><span className="label-text">Start Date *</span></label>
+                                        <ScholarsDateField value={formData.startDate} onChange={setDate('startDate')} required />
                                     </div>
 
                                     <div className="form-control w-full">
-                                        <label className="label font-medium"><span className="label-text">To Date *</span></label>
-                                        <input
-                                            type="date"
-                                            name="toDate"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.toDate}
-                                            onChange={handleChange}
-                                            required
-                                        />
+                                        <label className="label font-medium"><span className="label-text">End Date</span></label>
+                                        <ScholarsDateField value={formData.endDate} onChange={setDate('endDate')} />
                                     </div>
 
                                     <div className="form-control w-full">
-                                        <label className="label font-medium"><span className="label-text">Department</span></label>
+                                        <label className="label font-medium"><span className="label-text">Duration / Days</span></label>
+                                        <div className="relative">
+                                            <Timer size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
+                                            <input
+                                                type="number"
+                                                name="durationDays"
+                                                min="1"
+                                                placeholder="e.g. 15"
+                                                className="input input-bordered w-full pl-9 focus:input-primary transition-all"
+                                                value={formData.durationDays}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Accommodation / Campus</span></label>
+                                        <select
+                                            name="campus"
+                                            className="select select-bordered w-full focus:select-primary transition-all"
+                                            value={formData.campus}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="">Select Campus</option>
+                                            {withCurrentOption(SCHOLAR_CAMPUSES, formData.campus).map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="form-control w-full md:col-span-2">
+                                        <label className="label font-medium"><span className="label-text">Schools / Department</span></label>
                                         <input
                                             type="text"
                                             name="department"
-                                            placeholder="Host Department"
+                                            placeholder="Host Department / School"
                                             className="input input-bordered w-full focus:input-primary transition-all"
                                             value={formData.department}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-
-                                    <div className="form-control w-full">
-                                        <label className="label font-medium"><span className="label-text">Campus</span></label>
-                                        <input
-                                            type="text"
-                                            name="campus"
-                                            placeholder="Host Campus"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.campus}
                                             onChange={handleChange}
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Section 3: Additional Information */}
+                            {/* Section 3: Contact */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3 border-b border-base-200 pb-4">
+                                    <div className="p-2 bg-accent/10 rounded-lg text-accent">
+                                        <Phone size={24} />
+                                    </div>
+                                    <h3 className="text-xl font-bold">Contact Details</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Email</span></label>
+                                        <div className="relative">
+                                            <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                placeholder="name@university.edu"
+                                                className="input input-bordered w-full pl-9 focus:input-primary transition-all"
+                                                value={formData.email}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium"><span className="label-text">Mobile</span></label>
+                                        <div className="relative">
+                                            <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
+                                            <input
+                                                type="text"
+                                                name="mobile"
+                                                inputMode="tel"
+                                                placeholder="+91 98XXXXXXXX"
+                                                className="input input-bordered w-full pl-9 focus:input-primary transition-all"
+                                                value={formData.mobile}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section 4: Remarks & Attachments */}
                             <div className="space-y-6">
                                 <div className="flex items-center gap-3 border-b border-base-200 pb-4">
                                     <div className="p-2 bg-accent/10 rounded-lg text-accent">
                                         <FileText size={24} />
                                     </div>
-                                    <h3 className="text-xl font-bold">Additional Information</h3>
+                                    <h3 className="text-xl font-bold">Remarks &amp; Attachments</h3>
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-6">
@@ -266,13 +383,28 @@ const ScholarForm = () => {
                                     </div>
 
                                     <div className="form-control w-full">
-                                        <label className="label font-medium"><span className="label-text">Summary</span></label>
+                                        <label className="label font-medium"><span className="label-text">Remarks / Summary</span></label>
                                         <textarea
                                             name="summary"
-                                            placeholder="Brief summary of the visit..."
+                                            placeholder="Brief summary / remarks about the visit..."
                                             className="textarea textarea-bordered w-full h-24 focus:textarea-primary transition-all"
                                             rows="3"
                                             value={formData.summary}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+
+                                    <div className="form-control w-full">
+                                        <label className="label font-medium">
+                                            <span className="label-text">Notes</span>
+                                            <span className="label-text-alt text-base-content/40">Short note shown on the list page</span>
+                                        </label>
+                                        <textarea
+                                            name="notes"
+                                            placeholder="e.g. Wrong link - should be updated"
+                                            className="textarea textarea-bordered w-full focus:textarea-primary transition-all"
+                                            rows="2"
+                                            value={formData.notes}
                                             onChange={handleChange}
                                         />
                                     </div>
@@ -298,4 +430,3 @@ const ScholarForm = () => {
 };
 
 export default ScholarForm;
-
