@@ -231,13 +231,13 @@ export const importData = async (req, res) => {
                 mappingFunction = (row) => ({
                     date: parseDate(row['Date']),
                     type: row['Type'],
-                    name: row['Name & Details'],
+                    title: row['Name & Details'], // Event schema stores title (not name)
                     department: row['Department'],
-                    university: row['University with country'], // Might need split ifschema separates
+                    universityCountry: row['University with country'], // single combined col on the Event schema
                     dignitaries: row['Dignitaries'],
                     eventSummary: row['Event Summary'],
                     campus: row['Campus'],
-                    driveLink: row['drive link']
+                    driveLink: pick(row, ['drive link', 'Drive Link', 'Events - Upload Zip FIle'])
                 });
                 break;
             case 'conferences':
