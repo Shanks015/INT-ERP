@@ -3,77 +3,77 @@ import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simp
 import { motion } from 'framer-motion';
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 
-const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
+// world-atlas v2 countries-50m (Natural Earth 1:50m), served from our own origin
+// (client/public/countries-50m.json) instead of a runtime CDN fetch — the map loads
+// reliably, quickly and browser-cached, with no external dependency.
+const geoUrl = `${import.meta.env.BASE_URL}countries-50m.json`;
 
-// Country name normalization map (database name -> TopoJSON name)
-const COUNTRY_NAME_MAP = {
+// DB country spellings -> the exact world-atlas (Natural Earth) "name", so colors
+// land on the right country. Keys are the trimmed, UPPERCASED database value; only
+// TRUE variants need an entry (pure casing differences are handled by the
+// case-insensitive match below). Multiple variants of one country SUM in the map.
+const COUNTRY_CANONICAL = {
     'USA': 'United States of America',
+    'US': 'United States of America',
+    'U.S.': 'United States of America',
+    'U.S.A.': 'United States of America',
+    'UNITED STATES': 'United States of America',
     'UK': 'United Kingdom',
-    'HUNGARY': 'Hungary',
-    'Hungary': 'Hungary',
-    'UKRAINE': 'Ukraine',
-    'Ukraine': 'Ukraine',
-    'South KOREA': 'South Korea',
-    'Crotia': 'Croatia',
-    'Srilanka': 'Sri Lanka',
-    'Malayasia': 'Malaysia',
-    'Newzealand': 'New Zealand',
-    'Russia': 'Russia',
-    'Turkey': 'Turkey'
+    'U.K.': 'United Kingdom',
+    'ENGLAND': 'United Kingdom',
+    'BRITAIN': 'United Kingdom',
+    'GREAT BRITAIN': 'United Kingdom',
+    'CROTIA': 'Croatia',
+    'SRILANKA': 'Sri Lanka',
+    'MALAYASIA': 'Malaysia',
+    'NEWZEALAND': 'New Zealand',
+    'CZECH REPUBLIC': 'Czechia',
+    'CZECH': 'Czechia',
+    'UAE': 'United Arab Emirates',
+    'U.A.E.': 'United Arab Emirates'
 };
 
-// Normalize country name for matching
-const normalizeCountryName = (name) => {
-    if (!name) return '';
-    // Check direct mapping first
-    if (COUNTRY_NAME_MAP[name]) return COUNTRY_NAME_MAP[name];
-    // Return trimmed name
-    return name.trim();
+// Reduce the distribution to { UPPER_TOPONAME: { value, displayName } }, resolving
+// each DB country to its map country and summing rows that resolve to the same one
+// (e.g. 'USA' + 'United States' + 'United States of America' -> one United States).
+const buildCountryData = (countryDistribution) => {
+    const byUpper = {};
+    let maxValue = 0;
+    (countryDistribution || []).forEach(({ name, value }) => {
+        const raw = (name || '').trim();
+        if (!raw) return;
+        const topoName = COUNTRY_CANONICAL[raw.toUpperCase()] || raw;
+        const key = topoName.toUpperCase();
+        const entry = byUpper[key] || (byUpper[key] = { value: 0, displayName: topoName });
+        entry.value += value;
+        if (entry.value > maxValue) maxValue = entry.value;
+    });
+    return { byUpper, maxValue };
 };
 
 const WorldMap = ({ data }) => {
-    const [tooltipContent, setTooltipContent] = useState('');
     const [hoveredCountry, setHoveredCountry] = useState(null);
     const [position, setPosition] = useState({ coordinates: [0, 0], zoom: 1 });
 
-    // Create a map of country data by country name
-    const { countryDataMap, maxValue } = useMemo(() => {
-        const map = {};
-        let max = 1;
+    const { byUpper, maxValue } = useMemo(
+        () => buildCountryData(data?.countryDistribution),
+        [data?.countryDistribution]
+    );
 
-        if (data?.countryDistribution) {
-            data.countryDistribution.forEach(item => {
-                const normalizedName = normalizeCountryName(item.name);
-                map[normalizedName] = item.value;
-            });
-
-            if (data.countryDistribution.length > 0) {
-                max = Math.max(...data.countryDistribution.map(d => d.value));
-            }
-        }
-
-        return { countryDataMap: map, maxValue: max };
-    }, [data.countryDistribution]);
-
-    // Get color based on value (heat map)
+    // Color bands over the value range (base colour for countries with no records).
     const getCountryColor = (countryName) => {
-        // Check if country exists in our data (use 'in' to handle 0 values)
-        if (!(countryName in countryDataMap)) return 'oklch(var(--b3))'; // Base color for countries with no data
+        const entry = byUpper[countryName.toUpperCase()];
+        if (!entry) return 'oklch(var(--b3))';
 
-        const value = countryDataMap[countryName];
-        const intensity = value / maxValue;
-
-        // Generate color from light to dark primary color
-        if (intensity > 0.7) return 'oklch(var(--p))'; // Dark primary
+        const intensity = entry.value / (maxValue || 1);
+        if (intensity > 0.7) return 'oklch(var(--p))'; // Dark primary (highest)
         if (intensity > 0.4) return 'oklch(var(--s))'; // Secondary
         if (intensity > 0.2) return 'oklch(var(--a))'; // Accent
         return 'oklch(var(--in))'; // Info (lightest)
     };
 
     const handleCountryClick = (geo) => {
-        const countryName = geo.properties.name;
-        const value = countryDataMap[countryName];
-
+        const value = byUpper[geo.properties.name.toUpperCase()]?.value;
         if (value) {
             // Future: Filter records by this country
         }
@@ -115,7 +115,7 @@ const WorldMap = ({ data }) => {
                     <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-10 bg-base-100 px-4 py-2 rounded-lg shadow-lg border border-base-300">
                         <div className="text-sm font-semibold">{hoveredCountry}</div>
                         <div className="text-xs text-base-content/70">
-                            {countryDataMap[hoveredCountry] || 0} records
+                            {byUpper[hoveredCountry.toUpperCase()]?.value || 0} records
                         </div>
                     </div>
                 )}
@@ -166,7 +166,7 @@ const WorldMap = ({ data }) => {
                                 {({ geographies }) => {
                                     return geographies.map((geo) => {
                                         const countryName = geo.properties.name;
-                                        const hasData = countryName in countryDataMap; // Use 'in' to handle 0 values
+                                        const hasData = countryName.toUpperCase() in byUpper;
 
                                         return (
                                             <Geography
