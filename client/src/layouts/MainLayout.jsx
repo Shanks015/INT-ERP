@@ -28,19 +28,13 @@ import {
 import logo from '../assets/logo.png';
 
 const MainLayout = () => {
-    const { user, logout, isAdmin, checkSession } = useAuth();
+    const { user, logout, isAdmin } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [pendingCount, setPendingCount] = useState(0);
     const [pendingUsersCount, setPendingUsersCount] = useState(0);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [openDropdowns, setOpenDropdowns] = useState(['mou', 'campusVisits', 'product', 'media']); // Dropdowns open by default
-
-    useEffect(() => {
-        if (checkSession) {
-            checkSession();
-        }
-    }, [location.pathname]);
 
     const hasAccess = (moduleName) => {
         if (user?.role !== 'intern') return true;
@@ -55,61 +49,45 @@ const MainLayout = () => {
         );
     };
 
-    const modules = [
-        { name: 'partners', endpoint: '/partners' },
-        { name: 'campus-visits', endpoint: '/campus-visits' },
-        { name: 'events', endpoint: '/events' },
-        { name: 'conferences', endpoint: '/conferences' },
-        { name: 'mou-signing-ceremonies', endpoint: '/mou-signing-ceremonies' },
-        { name: 'scholars-in-residence', endpoint: '/scholars-in-residence' },
-        { name: 'mou-updates', endpoint: '/mou-updates' },
-        { name: 'immersion-programs', endpoint: '/immersion-programs' },
-        { name: 'student-exchange', endpoint: '/student-exchange' },
-        { name: 'masters-abroad', endpoint: '/masters-abroad' },
-        { name: 'memberships', endpoint: '/memberships' },
-        { name: 'digital-media', endpoint: '/digital-media' },
-        { name: 'social-media', endpoint: '/social-media' },
-        { name: 'outreach', endpoint: '/outreach' },
-        { name: 'meeting-trackers', endpoint: '/meeting-trackers' },
-    ];
-
     useEffect(() => {
-        // Fetch pending count for admin
-        if (isAdmin) {
-            fetchPendingCounts();
+        // Admin nav badges (bell + Pending Actions + pending users). This used to
+        // fan out to a /users fetch plus one /pending/all per module (~16 round
+        // trips, each shipping full documents) — on EVERY page, because this
+        // layout wraps every route. Now it is a single /admin/pending-counts
+        // round trip of cheap countDocuments calls.
+        if (!isAdmin) return undefined;
 
-            // Listen for pending count updates
-            const handlePendingUpdate = () => fetchPendingCounts();
-            window.addEventListener('pendingCountUpdated', handlePendingUpdate);
+        let cancelled = false;
+        let debounceTimer = null;
 
-            return () => {
-                window.removeEventListener('pendingCountUpdated', handlePendingUpdate);
-            };
-        }
+        const load = async () => {
+            try {
+                const { data } = await api.get('/admin/pending-counts');
+                if (cancelled) return;
+                setPendingUsersCount(data.pendingUsers || 0);
+                setPendingCount(data.total || 0);
+            } catch (error) {
+                console.error('Error fetching pending counts:', error);
+            }
+        };
+
+        load();
+
+        // Approve/reject/delete handlers dispatch 'pendingCountUpdated' — often
+        // in quick succession (e.g. the Pending Actions page refetches after each
+        // one), so debounce before refetching.
+        const handlePendingUpdate = () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(load, 800);
+        };
+        window.addEventListener('pendingCountUpdated', handlePendingUpdate);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(debounceTimer);
+            window.removeEventListener('pendingCountUpdated', handlePendingUpdate);
+        };
     }, [isAdmin]);
-
-    const fetchPendingCounts = async () => {
-        try {
-            // Fetch pending users
-            const usersResponse = await api.get('/users?approvalStatus=pending');
-            setPendingUsersCount(usersResponse.data.users?.length || 0);
-
-            // Fetch pending actions across all modules
-            const actionResponses = await Promise.all(
-                modules.map(module =>
-                    api.get(`${module.endpoint}/pending/all`).catch(() => ({ data: { data: [] } }))
-                )
-            );
-
-            const totalPendingActions = actionResponses.reduce((acc, response) => {
-                return acc + (response.data.data?.length || 0);
-            }, 0);
-
-            setPendingCount(totalPendingActions);
-        } catch (error) {
-            console.error('Error fetching pending counts:', error);
-        }
-    };
 
     const handleLogout = () => {
         logout();

@@ -25,18 +25,14 @@ const Dashboard = () => {
     const fetchAllStats = async () => {
         try {
             setLoading(true);
-            const [campusVisits, events, partners, outreach] = await Promise.all([
-                api.get('/campus-visits/stats'),
-                api.get('/events/stats'),
-                api.get('/partners/stats'),
-                api.get('/outreach/stats')
-            ]);
-
-            setStats({
-                campusVisits: campusVisits.data.stats,
-                events: events.data.stats,
-                partners: partners.data.stats,
-                outreach: outreach.data.stats
+            // One /dashboard/stats round trip replaces four parallel /stats calls;
+            // the server runs the four aggregations concurrently.
+            const response = await api.get('/dashboard/stats');
+            setStats(response.data.stats || {
+                campusVisits: null,
+                events: null,
+                partners: null,
+                outreach: null
             });
         } catch (error) {
             console.error('Error fetching stats:', error);

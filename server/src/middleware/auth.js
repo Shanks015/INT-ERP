@@ -6,6 +6,7 @@ import User from '../models/User.js';
 const UNGATED_PREFIXES = [
     'auth',
     'users',
+    'admin', // admin-only: every route is guarded by authorize(['admin']) at the router level
     'activity-logs',
     'mailboxes',
     'google-forms',
