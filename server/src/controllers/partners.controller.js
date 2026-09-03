@@ -2,6 +2,15 @@ import Partner from '../models/Partner.js';
 import { Parser } from 'json2csv';
 import { logUserActivity, sanitizeInput, escapeRegex } from './generic.controller.js';
 
+// dd/MMM/yyyy formatter (project standard; see ScholarInResidence model).
+const fmtDDMMM = (v) => {
+    if (!v) return '';
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return '';
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${String(d.getDate()).padStart(2, '0')}/${MONTHS[d.getMonth()]}/${d.getFullYear()}`;
+};
+
 // Get all partners
 export const getAll = async (req, res) => {
     try {
@@ -13,6 +22,8 @@ export const getAll = async (req, res) => {
             mouStatus,
             agreementType,
             recordStatus,
+            startDate,
+            endDate,
             sortBy = 'createdAt',
             sortOrder = 'desc'
         } = req.query;
@@ -42,6 +53,18 @@ export const getAll = async (req, res) => {
         // recordStatus (active/expired)
         if (recordStatus && recordStatus !== 'all') {
             query.recordStatus = recordStatus;
+        }
+
+        // Date window on signingDate (task #66): filter partners whose MoU was
+        // signed inside the chosen From/To range. Single field, end-of-day bound.
+        if (startDate || endDate) {
+            query.signingDate = {};
+            if (startDate) query.signingDate.$gte = new Date(startDate);
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                query.signingDate.$lte = end;
+            }
         }
 
         // Calculate pagination
@@ -283,6 +306,14 @@ export const getAllPending = async (req, res) => {
 // Export CSV (Direct)
 export const exportCSV = async (req, res) => {
     try {
+        // Interns can read but must not bulk-export (S13).
+        if (req.user && req.user.role === 'intern') {
+            return res.status(403).json({
+                success: false,
+                message: 'Exporting data is restricted to admin and employee roles.'
+            });
+        }
+
         const partners = await Partner.find().sort({ createdAt: -1 }).lean();
 
         // Define fields for CSV
@@ -297,8 +328,8 @@ export const exportCSV = async (req, res) => {
             'mouStatus',
             'activeStatus',
             'recordStatus',
-            { label: 'Signing Date', value: (row) => row.signingDate ? new Date(row.signingDate).toLocaleDateString() : '' },
-            { label: 'Expiry Date', value: (row) => row.expiringDate ? new Date(row.expiringDate).toLocaleDateString() : '' },
+            { label: 'Signing Date', value: (row) => fmtDDMMM(row.signingDate) },
+            { label: 'Expiry Date', value: (row) => fmtDDMMM(row.expiringDate) },
             'link'
         ];
 

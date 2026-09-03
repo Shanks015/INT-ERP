@@ -1,6 +1,6 @@
 import MeetingTracker from '../models/MeetingTracker.js';
 import { Parser } from 'json2csv';
-import { logUserActivity, sanitizeInput } from './generic.controller.js';
+import { logUserActivity, sanitizeInput, stringifyDates } from './generic.controller.js';
 
 // Helper to parse date from Excel or user input
 const parseDate = (value) => {
@@ -265,6 +265,14 @@ export const remove = async (req, res) => {
 // Export CSV
 export const exportCSV = async (req, res) => {
     try {
+        // Interns can read but must not bulk-export (S13).
+        if (req.user && req.user.role === 'intern') {
+            return res.status(403).json({
+                success: false,
+                message: 'Exporting data is restricted to admin and employee roles.'
+            });
+        }
+
         const meetings = await MeetingTracker.find({ status: 'active' }).lean();
 
         if (meetings.length === 0) {
@@ -276,7 +284,7 @@ export const exportCSV = async (req, res) => {
 
         const cleanRecords = meetings.map(record => {
             const { _id, __v, status, pendingChanges, deletionReason, createdBy, updatedBy, ...rest } = record;
-            return rest;
+            return stringifyDates(rest);
         });
 
         const parser = new Parser();

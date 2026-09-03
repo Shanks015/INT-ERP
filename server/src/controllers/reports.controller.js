@@ -65,7 +65,7 @@ const getDisplayFields = (moduleName) => {
                     item.email || '-',
                     item.phoneNumber || '-',
                     item.agreementType || '-',
-                    item.completedOn ? new Date(item.completedOn).toLocaleDateString() : '-',
+                    fmtDDMMM(item.completedOn),
                     item.department || '-',
                     item.recordStatus || 'active'
                 ]
@@ -113,7 +113,7 @@ const getDisplayFields = (moduleName) => {
             return {
                 headers: ['Date', 'Title', 'Type', 'Dignitaries', 'Department', 'Campus', 'University Country'],
                 extractor: (item) => [
-                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    fmtDDMMM(item.date),
                     item.title || '-',
                     item.type || '-',
                     item.dignitaries || '-',
@@ -126,7 +126,7 @@ const getDisplayFields = (moduleName) => {
             return {
                 headers: ['Date', 'Conference Name', 'Country', 'Department', 'Campus'],
                 extractor: (item) => [
-                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    fmtDDMMM(item.date),
                     item.conferenceName || '-',
                     item.country || '-',
                     item.department || '-',
@@ -137,7 +137,7 @@ const getDisplayFields = (moduleName) => {
             return {
                 headers: ['Date', 'Type', 'Visitor Name', 'University', 'Department', 'Event Summary', 'Campus', 'Drive Link'],
                 extractor: (item) => [
-                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    fmtDDMMM(item.date),
                     item.type || '-',
                     item.visitorName || '-',
                     item.university || '-',
@@ -174,7 +174,7 @@ const getDisplayFields = (moduleName) => {
             return {
                 headers: ['Date', 'Country', 'University', 'Department', 'Contact Person', 'MoU Status', 'Contact Email', 'Agreement Type', 'Term', 'Validity Status', 'Drive Link'],
                 extractor: (item) => [
-                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    fmtDDMMM(item.date),
                     item.country || '-',
                     item.university || '-',
                     item.department || '-',
@@ -245,8 +245,8 @@ const getDisplayFields = (moduleName) => {
                     item.name || '-',
                     item.country || '-',
                     item.membershipStatus || '-',
-                    item.startDate ? new Date(item.startDate).toLocaleDateString() : '-',
-                    item.endDate ? new Date(item.endDate).toLocaleDateString() : '-',
+                    fmtDDMMM(item.startDate),
+                    fmtDDMMM(item.endDate),
                     item.recordStatus || 'active'
                 ]
             };
@@ -254,7 +254,7 @@ const getDisplayFields = (moduleName) => {
             return {
                 headers: ['Date', 'Article Topic', 'Channel', 'Amount Paid'],
                 extractor: (item) => [
-                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    fmtDDMMM(item.date),
                     item.articleTopic || '-',
                     item.channel || '-',
                     item.amountPaid || 'Zero'
@@ -275,7 +275,7 @@ const getDisplayFields = (moduleName) => {
                 headers: ['Meeting ID', 'Date', 'Meeting Title', 'Mode', 'Country', 'Key Agenda', 'Discussion Summary', 'Action Items', 'Drive Link'],
                 extractor: (item) => [
                     item.meetingId || '-',
-                    item.date ? new Date(item.date).toLocaleDateString() : '-',
+                    fmtDDMMM(item.date),
                     item.meetingTitle || '-',
                     item.mode || '-',
                     item.hostOrganization || item.country || '-',
@@ -295,7 +295,7 @@ const getDisplayFields = (moduleName) => {
                     item.instaLink || '-',
                     item.linkedinLink || '-',
                     item.vkLink || '-',
-                    item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-'
+                    fmtDDMMM(item.createdAt)
                 ]
             };
         default:
@@ -303,7 +303,7 @@ const getDisplayFields = (moduleName) => {
                 headers: ['Module', 'Date', 'Name', 'Details'],
                 extractor: (item) => [
                     item.module || '-',
-                    item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-',
+                    fmtDDMMM(item.createdAt),
                     item.name || item.title || '-',
                     item.country || item.department || '-'
                 ]
@@ -311,18 +311,58 @@ const getDisplayFields = (moduleName) => {
     }
 };
 
+// Per-module date-window semantics for Reports (S1/S2 + #66). Each module maps
+// to ONE of:
+//   { single: 'field' }                 — records dated within [start, end]
+//   { pair: ['startField', 'endField']} — record's range OVERLAPS [start, end]
+//   { createdAt: true }                 — no domain date field → createdAt
+// The old code guessed 'date'/'fromDate', which produced 0 rows for partners
+// (no 'date') and scholars-in-residence (no 'fromDate') on any date window.
+const DATE_WINDOW = {
+    'partners': { single: 'signingDate' },
+    'campus-visits': { single: 'date' },
+    'seminars': { single: 'date' },
+    'consultant-visits': { single: 'date' },
+    'events': { single: 'date' },
+    'conferences': { single: 'date' },
+    'mou-signing-ceremonies': { single: 'date' },
+    'mou-updates': { single: 'date' },
+    'digital-media': { single: 'date' },
+    'meeting-trackers': { single: 'date' },
+    'memberships': { pair: ['startDate', 'endDate'] },
+    'scholars-in-residence': { pair: ['startDate', 'endDate'] },
+    'student-exchange': { pair: ['fromDate', 'toDate'] },
+    'immersion-programs': { pair: ['arrivalDate', 'departureDate'] },
+    'masters-abroad': { createdAt: true },
+    'social-media': { createdAt: true },
+    'outreach': { createdAt: true }
+};
+
+// An endDate bound means "through the end of that day", matching every list filter.
+const endOfDay = (d) => { const end = new Date(d); end.setHours(23, 59, 59, 999); return end; };
+
 const fetchData = async (module, filters) => {
     const query = {};
 
-    // Date range filtering
-    if (filters.startDate && filters.endDate) {
-        // Determine date field name (mostly 'date', but sometimes 'arrivalDate', 'fromDate' etc)
-        // social-media has no domain date field at all — fall back to createdAt,
-        // otherwise every date-filtered social-media report returns zero rows.
-        const dateField = ['scholars-in-residence', 'student-exchange'].includes(module) ? 'fromDate' :
-            ['immersion-programs'].includes(module) ? 'arrivalDate' :
-            ['social-media'].includes(module) ? 'createdAt' : 'date';
-        query[dateField] = { $gte: new Date(filters.startDate), $lte: new Date(filters.endDate) };
+    // Date window — applied when EITHER bound is given (previously required both
+    // and built a $gte+$lte against one hard-coded field).
+    if (filters.startDate || filters.endDate) {
+        const win = DATE_WINDOW[module];
+        if (win?.createdAt) {
+            query.createdAt = {};
+            if (filters.startDate) query.createdAt.$gte = new Date(filters.startDate);
+            if (filters.endDate) query.createdAt.$lte = endOfDay(filters.endDate);
+        } else if (win?.pair) {
+            const [startF, endF] = win.pair;
+            if (filters.startDate) query[endF] = { $gte: new Date(filters.startDate) };
+            if (filters.endDate) {
+                query[startF] = { ...(query[startF] || {}), $lte: endOfDay(filters.endDate) };
+            }
+        } else if (win?.single) {
+            query[win.single] = {};
+            if (filters.startDate) query[win.single].$gte = new Date(filters.startDate);
+            if (filters.endDate) query[win.single].$lte = endOfDay(filters.endDate);
+        }
     }
 
     // Status filtering - only filter if a specific status is selected

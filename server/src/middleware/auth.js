@@ -18,6 +18,8 @@ const UNGATED_PREFIXES = [
 // Only outreach-new differs from its URL prefix.
 const PREFIX_TO_MODULE = {
     'outreach-new': 'outreach',
+    'seminars': 'campus-visits',
+    'consultant-visits': 'campus-visits',
     'campus-visits': 'campus-visits',
     'mou-signing-ceremonies': 'mou-signing-ceremonies',
     'scholars-in-residence': 'scholars-in-residence',

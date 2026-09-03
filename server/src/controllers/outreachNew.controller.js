@@ -134,12 +134,22 @@ export const updateOutreachNew = async (req, res) => {
 };
 
 // DELETE record
-// OutreachNew has no maker-checker workflow (no approve/reject routes, direct
-// updates) — so deletion is a direct hard delete, consistent with the rest of
-// this module. The previous implementation set status: 'deleted', which is not
-// in the schema enum and made every delete fail with a ValidationError.
+// OutreachNew deliberately has no maker-checker workflow (no approve/reject
+// routes, direct updates) so interns self-serve outreach. Staging a
+// pending_delete here would strand the row invisibly — nothing could approve it.
+// S12 gate that fits the design: admins delete directly; every other role must
+// supply a deletion reason first (the client already prompts for one), and the
+// delete is still attributable via the activity log.
 export const deleteOutreachNew = async (req, res) => {
     try {
+        const { reason } = req.body || {};
+        if (req.user.role !== 'admin' && !(reason && reason.trim())) {
+            return res.status(400).json({
+                success: false,
+                message: 'Deletion reason is required.'
+            });
+        }
+
         const record = await OutreachNew.findByIdAndDelete(req.params.id);
 
         if (!record) {

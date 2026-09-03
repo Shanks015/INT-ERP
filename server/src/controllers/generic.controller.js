@@ -540,8 +540,47 @@ export const reject = (Model) => async (req, res) => {
 };
 
 // Export to CSV
+// ── CSV export helpers (S13) ─────────────────────────────────────────────────
+// Interns may view module data but must not bulk-extract whole tables, and CSVs
+// must carry dd/MMM/yyyy dates like the rest of the app (json2csv would
+// otherwise emit raw ISO datetimes). Each exportCSV applies both.
+const CSV_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// dd/MMM/yyyy formatter (project standard).
+export const fmtDDMMM = (v) => {
+    if (!v) return '';
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return '';
+    return `${String(d.getDate()).padStart(2, '0')}/${CSV_MONTHS[d.getMonth()]}/${d.getFullYear()}`;
+};
+
+// Convert every Date value in a plain (already-leaned) record to dd/MMM/yyyy so
+// the exported CSV matches screen/PDF formats instead of ISO datetimes.
+export const stringifyDates = (record) => {
+    const out = { ...record };
+    Object.keys(out).forEach((key) => {
+        const val = out[key];
+        if (val instanceof Date) {
+            out[key] = fmtDDMMM(val);
+        } else if (Array.isArray(val)) {
+            // Shallow pass: element arrays are typically scalar (emails, tags);
+            // nested objects (e.g. embedded email threads) are not exported.
+            out[key] = val.map((el) => (el instanceof Date ? fmtDDMMM(el) : el));
+        }
+    });
+    return out;
+};
+
 export const exportCSV = (Model) => async (req, res) => {
     try {
+        // Interns can read their assigned module but must not bulk-export it.
+        if (req.user && req.user.role === 'intern') {
+            return res.status(403).json({
+                success: false,
+                message: 'Exporting data is restricted to admin and employee roles.'
+            });
+        }
+
         const records = await Model.find({ status: 'active' }).lean();
 
         if (records.length === 0) {
@@ -554,7 +593,7 @@ export const exportCSV = (Model) => async (req, res) => {
         // Remove MongoDB-specific fields
         const cleanRecords = records.map(record => {
             const { _id, __v, status, pendingChanges, deletionReason, createdBy, updatedBy, ...rest } = record;
-            return rest;
+            return stringifyDates(rest);
         });
 
         const parser = new Parser();

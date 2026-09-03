@@ -1,6 +1,6 @@
 import Event from '../models/Event.js';
 import { Parser } from 'json2csv';
-import { logUserActivity, sanitizeInput } from './generic.controller.js';
+import { logUserActivity, sanitizeInput, stringifyDates } from './generic.controller.js';
 
 // Get all events
 export const getAll = async (req, res) => {
@@ -252,6 +252,14 @@ export const remove = async (req, res) => {
 // Export CSV
 export const exportCSV = async (req, res) => {
     try {
+        // Interns can read but must not bulk-export (S13).
+        if (req.user && req.user.role === 'intern') {
+            return res.status(403).json({
+                success: false,
+                message: 'Exporting data is restricted to admin and employee roles.'
+            });
+        }
+
         const events = await Event.find({ status: 'active' }).lean();
 
         if (events.length === 0) {
@@ -263,7 +271,7 @@ export const exportCSV = async (req, res) => {
 
         const cleanRecords = events.map(record => {
             const { _id, __v, status, pendingChanges, deletionReason, createdBy, updatedBy, ...rest } = record;
-            return rest;
+            return stringifyDates(rest);
         });
 
         const parser = new Parser();

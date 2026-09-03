@@ -12,10 +12,17 @@ router.get('/export-csv', authenticate, ctrl.exportCSV(Membership));
 router.get('/pending/count', authenticate, authorize(['admin']), ctrl.getPendingCount(Membership));
 router.get('/pending/all', authenticate, authorize(['admin']), ctrl.getAllPending(Membership));
 
-// Add date field config for filtering
+// Date field config for filtering. Memberships shows Start/End Date columns, so
+// the From/To filter means the membership window (overlap), not the hidden
+// entry `date` (task #66).
 router.get('/', authenticate, (req, res, next) => {
     req.locals = req.locals || {};
-    req.locals.dateFieldConfig = { field: 'date' };
+    req.locals.dateFieldConfig = {
+        field: 'startDate',
+        isRange: true,
+        startField: 'startDate',
+        endField: 'endDate'
+    };
     next();
 }, ctrl.getAll(Membership));
 router.get('/:id', authenticate, ctrl.getById(Membership));
