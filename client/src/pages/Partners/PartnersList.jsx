@@ -212,6 +212,11 @@ const PartnersList = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {/* Analytics payloads spread server /partners/stats: the previous
+                    per-card countryDistribution was rebuilt from `partners` (the current
+                    page only), so the Countries/Overview breakdowns undercounted to the
+                    visible page. stats.countryDistribution is the whole-dataset (active)
+                    aggregate and matches how every other module feeds these cards. */}
                 <SmartStatsCard
                     title="Total Partners"
                     value={totalItems}
@@ -219,15 +224,7 @@ const PartnersList = () => {
                     color="primary"
                     moduleType="partners"
                     statType="total"
-                    moduleData={{
-                        total: totalItems,
-                        active: stats.active,
-                        countries: stats.countries,
-                        countryDistribution: countries.map(c => ({
-                            name: c,
-                            value: partners.filter(p => p.country === c).length
-                        }))
-                    }}
+                    moduleData={{ ...stats }}
                     loading={loading}
                 />
                 <SmartStatsCard
@@ -237,15 +234,7 @@ const PartnersList = () => {
                     color="secondary"
                     moduleType="partners"
                     statType="countries"
-                    moduleData={{
-                        total: stats.total,
-                        active: stats.active,
-                        countries: stats.countries,
-                        countryDistribution: countries.map(c => ({
-                            name: c,
-                            value: partners.filter(p => p.country === c).length
-                        }))
-                    }}
+                    moduleData={{ ...stats }}
                     loading={statsLoading}
                 />
                 <SmartStatsCard

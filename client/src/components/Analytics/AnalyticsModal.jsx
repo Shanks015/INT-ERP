@@ -75,12 +75,9 @@ const AnalyticsModal = () => {
                             <div>
                                 <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
                                     {analyticsData.icon && <analyticsData.icon className="w-8 h-8" />}
+                                    {/* Card titles already name the dimension (Countries, Departments,
+                                        Event Types…); appending the statType would read "Countries by Country". */}
                                     {analyticsData.title}
-                                    {analyticsData.statType === 'countries' && ' by Country'}
-                                    {analyticsData.statType === 'universities' && ' by University'}
-                                    {analyticsData.statType === 'departments' && ' by Department'}
-                                    {analyticsData.statType === 'types' && ' by Type'}
-                                    {analyticsData.statType === 'channels' && ' by Channel'}
                                 </h2>
                                 <p className="text-sm text-base-content/70 mt-1">
                                     {analyticsData.statType === 'countries' ? 'Geographic distribution and insights' :

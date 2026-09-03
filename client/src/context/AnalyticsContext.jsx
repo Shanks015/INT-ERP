@@ -16,7 +16,6 @@ export const AnalyticsProvider = ({ children }) => {
     const [activeTab, setActiveTab] = useState('overview');
 
     const openAnalytics = (data) => {
-        console.log('AnalyticsContext: openAnalytics called with:', data);
         setAnalyticsData(data);
 
         // Set smart default tab based on statType
@@ -24,7 +23,6 @@ export const AnalyticsProvider = ({ children }) => {
         setActiveTab(defaultTab);
 
         setIsOpen(true);
-        console.log('AnalyticsContext: Modal should be open now');
     };
 
     const getDefaultTab = (statType) => {

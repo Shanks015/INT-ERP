@@ -95,7 +95,7 @@ const TrendChart = ({ data }) => {
                                 dataKey="previous"
                                 stroke="oklch(var(--s))"
                                 fillOpacity={1}
-                                fill="url(#colorPrevious))"
+                                fill="url(#colorPrevious)"
                                 strokeWidth={2}
                                 name="Previous Year"
                             />
