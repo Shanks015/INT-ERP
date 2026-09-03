@@ -1,5 +1,25 @@
 import User from '../models/User.js';
 
+// Client-safe projection of a user doc. `password` is select:false on the
+// schema, but login queries with `select('+password')`, so strip it explicitly
+// rather than trust the projection. Returns the richer profile fields
+// (preferences/notificationSettings/profilePhoto) so AuthContext's /auth/me
+// re-check never wipes client-held settings with a leaner copy (audit S10).
+const publicUser = (user) => {
+    const raw = user.toObject ? user.toObject() : { ...user };
+    const { password, __v, approvedBy, approvedAt, rejectionReason, ...rest } = raw;
+    return {
+        id: user._id,
+        name: rest.name,
+        email: rest.email,
+        role: rest.role,
+        allowedModules: rest.allowedModules || [],
+        profilePhoto: rest.profilePhoto ?? null,
+        preferences: rest.preferences || {},
+        notificationSettings: rest.notificationSettings || {}
+    };
+};
+
 // Register new user
 export const register = async (req, res) => {
     try {
@@ -98,13 +118,7 @@ export const login = async (req, res) => {
         res.json({
             message: 'Login successful',
             token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                allowedModules: user.allowedModules || []
-            }
+            user: publicUser(user)
         });
     } catch (error) {
         res.status(500).json({
@@ -120,13 +134,7 @@ export const getMe = async (req, res) => {
         const user = await User.findById(req.userId);
 
         res.json({
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                allowedModules: user.allowedModules || []
-            }
+            user: publicUser(user)
         });
     } catch (error) {
         res.status(500).json({

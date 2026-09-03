@@ -11,13 +11,9 @@ export const getEnhancedStats = (Model) => async (req, res) => {
         const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
-        // Base stats all modules have
-        let total;
-        if (modelName === 'Event') {
-            total = await Model.countDocuments({});
-        } else {
-            total = await Model.countDocuments({ status: 'active' });
-        }
+        // Base stats all modules have. Events carry status:'active' like every other
+        // module, so maker-checker pending_edit/pending_delete rows must be excluded.
+        const total = await Model.countDocuments({ status: 'active' });
 
         let stats = { total };
 
@@ -54,10 +50,10 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 dateField = 'arrivalDate'; // program start
                 break;
             case 'StudentExchange':
-                dateField = 'arrivalDate'; // exchange start
+                dateField = 'fromDate'; // exchange start (real field; arrivalDate doesn't exist)
                 break;
             case 'MastersAbroad':
-                dateField = 'startDate'; // program start
+                dateField = 'createdAt'; // no domain date on the model — creation month is the honest signal
                 break;
             case 'Membership':
                 dateField = 'startDate'; // membership start
@@ -74,10 +70,10 @@ export const getEnhancedStats = (Model) => async (req, res) => {
 
         // Calculate trend - compare this month to last month using the appropriate date field
         // Use $or to include records where the date field exists OR fall back to createdAt
+        // Trend base query: which records count as "active" for the module.
+        // Events have no special case — they fall through to { status: 'active' }.
         let baseQuery = {};
-        if (modelName === 'Event') {
-            baseQuery = {};
-        } else if (modelName === 'Partner') {
+        if (modelName === 'Partner') {
             baseQuery = {
                 $or: [
                     { activeStatus: 'Active' },
@@ -284,13 +280,13 @@ export const getEnhancedStats = (Model) => async (req, res) => {
 
             case 'Event':
                 const [eventTypes, departments, eventCountries, eventTypeDistribution, departmentDistribution, recentEvents] = await Promise.all([
-                    Model.distinct('type').then(arr => arr.filter(Boolean).length),
-                    Model.distinct('department').then(arr => arr.filter(Boolean).length),
-                    Model.distinct('universityCountry').then(arr => arr.filter(Boolean).length),
+                    Model.distinct('type', { status: 'active' }).then(arr => arr.filter(Boolean).length),
+                    Model.distinct('department', { status: 'active' }).then(arr => arr.filter(Boolean).length),
+                    Model.distinct('universityCountry', { status: 'active' }).then(arr => arr.filter(Boolean).length),
 
                     // Event type distribution
                     Model.aggregate([
-                        { $match: { type: { $exists: true, $ne: '' } } },
+                        { $match: { status: 'active', type: { $exists: true, $ne: '' } } },
                         { $group: { _id: '$type', value: { $sum: 1 } } },
                         { $sort: { value: -1 } },
                         { $limit: 10 },
@@ -299,15 +295,16 @@ export const getEnhancedStats = (Model) => async (req, res) => {
 
                     // Department distribution
                     Model.aggregate([
-                        { $match: { department: { $exists: true, $ne: '' } } },
+                        { $match: { status: 'active', department: { $exists: true, $ne: '' } } },
                         { $group: { _id: '$department', value: { $sum: 1 } } },
                         { $sort: { value: -1 } },
                         { $limit: 10 },
                         { $project: { _id: 0, name: '$_id', value: 1 } }
                     ]),
 
-                    // Recent events (last 10)
+                    // Recent events (last 10, active only)
                     Model.aggregate([
+                        { $match: { status: 'active' } },
                         { $sort: { date: -1 } },
                         { $limit: 10 },
                         {
@@ -325,7 +322,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
 
                 stats = {
                     ...stats,
-                    active: stats.total, // Since status field was removed, all events are considered active
+                    active: stats.total, // total above already counts status:'active'
                     countries: eventCountries, // Add countries from universityCountry
                     eventTypes,
                     departments,

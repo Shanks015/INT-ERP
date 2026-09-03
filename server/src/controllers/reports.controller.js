@@ -375,7 +375,7 @@ export const generateReport = async (req, res) => {
         const { format, modules } = filters;
 
         const modulesToFetch = modules === 'all'
-            ? ['partners', 'campus-visits', 'events', 'conferences', 'mou-signing-ceremonies', 'scholars-in-residence', 'mou-updates', 'immersion-programs', 'student-exchange', 'masters-abroad', 'memberships', 'digital-media', 'social-media', 'outreach', 'meeting-trackers']
+            ? ['partners', 'campus-visits', 'seminars', 'consultant-visits', 'events', 'conferences', 'mou-signing-ceremonies', 'scholars-in-residence', 'mou-updates', 'immersion-programs', 'student-exchange', 'masters-abroad', 'memberships', 'digital-media', 'social-media', 'outreach', 'meeting-trackers']
             : [modules]; // Single module as array
 
         let allData = [];

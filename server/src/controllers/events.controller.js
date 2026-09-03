@@ -24,7 +24,8 @@ export const getAll = async (req, res) => {
             const searchRegex = { $regex: search.trim(), $options: 'i' };
             query.$or = [
                 { title: searchRegex },
-                { description: searchRegex },
+                { eventSummary: searchRegex },
+                { type: searchRegex },
                 { department: searchRegex },
                 { campus: searchRegex },
                 { universityCountry: searchRegex },
@@ -54,9 +55,12 @@ export const getAll = async (req, res) => {
         const skip = (page - 1) * parseInt(limit);
         const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
 
-        // Execute query
+        // Execute query. createdBy/updatedBy are populated so My Requests can
+        // match a user's own pending items by email (getAll feeds that page).
         const [events, total] = await Promise.all([
             Event.find(query)
+                .populate('createdBy', 'name email')
+                .populate('updatedBy', 'name email')
                 .sort(sort)
                 .skip(skip)
                 .limit(parseInt(limit)),

@@ -51,6 +51,10 @@ export const sanitizeInput = (payload) => {
     return clean;
 };
 
+// Escape regex metacharacters so user/filter values (e.g. "The Print (ANI Wire)")
+// are matched literally instead of being parsed as regex syntax.
+export const escapeRegex = (s) => String(s ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 export const logUserActivity = async (req, action, modelName, record) => {
     try {
         if (!req.user) return; // Must have authenticated user to log
@@ -124,7 +128,15 @@ export const getAll = (Model) => async (req, res) => {
                 { organizationName: searchRegex },
                 { channel: searchRegex },
                 { email: searchRegex },
-                { mobile: searchRegex }           // Scholar in Residence
+                { mobile: searchRegex },           // Scholar in Residence
+                // Content fields per module so search covers each module's real
+                // title/summary (Digital Media topic, Social Media post, etc.).
+                // Missing fields in $or are harmless — they simply never match.
+                { articleTopic: searchRegex },     // Digital Media
+                { eventSummary: searchRegex },     // Digital Media / Events / Conferences / Visits
+                { summary: searchRegex },          // Membership / generic
+                { postName: searchRegex },         // Social Media
+                { caption: searchRegex }           // Social Media
             ];
         }
 
@@ -135,22 +147,24 @@ export const getAll = (Model) => async (req, res) => {
 
         // Country filter
         if (country && country !== 'all') {
-            query.country = { $regex: country, $options: 'i' };
+            query.country = { $regex: escapeRegex(country), $options: 'i' };
         }
 
         // Apply all other filters dynamically (type, category, visitType, etc.)
         // Supports comma-separated multi-values, e.g. type=Guest Lecture,Seminar → $in query
-        // Uses case-insensitive regex to match legacy data with inconsistent casing
+        // Uses case-insensitive regex to match legacy data with inconsistent casing.
+        // Values are regex-escaped so option values containing metacharacters
+        // (e.g. channel "The Print (ANI Wire)") match literally.
         Object.keys(otherFilters).forEach(key => {
             const value = otherFilters[key];
             if (value && value !== 'all' && value.trim() !== '') {
                 const values = value.split(',').map(v => v.trim()).filter(Boolean);
                 if (values.length > 1) {
                     // Multi-value: case-insensitive OR matching
-                    query[key] = { $in: values.map(v => new RegExp(`^${v}$`, 'i')) };
+                    query[key] = { $in: values.map(v => new RegExp(`^${escapeRegex(v)}$`, 'i')) };
                 } else {
                     // Single value: case-insensitive exact match
-                    query[key] = { $regex: `^${values[0]}$`, $options: 'i' };
+                    query[key] = { $regex: `^${escapeRegex(values[0])}$`, $options: 'i' };
                 }
             }
         });

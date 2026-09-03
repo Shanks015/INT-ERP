@@ -10,6 +10,8 @@
 import User from '../models/User.js';
 import Partner from '../models/Partner.js';
 import CampusVisit from '../models/CampusVisit.js';
+import Seminar from '../models/Seminar.js';
+import ConsultantVisit from '../models/ConsultantVisit.js';
 import Event from '../models/Event.js';
 import Conference from '../models/Conference.js';
 import MouSigningCeremony from '../models/MouSigningCeremony.js';
@@ -30,6 +32,8 @@ const PENDING_FILTER = { status: { $in: ['pending_edit', 'pending_delete'] } };
 const BADGE_MODULES = [
     { key: 'partners', Model: Partner },
     { key: 'campus-visits', Model: CampusVisit },
+    { key: 'seminars', Model: Seminar },
+    { key: 'consultant-visits', Model: ConsultantVisit },
     { key: 'events', Model: Event },
     { key: 'conferences', Model: Conference },
     { key: 'mou-signing-ceremonies', Model: MouSigningCeremony },

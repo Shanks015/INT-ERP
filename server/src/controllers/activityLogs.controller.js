@@ -1,6 +1,14 @@
 import ActivityLog from '../models/ActivityLog.js';
 import { Parser } from 'json2csv';
 
+// An endDate query param means "through the end of that day"; without this the
+// $lte bound is the chosen day's 00:00:00 and drops that day's later logs.
+const endOfDay = (d) => {
+    const end = new Date(d);
+    end.setHours(23, 59, 59, 999);
+    return end;
+};
+
 // Get activity logs with filtering and pagination
 export const getActivityLogs = async (req, res) => {
     try {
@@ -26,7 +34,7 @@ export const getActivityLogs = async (req, res) => {
         if (startDate || endDate) {
             filter.timestamp = {};
             if (startDate) filter.timestamp.$gte = new Date(startDate);
-            if (endDate) filter.timestamp.$lte = new Date(endDate);
+            if (endDate) filter.timestamp.$lte = endOfDay(endDate);
         }
 
         // Search in userName or targetName
@@ -80,7 +88,7 @@ export const getActivityStats = async (req, res) => {
         if (startDate || endDate) {
             dateFilter.timestamp = {};
             if (startDate) dateFilter.timestamp.$gte = new Date(startDate);
-            if (endDate) dateFilter.timestamp.$lte = new Date(endDate);
+            if (endDate) dateFilter.timestamp.$lte = endOfDay(endDate);
         }
 
         // Get total count
@@ -167,7 +175,7 @@ export const exportActivityLogs = async (req, res) => {
         if (startDate || endDate) {
             filter.timestamp = {};
             if (startDate) filter.timestamp.$gte = new Date(startDate);
-            if (endDate) filter.timestamp.$lte = new Date(endDate);
+            if (endDate) filter.timestamp.$lte = endOfDay(endDate);
         }
 
         // Get logs (limit to 10,000 for performance)

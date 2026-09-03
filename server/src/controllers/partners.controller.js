@@ -1,6 +1,6 @@
 import Partner from '../models/Partner.js';
 import { Parser } from 'json2csv';
-import { logUserActivity, sanitizeInput } from './generic.controller.js';
+import { logUserActivity, sanitizeInput, escapeRegex } from './generic.controller.js';
 
 // Get all partners
 export const getAll = async (req, res) => {
@@ -33,9 +33,11 @@ export const getAll = async (req, res) => {
         }
 
         // Filters
-        if (country && country !== 'all') query.country = { $regex: country, $options: 'i' };
-        if (mouStatus && mouStatus !== 'all') query.mouStatus = mouStatus;
-        if (agreementType && agreementType !== 'all') query.agreementType = agreementType;
+        if (country && country !== 'all') query.country = { $regex: escapeRegex(country), $options: 'i' };
+        // mouStatus/agreementType: case-insensitive exact match so legacy casing and
+        // the case-insensitive-deduped option lists on the client always agree.
+        if (mouStatus && mouStatus !== 'all') query.mouStatus = { $regex: `^${escapeRegex(mouStatus)}$`, $options: 'i' };
+        if (agreementType && agreementType !== 'all') query.agreementType = { $regex: `^${escapeRegex(agreementType)}$`, $options: 'i' };
 
         // recordStatus (active/expired)
         if (recordStatus && recordStatus !== 'all') {
@@ -46,9 +48,12 @@ export const getAll = async (req, res) => {
         const skip = (page - 1) * parseInt(limit);
         const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
 
-        // Execute query
+        // Execute query. createdBy/updatedBy are populated so My Requests can
+        // match a user's own pending items by email (getAll feeds that page).
         const [partners, total] = await Promise.all([
             Partner.find(query)
+                .populate('createdBy', 'name email')
+                .populate('updatedBy', 'name email')
                 .sort(sort)
                 .skip(skip)
                 .limit(parseInt(limit)),
