@@ -6,6 +6,8 @@ const DigitalMediaView = ({ data }) => {
     const channelDistribution = data.channelDistribution || [];
     const totalPosts = data.total || 0;
     const channels = data.channels || 0;
+    // No this/last-month records → the derived 0% growth is "no baseline", not flat.
+    const noBaseline = data.trend && data.trend.thisMonth === 0 && data.trend.lastMonth === 0;
 
     // Colors for pie chart
     const COLORS = [
@@ -61,10 +63,10 @@ const DigitalMediaView = ({ data }) => {
                         <div className="flex items-center justify-between">
                             <Calendar className="w-8 h-8 text-accent" />
                             <div className="stat-value text-accent text-2xl">
-                                {data.trend?.percentage >= 0 ? '+' : ''}{data.trend?.percentage || 0}%
+                                {noBaseline ? '0' : `${data.trend?.percentage >= 0 ? '+' : ''}${data.trend?.percentage || 0}%`}
                             </div>
                         </div>
-                        <div className="stat-title mt-2">Growth Rate</div>
+                        <div className="stat-title mt-2">{noBaseline ? 'This Month' : 'Growth Rate'}</div>
                     </div>
                 </motion.div>
 
@@ -239,8 +241,9 @@ const DigitalMediaView = ({ data }) => {
                             </p>
                         )}
                         <p className="text-sm">
-                            <strong>Growth Trend:</strong> {data.trend?.change >= 0 ? 'Positive' : 'Negative'} with{' '}
-                            {data.trend?.change >= 0 ? '+' : ''}{data.trend?.change || 0} posts this month
+                            <strong>Growth Trend:</strong> {noBaseline
+                                ? 'No posts in the last 2 months'
+                                : `${data.trend?.change >= 0 ? 'Positive' : 'Negative'} with ${data.trend?.change >= 0 ? '+' : ''}${data.trend?.change || 0} posts this month`}
                         </p>
                     </div>
                 </div>

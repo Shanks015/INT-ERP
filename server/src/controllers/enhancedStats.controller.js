@@ -136,7 +136,12 @@ export const getEnhancedStats = (Model) => async (req, res) => {
         stats.trend = {
             change,
             percentage: parseFloat(percentage),
-            direction: change > 0 ? 'up' : change < 0 ? 'down' : 'stable'
+            direction: change > 0 ? 'up' : change < 0 ? 'down' : 'stable',
+            // Raw window counts so the UI can tell a real flat comparison from
+            // "no records in either window" (bulk-imported datasets read 0 (0%)
+            // until there is actual this-month activity).
+            thisMonth: thisMonthCount,
+            lastMonth: lastMonthCount
         };
 
         // Module-specific stats

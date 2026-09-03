@@ -5,6 +5,12 @@ const TrendChart = ({ data }) => {
     // Check if we have real trend data from backend
     const hasTrendData = data.trendData && Array.isArray(data.trendData) && data.trendData.length > 0;
 
+    // Bulk-imported modules have no this/last-month records, so the derived 0%
+    // growth is "no baseline" rather than a real flat month.
+    const noBaseline = data.trend && data.trend.thisMonth === 0 && data.trend.lastMonth === 0;
+    const pct = data.trend?.percentage || 0;
+    const change = data.trend?.change || 0;
+
     // If no real trend data, show informative message
     if (!hasTrendData) {
         return (
@@ -19,17 +25,19 @@ const TrendChart = ({ data }) => {
                         <div className="text-6xl mb-4">📊</div>
                         <h4 className="text-lg font-semibold mb-2">Trend Data Coming Soon</h4>
                         <p className="text-base-content/60 max-w-md">
-                            Historical trend data will be available once you have activity over multiple months.
-                            Currently showing growth rate: <span className="font-bold text-primary">{data.trend?.percentage || 0}%</span>
+                            {noBaseline
+                                ? 'Historical trend data will appear once records span multiple months. No activity was recorded this month or last.'
+                                : `Historical trend data will be available once you have activity over multiple months. Currently showing growth rate: `}
+                            {!noBaseline && <span className="font-bold text-primary">{pct}%</span>}
                         </p>
                         <div className="stats shadow mt-4">
                             <div className="stat place-items-center">
-                                <div className="stat-title">Current Month Growth</div>
-                                <div className={`stat-value text-2xl ${(data.trend?.percentage || 0) >= 0 ? 'text-success' : 'text-error'}`}>
-                                    {(data.trend?.percentage || 0) >= 0 ? '+' : ''}{data.trend?.percentage || 0}%
+                                <div className="stat-title">{noBaseline ? 'This Month' : 'Current Month Growth'}</div>
+                                <div className={`stat-value text-2xl ${pct >= 0 ? 'text-success' : 'text-error'}`}>
+                                    {noBaseline ? '0' : `${pct >= 0 ? '+' : ''}${pct}%`}
                                 </div>
                                 <div className="stat-desc">
-                                    {data.trend?.change >= 0 ? '+' : ''}{data.trend?.change || 0} from last month
+                                    {noBaseline ? 'no records in the last 2 months' : `${change >= 0 ? '+' : ''}${change} from last month`}
                                 </div>
                             </div>
                         </div>

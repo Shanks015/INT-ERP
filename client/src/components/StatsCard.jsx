@@ -46,15 +46,36 @@ const StatsCard = ({
                     <div className={`stat-value text-${color} text-xl sm:text-2xl md:text-3xl`}>{value || 0}</div>
                 )}
 
-                {trend && !loading && (
-                    <div className={`stat-desc flex items-center gap-1 ${trendColors[trend.direction]} flex-wrap`}>
-                        {trendIcons[trend.direction]}
-                        <span className="font-semibold text-xs sm:text-sm whitespace-nowrap">
-                            {trend.change > 0 ? '+' : ''}{trend.change} ({trend.percentage}%)
-                        </span>
-                        <span className="text-base-content/50 text-xs">{trendLabel}</span>
-                    </div>
-                )}
+                {trend && !loading && (() => {
+                    // A dataset backfilled by bulk import has nothing in this or last
+                    // month, so change/percentage are 0 — rendering "0 (0%) vs last
+                    // month" reads as a failed calculation rather than empty windows.
+                    // When both windows are empty, say so in absolute terms instead.
+                    const noBaseline = trend.thisMonth === 0 && trend.lastMonth === 0;
+                    const newBasis = /^new\b/i.test(trendLabel);
+                    return (
+                        <div className={`stat-desc flex items-center gap-1 ${trendColors[trend.direction]} flex-wrap`}>
+                            {trendIcons[trend.direction]}
+                            {noBaseline ? (
+                                <>
+                                    <span className="font-semibold text-xs sm:text-sm whitespace-nowrap">
+                                        {newBasis ? '0 new this month' : '0 this month'}
+                                    </span>
+                                    <span className="text-base-content/50 text-xs">
+                                        no {newBasis ? 'records added in' : 'activity in'} the last 2 months
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="font-semibold text-xs sm:text-sm whitespace-nowrap">
+                                        {trend.change > 0 ? '+' : ''}{trend.change} ({trend.percentage}%)
+                                    </span>
+                                    <span className="text-base-content/50 text-xs">{trendLabel}</span>
+                                </>
+                            )}
+                        </div>
+                    );
+                })()}
             </div>
         </div>
     );

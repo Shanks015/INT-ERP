@@ -3,6 +3,11 @@ import CountUp from 'react-countup';
 import { TrendingUp, TrendingDown, Users, Globe, CheckCircle, Activity } from 'lucide-react';
 
 const StatsOverview = ({ data }) => {
+    // Bulk-imported modules have no records this month or last, so the derived
+    // growth rate is 0% with no baseline to compare — present that as "no data"
+    // rather than a real 0% figure.
+    const growthNoBaseline = data.trend && data.trend.thisMonth === 0 && data.trend.lastMonth === 0;
+
     const quickStats = [
         {
             label: 'Total Records',
@@ -24,11 +29,12 @@ const StatsOverview = ({ data }) => {
             color: 'info'
         },
         {
-            label: 'Growth Rate',
-            value: data.trend?.percentage || 0,
+            label: growthNoBaseline ? 'No trend data' : 'Growth Rate',
+            value: growthNoBaseline ? 0 : (data.trend?.percentage || 0),
             icon: Activity,
             color: 'secondary',
-            suffix: '%'
+            suffix: growthNoBaseline ? '' : '%',
+            noBaseline: growthNoBaseline
         }
     ];
 
@@ -56,21 +62,25 @@ const StatsOverview = ({ data }) => {
                             <div className="card-body p-4">
                                 <div className="flex items-center justify-between">
                                     <Icon className={`w-8 h-8 text-${stat.color}`} />
-                                    {stat.change !== undefined && (
+                                    {!growthNoBaseline && stat.change !== undefined && (
                                         isPositive ?
                                             <TrendingUp className="w-5 h-5 text-success" /> :
                                             <TrendingDown className="w-5 h-5 text-error" />
                                     )}
                                 </div>
                                 <div className="mt-2">
-                                    <div className={`text-3xl font-bold text-${stat.color}`}>
-                                        <CountUp
-                                            end={stat.value}
-                                            duration={1.5}
-                                            separator=","
-                                            suffix={stat.suffix || ''}
-                                        />
-                                    </div>
+                                    {stat.noBaseline ? (
+                                        <div className={`text-3xl font-bold text-${stat.color}`}>—</div>
+                                    ) : (
+                                        <div className={`text-3xl font-bold text-${stat.color}`}>
+                                            <CountUp
+                                                end={stat.value}
+                                                duration={1.5}
+                                                separator=","
+                                                suffix={stat.suffix || ''}
+                                            />
+                                        </div>
+                                    )}
                                     <div className="text-sm text-base-content/70 mt-1">
                                         {stat.label}
                                     </div>
