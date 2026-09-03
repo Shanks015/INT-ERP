@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import { AlertCircle, Clock, CheckCircle, FileText, ArrowRight, Building2 } from 'lucide-react';
+import { toDDMMM } from '../../utils/dateFormat';
 
 const ActivePartnerView = ({ data }) => {
     // Colors for different statuses
@@ -372,7 +373,7 @@ const ActivePartnerView = ({ data }) => {
                                                     </td>
                                                     <td>
                                                         <span className={`badge badge-sm ${isCritical ? 'badge-error text-white' : 'badge-warning'}`}>
-                                                            {new Date(partner.expiringDate).toLocaleDateString()}
+                                                            {toDDMMM(partner.expiringDate)}
                                                             <span className="opacity-70 ml-1">({daysLeft} days)</span>
                                                         </span>
                                                     </td>

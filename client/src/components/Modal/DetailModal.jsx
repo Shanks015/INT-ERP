@@ -13,7 +13,15 @@ import {
     ShieldCheck,
     Paperclip
 } from 'lucide-react';
-import { formatDate } from '../../utils/dateFormat';
+import { formatDate, toDDMMM } from '../../utils/dateFormat';
+
+// Timestamp render for outreach reply meta: canonical dd/MMM/yyyy date + the
+// time-of-day part of the localized string (e.g. "03/Sep/2026, 09:41:00").
+const formatDateTime = (value) => {
+    const dt = new Date(value);
+    if (isNaN(dt.getTime())) return value;
+    return `${toDDMMM(dt)}, ${dt.toLocaleString('en-IN').split(', ').slice(1).join(', ')}`;
+};
 
 
 const DetailModal = ({ isOpen, onClose, data, title, fields }) => {
@@ -85,14 +93,7 @@ const DetailModal = ({ isOpen, onClose, data, title, fields }) => {
             return (
                 <div className="space-y-4 w-full">
                     {value.map((reply, idx) => {
-                        const dateStr = new Date(reply.detectedAt).toLocaleString(undefined, {
-                            weekday: 'short',
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
+                        const dateStr = formatDateTime(reply.detectedAt);
 
                         const imageAttachments = reply.attachments ? reply.attachments.filter(att => att.contentType?.startsWith('image/')) : [];
                         const otherAttachments = reply.attachments ? reply.attachments.filter(att => !att.contentType?.startsWith('image/')) : [];
@@ -142,7 +143,7 @@ const DetailModal = ({ isOpen, onClose, data, title, fields }) => {
                                         <div className="flex items-center gap-1.5">
                                             <ShieldCheck size={12} className="text-base-content/40" />
                                             <span className="font-semibold text-base-content/85">Reviewed At:</span>
-                                            <span>{new Date(reply.reviewedAt).toLocaleString()}</span>
+                                            <span>{formatDateTime(reply.reviewedAt)}</span>
                                         </div>
                                     )}
                                     {reply.messageId && (
@@ -288,12 +289,8 @@ const DetailModal = ({ isOpen, onClose, data, title, fields }) => {
                     const formatted = formatDate(value, field.format);
                     return formatted || value;
                 }
-                return new Date(value).toLocaleDateString(undefined, {
-                    weekday: 'short',
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
+                // Canonical dd/MMM/yyyy (the project standard for every module)
+                return toDDMMM(value) || value;
             } catch (e) {
                 return value;
             }

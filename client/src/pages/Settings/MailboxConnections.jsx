@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { PlusCircle, Trash2, RefreshCw, WifiOff, Wifi, Eye, EyeOff, X } from 'lucide-react';
+import { toDDMMM } from '../../utils/dateFormat';
 
 const statusBadge = { active: 'badge-success', error: 'badge-error', disconnected: 'badge-neutral' };
 
@@ -90,6 +91,14 @@ const MailboxConnections = () => {
         }));
     };
 
+    const formatLastSync = (lastSyncAt) => {
+        if (!lastSyncAt) return 'Never';
+        const dt = new Date(lastSyncAt);
+        if (isNaN(dt.getTime())) return 'Never';
+        const timeParts = dt.toLocaleString('en-IN').split(', ').slice(1).join(', ');
+        return `${toDDMMM(dt)}, ${timeParts}`;
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -125,7 +134,7 @@ const MailboxConnections = () => {
                                         </div>
                                         <p className="text-sm text-base-content/70 truncate">{c.emailAddress}</p>
                                         <div className="mt-2 space-y-0.5 text-xs text-base-content/50">
-                                            <p>Last synced: {c.lastSyncAt ? new Date(c.lastSyncAt).toLocaleString('en-IN') : 'Never'}</p>
+                                            <p>Last synced: {formatLastSync(c.lastSyncAt)}</p>
                                             <p>Total replies matched: <span className="font-semibold text-base-content">{c.totalMatched}</span></p>
                                             {c.lastError && <p className="text-error truncate" title={c.lastError}>⚠ {c.lastError}</p>}
                                         </div>

@@ -4,6 +4,7 @@ import api from '../../api';
 import toast from 'react-hot-toast';
 import { Users, Check, X, Clock, UserCheck, UserX, Edit, Trash2, Plus, Shield, Search } from 'lucide-react';
 import { PERMISSION_MODULES } from '../../constants/modules';
+import { toDDMMM } from '../../utils/dateFormat';
 
 const ALL_MODULES = PERMISSION_MODULES;
 
@@ -357,7 +358,7 @@ const UserManagement = () => {
                                                     )}
                                                 </td>
                                                 <td>{getStatusBadge(u.approvalStatus)}</td>
-                                                <td className="text-xs">{new Date(u.createdAt).toLocaleDateString()}</td>
+                                                <td className="text-xs">{toDDMMM(u.createdAt)}</td>
                                                 <td>
                                                     <div className="flex gap-2 justify-end">
                                                         {u.approvalStatus === 'pending' && (

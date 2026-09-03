@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { Tag, Calendar, Users, Building2, TrendingUp } from 'lucide-react';
+import { toDDMMM } from '../../utils/dateFormat';
 
 const EventTypeInsightsView = ({ data }) => {
     const COLORS = {
@@ -216,7 +217,7 @@ const EventTypeInsightsView = ({ data }) => {
                                         </td>
                                         <td>{event.department || '-'}</td>
                                         <td>{event.universityCountry || '-'}</td>
-                                        <td>{new Date(event.date).toLocaleDateString()}</td>
+                                        <td>{toDDMMM(event.date)}</td>
                                     </tr>
                                 ))}
                             </tbody>

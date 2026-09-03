@@ -1,5 +1,3 @@
-import { useAuth } from '../context/AuthContext';
-
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const MONTH_MAP = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
 
@@ -51,8 +49,8 @@ export const formatDate = (date, formatOverride = null) => {
     const dateObj = asDate(date);
     if (isNaN(dateObj.getTime())) return '';
 
-    // Get format from override or default to MM/DD/YYYY
-    const format = formatOverride || 'MM/DD/YYYY';
+    // Get format from override or default to the project's canonical DD/MMM/YYYY
+    const format = formatOverride || 'DD/MMM/YYYY';
 
     const day = String(dateObj.getDate()).padStart(2, '0');
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -72,11 +70,11 @@ export const formatDate = (date, formatOverride = null) => {
 };
 
 /**
- * Hook to get formatDate function with user's preference
+ * Hook returning a date formatter pinned to the project's canonical dd/MMM/yyyy
+ * format (e.g. 02/Sep/2026). Every list/table date renders the same way for
+ * every user regardless of any stored preference, matching the modules that
+ * call toDDMMM directly.
  */
 export const useDateFormat = () => {
-    const { user } = useAuth();
-    const userFormat = user?.preferences?.dateFormat || 'MM/DD/YYYY';
-
-    return (date) => formatDate(date, userFormat);
+    return (date) => formatDate(date, 'DD/MMM/YYYY');
 };

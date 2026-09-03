@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Lock, Eye, EyeOff, CheckCircle, XCircle, Save } from 'lucide-react';
+import { toDDMMM } from '../../utils/dateFormat';
 
 const SecurityTab = () => {
     const [loading, setLoading] = useState(false);
@@ -107,7 +108,7 @@ const SecurityTab = () => {
                 <div className="alert alert-info">
                     <Lock size={20} />
                     <span>
-                        Last password change: {new Date(lastPasswordChange).toLocaleDateString()}
+                        Last password change: {toDDMMM(lastPasswordChange)}
                     </span>
                 </div>
             )}

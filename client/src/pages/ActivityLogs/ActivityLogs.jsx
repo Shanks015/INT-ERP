@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Activity, Download, Search, X, TrendingUp, Users, Package, Calendar } from 'lucide-react';
+import { toDDMMM } from '../../utils/dateFormat';
 
 const ActivityLogs = () => {
     const { user } = useAuth();
@@ -141,7 +142,7 @@ const ActivityLogs = () => {
         if (minutes < 60) return `${minutes}m ago`;
         if (hours < 24) return `${hours}h ago`;
         if (days < 7) return `${days}d ago`;
-        return date.toLocaleDateString();
+        return toDDMMM(date);
     };
 
     return (

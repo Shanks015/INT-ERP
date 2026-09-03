@@ -8,6 +8,7 @@ import { Plus, Edit, Trash2, Download, Upload, Mail, Eye, Send, Paperclip, Check
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import Pagination from '../../components/Pagination';
+import { toDDMMM } from '../../utils/dateFormat';
 
 const STATUS_BADGES = {
     'Not Sent': 'badge-neutral',
@@ -181,11 +182,15 @@ const EmailThreadModal = ({ isOpen, onClose, recordId, onRefreshList }) => {
                                 ) : (
                                     record.emails.map((mail, idx) => {
                                         const isSent = mail.direction === 'sent';
+                                        const dt = new Date(mail.sentAt);
+                                        const sentStamp = isNaN(dt.getTime())
+                                            ? ''
+                                            : `(${toDDMMM(dt)}, ${dt.toLocaleString('en-IN').split(', ').slice(1).join(', ')})`;
                                         return (
                                             <div key={idx} className={`chat ${isSent ? 'chat-end' : 'chat-start'}`}>
                                                 <div className="chat-header text-xs text-base-content/50 mb-1 flex items-center gap-1.5">
                                                     <span className="font-bold text-base-content">{isSent ? (mail.sentByName || 'Me') : record.university}</span>
-                                                    <span>({new Date(mail.sentAt).toLocaleString('en-IN')})</span>
+                                                    <span>{sentStamp}</span>
                                                 </div>
                                                 <div className={`chat-bubble text-sm max-w-[85%] border shadow-sm ${
                                                     isSent 
@@ -623,7 +628,7 @@ const OutreachNewList = () => {
                                         </td>
                                         <td className="text-xs text-base-content/60">
                                             {item.emails && item.emails.length > 0 
-                                                ? new Date(item.emails[item.emails.length - 1].sentAt).toLocaleDateString('en-IN')
+                                                ? toDDMMM(item.emails[item.emails.length - 1].sentAt)
                                                 : 'No communication yet'}
                                         </td>
                                         <td>

@@ -4,6 +4,7 @@ import api from '../../api';
 import toast from 'react-hot-toast';
 import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { APPROVAL_MODULES } from '../../constants/modules';
+import { toDDMMM } from '../../utils/dateFormat';
 
 const MyRequests = () => {
     const { user } = useAuth();
@@ -134,7 +135,7 @@ const MyRequests = () => {
                                                 {request.status === 'pending_delete' && 'Delete Request'}
                                             </td>
                                             <td>{getStatusBadge(request.status)}</td>
-                                            <td>{new Date(request.updatedAt).toLocaleDateString()}</td>
+                                            <td>{toDDMMM(request.updatedAt)}</td>
                                         </tr>
                                     ))}
                                 </tbody>

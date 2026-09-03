@@ -9,6 +9,7 @@ import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
 import SmartStatsCard from '../../components/SmartStatsCard';
+import { toDDMMM } from '../../utils/dateFormat';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
@@ -96,7 +97,7 @@ const ReviewQueueModal = ({ isOpen, onClose, onRefresh }) => {
                                             <p className="text-sm text-base-content/60">
                                                 <span className="font-medium">Detected in:</span> {item.replyDetectedIn?.name || 'N/A'}'s inbox
                                                 {' · '}
-                                                {item.replyDetectedAt ? new Date(item.replyDetectedAt).toLocaleDateString('en-IN') : 'N/A'}
+                                                {item.replyDetectedAt ? toDDMMM(item.replyDetectedAt) : 'N/A'}
                                             </p>
                                             <p className="text-sm text-base-content/60">
                                                 <span className="font-medium">Sent by:</span> {item.sentByEmployee?.name || item.createdBy?.name || 'N/A'}
@@ -168,7 +169,7 @@ const ReminderHistoryModal = ({ item, onClose }) => {
                                     <span className={`badge badge-sm ml-2 ${r.triggerType === 'manual' ? 'badge-warning' : 'badge-info'}`}>{r.triggerType}</span>
                                 </div>
                                 <div className="text-right text-sm">
-                                    <p>{new Date(r.sentAt).toLocaleDateString('en-IN')}</p>
+                                    <p>{toDDMMM(r.sentAt)}</p>
                                     <p className={r.success ? 'text-success' : 'text-error'}>{r.success ? '✅ Sent' : '❌ Failed'}</p>
                                 </div>
                             </div>
@@ -368,7 +369,7 @@ const OutreachList = () => {
                                             <td className="text-xs">
                                                 {item.replyDetectedAt ? (
                                                     <div>
-                                                        <div className="text-success font-medium">{new Date(item.replyDetectedAt).toLocaleDateString('en-IN')}</div>
+                                                        <div className="text-success font-medium">{toDDMMM(item.replyDetectedAt)}</div>
                                                         <div className="text-base-content/50 truncate max-w-[120px]" title={item.replySubject}>{item.replySubject}</div>
                                                     </div>
                                                 ) : <span className="text-base-content/40">N/A</span>}
