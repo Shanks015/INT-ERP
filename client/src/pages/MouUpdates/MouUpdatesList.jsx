@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useDateFormat } from '../../utils/dateFormat';
+import { statusBadgeClass } from '../../utils/statusBadge';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
@@ -11,7 +12,6 @@ import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
 import SmartStatsCard from '../../components/SmartStatsCard';
-import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
 const MouUpdatesList = () => {
@@ -148,7 +148,7 @@ const MouUpdatesList = () => {
                             <X size={16} /> Clear All
                         </button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                         {/* Search */}
                         <div className="form-control">
                             <label className="label"><span className="label-text">Search</span></label>
@@ -187,6 +187,19 @@ const MouUpdatesList = () => {
                             >
                                 <option value="">All Types</option>
                                 {agreementTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                            </select>
+                        </div>
+
+                        {/* Mou Status */}
+                        <div className="form-control">
+                            <label className="label"><span className="label-text">MoU Status</span></label>
+                            <select
+                                className="select select-bordered w-full"
+                                value={filters.mouStatus || ''}
+                                onChange={(e) => handleFilterChange({ mouStatus: e.target.value })}
+                            >
+                                <option value="">All Mou Statuses</option>
+                                {mouStatuses.map(status => <option key={status} value={status}>{status}</option>)}
                             </select>
                         </div>
 
@@ -238,7 +251,7 @@ const MouUpdatesList = () => {
                                         <td>{update.term || '-'}</td>
                                         <td>
                                             {update.validityStatus ? (
-                                                <span className={`badge badge-sm ${update.validityStatus === 'Active' ? 'badge-success' : 'badge-neutral'}`}>
+                                                <span className={`badge badge-sm ${statusBadgeClass(update.validityStatus)} whitespace-nowrap`}>
                                                     {update.validityStatus}
                                                 </span>
                                             ) : '-'}

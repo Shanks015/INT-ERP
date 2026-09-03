@@ -6,10 +6,18 @@
 // before any generic fallback. Matching is case-insensitive and substring-based.
 
 const RULES = [
+    // opted out / no longer live (soft — not an error)
+    { re: /^inactive$/i, cls: 'badge-neutral' },
+    // past its validity / already lapsed
+    { re: /^expired$/i, cls: 'badge-error' },
+    // still live but nearing its end
+    { re: /expiring soon/i, cls: 'badge-warning' },
+    // currently valid / live right now
+    { re: /^active$/i, cls: 'badge-success' },
     // happened / done
     { re: /complet|done|finished/i, cls: 'badge-success' },
-    // happening now
-    { re: /in progress|on ?going|ongoing|active/i, cls: 'badge-info' },
+    // happening now (also camelCase forms: InProgress / InProcess)
+    { re: /in\s?progress|in\s?process|on ?going|ongoing/i, cls: 'badge-info' },
     // scheduled but not started
     { re: /upcoming|pending|planned|scheduled|confirmed|tentative|booked/i, cls: 'badge-warning' },
     // did not / will not happen

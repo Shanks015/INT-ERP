@@ -27,14 +27,12 @@ const MouSigningCeremoniesList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', country: '', agreementType: '', startDate: '', endDate: '', recordStatus: '' });
+    const [filters, setFilters] = useState({ search: '', startDate: '', endDate: '', recordStatus: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
 
-    const [countries, setCountries] = useState([]);
-    const [agreementTypes, setAgreementTypes] = useState([]);
-    useEffect(() => { fetchCeremonies(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.agreementType, filters.startDate, filters.endDate, filters.recordStatus]);
+    useEffect(() => { fetchCeremonies(); fetchStats(); }, [currentPage, itemsPerPage, debouncedSearch, filters.startDate, filters.endDate, filters.recordStatus]);
 
     const fetchStats = async () => {
         try {
@@ -45,21 +43,10 @@ const MouSigningCeremoniesList = () => {
         finally { setStatsLoading(false); }
     };
 
-    const fetchFilterData = async () => {
-        try {
-            const response = await api.get('/mou-signing-ceremonies', { params: { limit: 1000 } });
-            const ceremonies = response.data.data || [];
-            const uniqueCountries = [...new Set(ceremonies.map(c => c.country).filter(Boolean))].sort();
-            setCountries(uniqueCountries);
-            const uniqueTypes = [...new Set(ceremonies.map(c => c.agreementType).filter(Boolean))].sort();
-            setAgreementTypes(uniqueTypes);
-        } catch (error) { console.error('Error fetching filter data:', error); }
-    };
-
     const fetchCeremonies = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, country: filters.country, agreementType: filters.agreementType, startDate: filters.startDate, endDate: filters.endDate, recordStatus: filters.recordStatus };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, startDate: filters.startDate, endDate: filters.endDate, recordStatus: filters.recordStatus };
             const response = await api.get('/mou-signing-ceremonies', { params });
             setCeremonies(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -92,7 +79,7 @@ const MouSigningCeremoniesList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', country: '', agreementType: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
@@ -114,7 +101,6 @@ const MouSigningCeremoniesList = () => {
                 filters={filters}
                 onFilterChange={handleFilterChange}
                 onClearFilters={handleClearFilters}
-                agreementTypes={agreementTypes}
             />
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">

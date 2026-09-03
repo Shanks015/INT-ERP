@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useDateFormat } from '../../utils/dateFormat';
+import { statusBadgeClass } from '../../utils/statusBadge';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
@@ -11,7 +12,6 @@ import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
 import SmartStatsCard from '../../components/SmartStatsCard';
-import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
 const PartnersList = () => {
@@ -347,6 +347,7 @@ const PartnersList = () => {
                                     <th>Email</th>
                                     <th>Signing Date</th>
                                     <th>Expiry Date</th>
+                                    <th>MoU Status</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -380,8 +381,15 @@ const PartnersList = () => {
                                             <td>{partner.signingDate ? formatDate(partner.signingDate) : '-'}</td>
                                             <td>{partner.expiringDate ? formatDate(partner.expiringDate) : '-'}</td>
                                             <td>
+                                                {partner.mouStatus ? (
+                                                    <span className={`badge badge-sm ${statusBadgeClass(partner.mouStatus)} whitespace-nowrap`}>
+                                                        {partner.mouStatus}
+                                                    </span>
+                                                ) : '-'}
+                                            </td>
+                                            <td>
                                                 {partner.activeStatus ? (
-                                                    <span className={`badge badge-sm ${partner.activeStatus === 'Active' ? 'badge-success' : 'badge-neutral'}`}>
+                                                    <span className={`badge badge-sm ${statusBadgeClass(partner.activeStatus)} whitespace-nowrap`}>
                                                         {partner.activeStatus}
                                                     </span>
                                                 ) : '-'}

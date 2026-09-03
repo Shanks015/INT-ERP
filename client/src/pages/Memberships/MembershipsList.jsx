@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useDateFormat } from '../../utils/dateFormat';
+import { statusBadgeClass } from '../../utils/statusBadge';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
@@ -28,14 +29,14 @@ const MembershipsList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', membershipType: '', country: '', startDate: '', endDate: '', recordStatus: '' });
+    const [filters, setFilters] = useState({ search: '', membershipStatus: '', country: '', startDate: '', endDate: '', recordStatus: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
 
-    const [membershipTypes, setMembershipTypes] = useState([]);
+    const [membershipStatuses, setMembershipStatuses] = useState([]);
     const [countries, setCountries] = useState([]);
-    useEffect(() => { fetchMemberships(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.membershipType, filters.country, filters.startDate, filters.endDate, filters.recordStatus]);
+    useEffect(() => { fetchMemberships(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.membershipStatus, filters.country, filters.startDate, filters.endDate, filters.recordStatus]);
 
     const fetchStats = async () => {
         try {
@@ -50,7 +51,7 @@ const MembershipsList = () => {
         try {
             const response = await api.get('/memberships', { params: { limit: 1000 } });
             const memberships = response.data.data || [];
-            setMembershipTypes(getCaseInsensitiveUnique(memberships, 'membershipType'));
+            setMembershipStatuses(getCaseInsensitiveUnique(memberships, 'membershipStatus'));
             setCountries([...new Set(memberships.map(m => m.country).filter(Boolean))].sort());
         } catch (error) { console.error('Error fetching filter data:', error); }
     };
@@ -58,7 +59,7 @@ const MembershipsList = () => {
     const fetchMemberships = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, membershipType: filters.membershipType, country: filters.country, startDate: filters.startDate, endDate: filters.endDate, recordStatus: filters.recordStatus };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, membershipStatus: filters.membershipStatus, country: filters.country, startDate: filters.startDate, endDate: filters.endDate, recordStatus: filters.recordStatus };
             const response = await api.get('/memberships', { params });
             setMemberships(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -91,7 +92,7 @@ const MembershipsList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', membershipType: '', country: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', membershipStatus: '', country: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
@@ -115,24 +116,25 @@ const MembershipsList = () => {
                 onFilterChange={handleFilterChange}
                 onClearFilters={handleClearFilters}
                 showCountryFilter={true}
-                membershipTypes={membershipTypes}
                 countries={countries}
+                selectFilters={[{ key: 'membershipStatus', label: 'Membership Status', options: membershipStatuses }]}
             />
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Name</th><th>Country</th><th>Type</th><th>Start Date</th><th>Expiry Date</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                            <thead><tr><th>Name</th><th>Country</th><th>Start Date</th><th>Expiry Date</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {memberships.length === 0 ? <tr><td colSpan={7} className="text-center py-8">No memberships found</td></tr> : memberships.map((membership) => (
+                                {memberships.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No memberships found</td></tr> : memberships.map((membership) => (
                                     <tr key={membership._id}>
                                         <td>{membership.name}</td>
                                         <td>{membership.country || '-'}</td>
-                                        <td>{membership.membershipStatus || '-'}</td>
                                         <td>{membership.startDate ? formatDate(membership.startDate) : '-'}</td>
                                         <td>{membership.endDate ? formatDate(membership.endDate) : '-'}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
+                                                {/* Membership Status */}
+                                                {membership.membershipStatus && <span className={`badge badge-sm ${statusBadgeClass(membership.membershipStatus)} whitespace-nowrap`}>{membership.membershipStatus}</span>}
                                                 {/* Record Status Badge */}
                                                 {membership.recordStatus === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
                                                 {membership.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}

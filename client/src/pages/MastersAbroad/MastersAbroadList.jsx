@@ -25,16 +25,14 @@ const MastersAbroadList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', country: '', university: '', courseType: '', startDate: '', endDate: '', recordStatus: '' });
+    const [filters, setFilters] = useState({ search: '', country: '', recordStatus: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
 
     const [countries, setCountries] = useState([]);
-    const [universities, setUniversities] = useState([]);
-    const [courseTypes, setCourseTypes] = useState([]);
 
-    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.university, filters.courseType, filters.startDate, filters.endDate, filters.recordStatus]);
+    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.recordStatus]);
 
     const fetchStats = async () => {
         try {
@@ -45,35 +43,18 @@ const MastersAbroadList = () => {
         finally { setStatsLoading(false); }
     };
 
-    // Helper function for case-insensitive unique values
-    const getCaseInsensitiveUnique = (array, key) => {
-        const seen = new Map();
-        array.forEach(item => {
-            const value = item[key];
-            if (value) {
-                const lowerValue = value.toLowerCase();
-                if (!seen.has(lowerValue)) {
-                    seen.set(lowerValue, value);
-                }
-            }
-        });
-        return Array.from(seen.values()).sort();
-    };
-
     const fetchFilterData = async () => {
         try {
             const response = await api.get('/masters-abroad', { params: { limit: 1000 } });
             const masters = response.data.data || [];
             setCountries([...new Set(masters.map(m => m.country).filter(Boolean))].sort());
-            setUniversities([...new Set(masters.map(m => m.university).filter(Boolean))].sort());
-            setCourseTypes(getCaseInsensitiveUnique(masters, 'courseType'));
         } catch (error) { console.error('Error fetching filter data:', error); }
     };
 
     const fetchPrograms = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, country: filters.country, university: filters.university, courseType: filters.courseType, startDate: filters.startDate, endDate: filters.endDate, recordStatus: filters.recordStatus };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, country: filters.country, recordStatus: filters.recordStatus };
             const response = await api.get('/masters-abroad', { params });
             setPrograms(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -106,7 +87,7 @@ const MastersAbroadList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', country: '', university: '', courseType: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', country: '', recordStatus: '' }); setCurrentPage(1); };
 
     if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
 
@@ -130,9 +111,8 @@ const MastersAbroadList = () => {
                 onFilterChange={handleFilterChange}
                 onClearFilters={handleClearFilters}
                 showCountryFilter={true}
+                showDateFilter={false}
                 countries={countries}
-                universities={universities}
-                courseTypes={courseTypes}
             />
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
