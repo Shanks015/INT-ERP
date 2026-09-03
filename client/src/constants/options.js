@@ -17,6 +17,109 @@ export const SCHOLAR_CAMPUSES = [
     'Harohalli'
 ];
 
+// Human status / type vocabularies for the one-by-one Add forms.
+// Values mirror what the modules actually store (audit_snapshot.json) and what the
+// list-page filters show, so manual entries match imports and filter buckets.
+// If a record holds a value outside a list (legacy data), the UI appends it as a
+// one-off option on edit rather than blanking it.
+
+export const SCHOLAR_STATUSES = [
+    'Completed',
+    'Upcoming',
+    'In Progress',
+    'Not Coming',
+    'Canceled'
+];
+
+export const EXCHANGE_STATUSES = [
+    'Completed',
+    'Pending',
+    'On Going',
+    'Cancelled',
+    'Withdrawn',
+    'Opted Out'
+];
+
+export const PROGRAM_STATUSES = [
+    'Completed',
+    'In Progress',
+    'Planning',
+    'Cancelled'
+];
+
+export const MEMBERSHIP_STATUSES = [
+    'Completed',
+    'Active',
+    'In Process'
+];
+
+export const MOU_UPDATE_STATUSES = [
+    'Completed',
+    'In Process'
+];
+
+export const MOU_VALIDITY_STATUSES = [
+    'Active',
+    'Expiring Soon',
+    'Expired'
+];
+
+export const ACTIVE_STATUSES = [
+    'Active',
+    'Inactive'
+];
+
+// Data already stores Completed/InProgress (Partners filter badges). Broader lifecycle
+// options are offered for new entries; the Partners filter picks them up dynamically
+// once records carry them.
+export const PARTNER_MOU_STATUS = [
+    'Completed',
+    'InProgress',
+    'Draft',
+    'Signed',
+    'Expired',
+    'Renewed'
+];
+
+export const CEREMONY_TYPES = [
+    'In-Person',
+    'Virtual',
+    'Hybrid'
+];
+
+export const MEDIA_CHANNELS = [
+    'LinkedIn',
+    'News Portal',
+    'Newspaper',
+    'Magazine',
+    'TV',
+    'Radio'
+];
+
+export const MEETING_TIMEZONES = [
+    'IST', 'GMT', 'EST', 'EDT', 'CST', 'PST', 'PDT',
+    'AEST', 'SGT', 'GST', 'CET'
+];
+
+export const AGREEMENT_TYPES = [
+    'MoU',
+    'MoA',
+    'Letter of Intent',
+    'Letter of Agreement'
+];
+
+export const MEMBERSHIP_DURATIONS = [
+    '1 Year',
+    '2 Years',
+    '3 Years',
+    '5 Years'
+];
+
+export const CURRENCIES = [
+    'USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD',
+    'SGD', 'AED', 'JPY', 'CNY', 'NZD', 'CHF'
+];
+
 export const COUNTRIES = [
     'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda',
     'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan',

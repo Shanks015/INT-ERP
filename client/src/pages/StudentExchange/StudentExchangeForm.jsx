@@ -4,6 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, ArrowRightLeft, User, Calendar } from 'lucide-react';
+import ScholarsDateField from '../../components/ScholarsDateField';
+import { EXCHANGE_STATUSES } from '../../constants/options';
+import { withCurrentOption } from '../../utils/optionUtils';
+import { dateToUTCISO } from '../../utils/dateFormat';
 
 const StudentExchangeForm = () => {
     const navigate = useNavigate();
@@ -19,8 +23,8 @@ const StudentExchangeForm = () => {
         semesterYear: '',
         exchangeStatus: '',
         usnNo: '',
-        fromDate: '',
-        toDate: '',
+        fromDate: null,
+        toDate: null,
         driveLink: '',
         notes: ''
     });
@@ -41,8 +45,8 @@ const StudentExchangeForm = () => {
                 semesterYear: item.semesterYear || '',
                 exchangeStatus: item.exchangeStatus || '',
                 usnNo: item.usnNo || '',
-                fromDate: item.fromDate ? new Date(item.fromDate).toISOString().split('T')[0] : '',
-                toDate: item.toDate ? new Date(item.toDate).toISOString().split('T')[0] : '',
+                fromDate: item.fromDate ? new Date(item.fromDate) : null,
+                toDate: item.toDate ? new Date(item.toDate) : null,
                 driveLink: item.driveLink || '',
                 notes: item.notes || ''
             });
@@ -56,15 +60,29 @@ const StudentExchangeForm = () => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+    const setDate = (key) => (value) => setFormData((prev) => ({ ...prev, [key]: value }));
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (formData.toDate && formData.fromDate && formData.toDate < formData.fromDate) {
+            toast.error('To Date cannot be before From Date');
+            return;
+        }
+
+        const payload = {
+            ...formData,
+            fromDate: formData.fromDate ? dateToUTCISO(formData.fromDate) : null,
+            toDate: formData.toDate ? dateToUTCISO(formData.toDate) : null
+        };
+
         setLoading(true);
         try {
             if (isEdit) {
-                await api.put(`/student-exchange/${id}`, formData);
+                await api.put(`/student-exchange/${id}`, payload);
                 toast.success(isAdmin ? 'Record updated successfully' : 'Update request submitted for approval');
             } else {
-                await api.post('/student-exchange', formData);
+                await api.post('/student-exchange', payload);
                 toast.success('Record created successfully');
             }
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -222,36 +240,27 @@ const StudentExchangeForm = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">From Date</span></label>
-                                        <input
-                                            type="date"
-                                            name="fromDate"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.fromDate}
-                                            onChange={handleChange}
-                                        />
+                                        <ScholarsDateField value={formData.fromDate} onChange={setDate('fromDate')} />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">To Date</span></label>
-                                        <input
-                                            type="date"
-                                            name="toDate"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.toDate}
-                                            onChange={handleChange}
-                                        />
+                                        <ScholarsDateField value={formData.toDate} onChange={setDate('toDate')} />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Exchange Status</span></label>
-                                        <input
-                                            type="text"
+                                        <select
                                             name="exchangeStatus"
-                                            placeholder="e.g. Completed, Ongoing"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            className="select select-bordered w-full focus:select-primary transition-all"
                                             value={formData.exchangeStatus}
                                             onChange={handleChange}
-                                        />
+                                        >
+                                            <option value="">Select Status</option>
+                                            {withCurrentOption(EXCHANGE_STATUSES, formData.exchangeStatus).map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                     <div className="form-control w-full md:col-span-3">

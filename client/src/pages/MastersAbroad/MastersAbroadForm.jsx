@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, User, GraduationCap } from 'lucide-react';
+import CountrySelect from '../../components/CountrySelect';
+import Combobox from '../../components/Combobox';
 
 const MastersAbroadForm = () => {
     const navigate = useNavigate();
@@ -14,14 +16,29 @@ const MastersAbroadForm = () => {
     const [formData, setFormData] = useState({ studentName: '', country: '', university: '', courseStudying: '', courseTenure: '', usnNumber: '', cgpa: '', schoolOfStudy: '', passportNumber: '', driveLink: '' });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
+    const [schoolOptions, setSchoolOptions] = useState([]);
 
-    useEffect(() => { if (isEdit) fetchItem(); }, [id]);
+    useEffect(() => {
+        if (isEdit) fetchItem();
+        fetchSchools();
+    }, [id]);
+
+    const fetchSchools = async () => {
+        try {
+            const response = await api.get('/masters-abroad', { params: { limit: 1000 } });
+            const records = response.data.data || [];
+            const unique = [...new Set(records.map(r => r.schoolOfStudy).filter(Boolean))].sort();
+            setSchoolOptions(unique);
+        } catch (error) {
+            console.error('Error fetching school of study options:', error);
+        }
+    };
 
     const fetchItem = async () => {
         try {
             const response = await api.get(`/masters-abroad/${id}`);
             const item = response.data.data;
-            setFormData({ studentName: item.studentName || '', country: item.country || '', university: item.university || '', courseStudying: item.courseStudying || '', courseTenure: item.courseTenure || '', usnNumber: item.usnNumber || '', cgpa: item.cgpa || '', schoolOfStudy: item.schoolOfStudy || '', passportNumber: item.passportNumber || '', driveLink: item.driveLink || '' });
+            setFormData({ studentName: item.studentName || '', country: item.country || '', university: item.university || '', courseStudying: item.courseStudying || '', courseTenure: item.courseTenure || '', usnNumber: item.usnNumber || '', cgpa: item.cgpa != null ? String(item.cgpa) : '', schoolOfStudy: item.schoolOfStudy || '', passportNumber: item.passportNumber || '', driveLink: item.driveLink || '' });
         } catch (error) {
             toast.error('Error fetching record');
             navigate('/masters-abroad');
@@ -34,13 +51,21 @@ const MastersAbroadForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const payload = {
+            ...formData,
+            cgpa: (formData.cgpa === '' || formData.cgpa == null)
+                ? null
+                : (Number.isFinite(Number(formData.cgpa)) ? Number(formData.cgpa) : formData.cgpa)
+        };
+
         setLoading(true);
         try {
             if (isEdit) {
-                await api.put(`/masters-abroad/${id}`, formData);
+                await api.put(`/masters-abroad/${id}`, payload);
                 toast.success(isAdmin ? 'Record updated successfully' : 'Update request submitted for approval');
             } else {
-                await api.post('/masters-abroad', formData);
+                await api.post('/masters-abroad', payload);
                 toast.success('Record created successfully');
             }
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -122,21 +147,26 @@ const MastersAbroadForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">School of Study</span></label>
-                                        <input
-                                            type="text"
-                                            name="schoolOfStudy"
+                                        <Combobox
+                                            options={schoolOptions}
+                                            value={formData.schoolOfStudy}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, schoolOfStudy: value }))}
                                             placeholder="e.g. Engineering, Sciences"
                                             className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.schoolOfStudy}
-                                            onChange={handleChange}
                                         />
+                                        <label className="label">
+                                            <span className="label-text-alt text-base-content/60">Select existing or type new</span>
+                                        </label>
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">CGPA</span></label>
                                         <input
-                                            type="text"
+                                            type="number"
                                             name="cgpa"
+                                            min="0"
+                                            max="10"
+                                            step="0.01"
                                             placeholder="e.g. 8.5"
                                             className="input input-bordered w-full focus:input-primary transition-all"
                                             value={formData.cgpa}
@@ -183,13 +213,9 @@ const MastersAbroadForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Country *</span></label>
-                                        <input
-                                            type="text"
-                                            name="country"
-                                            placeholder="Country"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                        <CountrySelect
                                             value={formData.country}
-                                            onChange={handleChange}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, country: value }))}
                                             required
                                         />
                                     </div>

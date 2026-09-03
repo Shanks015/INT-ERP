@@ -5,6 +5,8 @@ import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, MapPin, Calendar, FileText } from 'lucide-react';
 import ScholarsDateField from '../../components/ScholarsDateField';
+import CountrySelect from '../../components/CountrySelect';
+import { dateToUTCISO } from '../../utils/dateFormat';
 
 /**
  * Create/edit form shared by the three campus modules (Campus Visit,
@@ -82,7 +84,7 @@ const VisitForm = ({ config }) => {
         try {
             const payload = {
                 ...formData,
-                date: formData.date.toISOString(),
+                date: dateToUTCISO(formData.date),
                 type: showTypeSelect ? formData.type : config.typeDefault
             };
             if (isEdit) {
@@ -193,13 +195,9 @@ const VisitForm = ({ config }) => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Country *</span></label>
-                                        <input
-                                            type="text"
-                                            name="country"
-                                            placeholder="Country of origin"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                        <CountrySelect
                                             value={formData.country}
-                                            onChange={handleChange}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, country: value }))}
                                             required
                                         />
                                     </div>

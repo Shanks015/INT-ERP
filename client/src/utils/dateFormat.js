@@ -78,3 +78,16 @@ export const formatDate = (date, formatOverride = null) => {
 export const useDateFormat = () => {
     return (date) => formatDate(date, 'DD/MMM/YYYY');
 };
+
+/**
+ * Serialize a calendar date as UTC-midnight ISO (e.g. 02/Sep/2026 →
+ * "2026-09-02T00:00:00.000Z"). This is the same encoding the import pipeline uses,
+ * so rows created through the forms land inside the server's 00:00Z date-range
+ * filter bounds (local-midnight `.toISOString()` would store the prior day's 18:30Z).
+ * Returns null for null/invalid input.
+ */
+export const dateToUTCISO = (date) => {
+    const d = asDate(date);
+    if (!d || isNaN(d.getTime())) return null;
+    return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString();
+};

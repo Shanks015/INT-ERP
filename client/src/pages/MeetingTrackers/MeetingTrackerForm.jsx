@@ -4,6 +4,18 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, Calendar, Globe, Link as LinkIcon, Info, Users, FileText } from 'lucide-react';
+import ScholarsDateField from '../../components/ScholarsDateField';
+import Combobox from '../../components/Combobox';
+import { MEETING_TIMEZONES } from '../../constants/options';
+import { dateToUTCISO } from '../../utils/dateFormat';
+
+// sheetMonth is stored as the source sheet/month label (e.g. 'Sep 2026'); derive it
+// from the meeting date when the record has none yet.
+const SHEET_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const deriveSheetMonth = (date) => {
+    if (!date) return null;
+    return `${SHEET_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+};
 
 const MeetingTrackerForm = () => {
     const navigate = useNavigate();
@@ -14,7 +26,7 @@ const MeetingTrackerForm = () => {
     const [formData, setFormData] = useState({
         meetingId: '',
         meetingTitle: '',
-        date: '',
+        date: null,
         startTime: '',
         endTime: '',
         timezone: 'IST',
@@ -27,9 +39,10 @@ const MeetingTrackerForm = () => {
         keyAgenda: '',
         discussionSummary: '',
         actionItems: '',
-        nextMeetingDate: '',
+        nextMeetingDate: null,
         driveLink: '',
-        remarks: ''
+        remarks: '',
+        sheetMonth: ''
     });
     
     const [loading, setLoading] = useState(false);
@@ -46,7 +59,7 @@ const MeetingTrackerForm = () => {
             setFormData({
                 meetingId: meeting.meetingId || '',
                 meetingTitle: meeting.meetingTitle || '',
-                date: meeting.date ? new Date(meeting.date).toISOString().split('T')[0] : '',
+                date: meeting.date ? new Date(meeting.date) : null,
                 startTime: meeting.startTime || '',
                 endTime: meeting.endTime || '',
                 timezone: meeting.timezone || 'IST',
@@ -59,9 +72,10 @@ const MeetingTrackerForm = () => {
                 keyAgenda: meeting.keyAgenda || '',
                 discussionSummary: meeting.discussionSummary || '',
                 actionItems: meeting.actionItems || '',
-                nextMeetingDate: meeting.nextMeetingDate ? new Date(meeting.nextMeetingDate).toISOString().split('T')[0] : '',
+                nextMeetingDate: meeting.nextMeetingDate ? new Date(meeting.nextMeetingDate) : null,
                 driveLink: meeting.driveLink || '',
-                remarks: meeting.remarks || ''
+                remarks: meeting.remarks || '',
+                sheetMonth: meeting.sheetMonth || ''
             });
         } catch (error) {
             toast.error('Error fetching meeting record');
@@ -73,15 +87,35 @@ const MeetingTrackerForm = () => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+    const setDate = (key) => (value) => setFormData((prev) => ({ ...prev, [key]: value }));
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.date) {
+            toast.error('Date is required (dd/MMM/yyyy)');
+            return;
+        }
+
+        if (formData.nextMeetingDate && formData.date && formData.nextMeetingDate < formData.date) {
+            toast.error('Next Meeting Date cannot be before Meeting Date');
+            return;
+        }
+
+        const payload = {
+            ...formData,
+            date: dateToUTCISO(formData.date),
+            nextMeetingDate: formData.nextMeetingDate ? dateToUTCISO(formData.nextMeetingDate) : null,
+            sheetMonth: formData.sheetMonth || deriveSheetMonth(formData.date)
+        };
+
         setLoading(true);
         try {
             if (isEdit) {
-                await api.put(`/meeting-trackers/${id}`, formData);
+                await api.put(`/meeting-trackers/${id}`, payload);
                 toast.success(isAdmin ? 'Meeting record updated successfully' : 'Update request submitted for approval');
             } else {
-                await api.post('/meeting-trackers', formData);
+                await api.post('/meeting-trackers', payload);
                 toast.success('Meeting record created successfully');
             }
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -163,14 +197,7 @@ const MeetingTrackerForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Date *</span></label>
-                                        <input
-                                            type="date"
-                                            name="date"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.date}
-                                            onChange={handleChange}
-                                            required
-                                        />
+                                        <ScholarsDateField value={formData.date} onChange={setDate('date')} required />
                                     </div>
 
                                     <div className="form-control w-full">
@@ -199,13 +226,12 @@ const MeetingTrackerForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Time Zone</span></label>
-                                        <input
-                                            type="text"
-                                            name="timezone"
+                                        <Combobox
+                                            options={MEETING_TIMEZONES}
+                                            value={formData.timezone}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, timezone: value }))}
                                             placeholder="e.g. IST"
                                             className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.timezone}
-                                            onChange={handleChange}
                                         />
                                     </div>
                                 </div>
@@ -286,11 +312,11 @@ const MeetingTrackerForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Participants</span></label>
-                                        <input
-                                            type="text"
+                                        <textarea
                                             name="participants"
-                                            placeholder="External or internal participants list"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            placeholder="External or internal participants list (one per line)"
+                                            className="textarea textarea-bordered w-full focus:textarea-primary transition-all"
+                                            rows="2"
                                             value={formData.participants}
                                             onChange={handleChange}
                                         />
@@ -344,13 +370,7 @@ const MeetingTrackerForm = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="form-control w-full">
                                             <label className="label font-medium"><span className="label-text">Next Meeting Date</span></label>
-                                            <input
-                                                type="date"
-                                                name="nextMeetingDate"
-                                                className="input input-bordered w-full focus:input-primary transition-all"
-                                                value={formData.nextMeetingDate}
-                                                onChange={handleChange}
-                                            />
+                                            <ScholarsDateField value={formData.nextMeetingDate} onChange={setDate('nextMeetingDate')} />
                                         </div>
 
                                         <div className="form-control w-full">

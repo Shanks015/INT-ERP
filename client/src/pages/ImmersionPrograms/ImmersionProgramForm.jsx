@@ -4,6 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, Globe, Users, Link as LinkIcon } from 'lucide-react';
+import ScholarsDateField from '../../components/ScholarsDateField';
+import CountrySelect from '../../components/CountrySelect';
+import Combobox from '../../components/Combobox';
+import { PROGRAM_STATUSES, CURRENCIES } from '../../constants/options';
+import { withCurrentOption } from '../../utils/optionUtils';
+import { dateToUTCISO } from '../../utils/dateFormat';
 
 const ImmersionProgramForm = () => {
     const navigate = useNavigate();
@@ -18,8 +24,8 @@ const ImmersionProgramForm = () => {
         country: '',
         numberOfPax: '',
         department: '',
-        arrivalDate: '',
-        departureDate: '',
+        arrivalDate: null,
+        departureDate: null,
         summary: '',
         feesPerPax: '',
         feesCurrency: '',
@@ -42,8 +48,8 @@ const ImmersionProgramForm = () => {
                 country: item.country || '',
                 numberOfPax: item.numberOfPax || '',
                 department: item.department || '',
-                arrivalDate: item.arrivalDate ? new Date(item.arrivalDate).toISOString().split('T')[0] : '',
-                departureDate: item.departureDate ? new Date(item.departureDate).toISOString().split('T')[0] : '',
+                arrivalDate: item.arrivalDate ? new Date(item.arrivalDate) : null,
+                departureDate: item.departureDate ? new Date(item.departureDate) : null,
                 summary: item.summary || '',
                 feesPerPax: item.feesPerPax || '',
                 feesCurrency: item.feesCurrency || '',
@@ -60,15 +66,31 @@ const ImmersionProgramForm = () => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+    const setDate = (key) => (value) => setFormData((prev) => ({ ...prev, [key]: value }));
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (formData.departureDate && formData.arrivalDate && formData.departureDate < formData.arrivalDate) {
+            toast.error('Departure Date cannot be before Arrival Date');
+            return;
+        }
+
+        const payload = {
+            ...formData,
+            arrivalDate: formData.arrivalDate ? dateToUTCISO(formData.arrivalDate) : null,
+            departureDate: formData.departureDate ? dateToUTCISO(formData.departureDate) : null,
+            numberOfPax: formData.numberOfPax === '' || formData.numberOfPax == null ? null : Number(formData.numberOfPax),
+            feesPerPax: formData.feesPerPax === '' || formData.feesPerPax == null ? null : Number(formData.feesPerPax)
+        };
+
         setLoading(true);
         try {
             if (isEdit) {
-                await api.put(`/immersion-programs/${id}`, formData);
+                await api.put(`/immersion-programs/${id}`, payload);
                 toast.success(isAdmin ? 'Program updated successfully' : 'Update request submitted for approval');
             } else {
-                await api.post('/immersion-programs', formData);
+                await api.post('/immersion-programs', payload);
                 toast.success('Program created successfully');
             }
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -153,27 +175,26 @@ const ImmersionProgramForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Country *</span></label>
-                                        <input
-                                            type="text"
-                                            name="country"
-                                            placeholder="Country"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                        <CountrySelect
                                             value={formData.country}
-                                            onChange={handleChange}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, country: value }))}
                                             required
                                         />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Status</span></label>
-                                        <input
-                                            type="text"
+                                        <select
                                             name="programStatus"
-                                            placeholder="e.g. Planning, Completed"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            className="select select-bordered w-full focus:select-primary transition-all"
                                             value={formData.programStatus}
                                             onChange={handleChange}
-                                        />
+                                        >
+                                            <option value="">Select Status</option>
+                                            {withCurrentOption(PROGRAM_STATUSES, formData.programStatus).map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -190,24 +211,12 @@ const ImmersionProgramForm = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Arrival Date</span></label>
-                                        <input
-                                            type="date"
-                                            name="arrivalDate"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.arrivalDate}
-                                            onChange={handleChange}
-                                        />
+                                        <ScholarsDateField value={formData.arrivalDate} onChange={setDate('arrivalDate')} />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Departure Date</span></label>
-                                        <input
-                                            type="date"
-                                            name="departureDate"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.departureDate}
-                                            onChange={handleChange}
-                                        />
+                                        <ScholarsDateField value={formData.departureDate} onChange={setDate('departureDate')} />
                                     </div>
 
                                     <div className="form-control w-full">
@@ -215,6 +224,7 @@ const ImmersionProgramForm = () => {
                                         <input
                                             type="number"
                                             name="numberOfPax"
+                                            min="0"
                                             placeholder="Total Participants"
                                             className="input input-bordered w-full focus:input-primary transition-all"
                                             value={formData.numberOfPax}
@@ -228,21 +238,23 @@ const ImmersionProgramForm = () => {
                                             <input
                                                 type="number"
                                                 name="feesPerPax"
+                                                min="0"
                                                 placeholder="Amount"
                                                 className="input input-bordered w-full focus:input-primary transition-all"
                                                 value={formData.feesPerPax}
                                                 onChange={handleChange}
                                             />
-                                            <input
-                                                type="text"
-                                                name="feesCurrency"
-                                                placeholder="AUD"
-                                                title="Currency code, e.g. AUD, GBP, USD"
-                                                className="input input-bordered w-24 focus:input-primary transition-all"
+                                            <Combobox
+                                                options={CURRENCIES}
                                                 value={formData.feesCurrency}
-                                                onChange={handleChange}
+                                                onChange={(value) => setFormData((prev) => ({ ...prev, feesCurrency: value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3) }))}
+                                                placeholder="AUD"
+                                                className="input input-bordered w-24 focus:input-primary transition-all"
                                             />
                                         </div>
+                                        <label className="label py-0 mt-0.5">
+                                            <span className="label-text-alt text-base-content/40">Currency code, e.g. AUD, GBP, USD</span>
+                                        </label>
                                     </div>
                                 </div>
                             </div>

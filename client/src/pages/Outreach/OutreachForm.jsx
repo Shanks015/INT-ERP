@@ -4,8 +4,14 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, Globe, User, MessageSquare, Send, Bot } from 'lucide-react';
+import ScholarsDateField from '../../components/ScholarsDateField';
+import CountrySelect from '../../components/CountrySelect';
+import Combobox from '../../components/Combobox';
+import { dateToUTCISO } from '../../utils/dateFormat';
 
-const OUTREACH_STATUS_OPTIONS = ['Not Sent', 'Pending Partner Review', 'Replied', 'Closed'];
+// Model enum: ['Not Sent', 'Pending Partner Review', 'Reply Detected', 'Replied', 'Closed']
+const OUTREACH_STATUS_OPTIONS = ['Not Sent', 'Pending Partner Review', 'Reply Detected', 'Replied', 'Closed'];
+const PARTNERSHIP_TYPE_SUGGESTIONS = ['Student Exchange', 'Research', 'Joint Degree', 'MoU/MoA', 'Faculty Exchange', 'Internship', 'Training', 'Collaborative Program'];
 
 const OutreachForm = () => {
     const navigate = useNavigate();
@@ -25,7 +31,7 @@ const OutreachForm = () => {
         reply: '',
         notes: '',
         // New tracking fields
-        sentDate: '',
+        sentDate: null,
         sentFromEmail: '',
         outreachStatus: 'Not Sent',
         automationActive: false
@@ -53,10 +59,12 @@ const OutreachForm = () => {
             automationActive: newStatus === 'Pending Partner Review' ? true : prev.automationActive,
             // Auto-set sentDate to today if switching to Pending and no sentDate yet
             sentDate: (newStatus === 'Pending Partner Review' && !prev.sentDate)
-                ? new Date().toISOString().split('T')[0]
+                ? new Date()
                 : prev.sentDate
         }));
     };
+
+    const setDate = (key) => (value) => setFormData((prev) => ({ ...prev, [key]: value }));
 
     const fetchOutreach = async () => {
         try {
@@ -73,7 +81,7 @@ const OutreachForm = () => {
                 partnershipType:  data.partnershipType || '',
                 reply:            data.reply || '',
                 notes:            data.notes || '',
-                sentDate:         data.sentDate ? new Date(data.sentDate).toISOString().split('T')[0] : '',
+                sentDate:         data.sentDate ? new Date(data.sentDate) : null,
                 sentFromEmail:    data.sentFromEmail || '',
                 outreachStatus:   data.outreachStatus || 'Not Sent',
                 automationActive: data.automationActive || false
@@ -101,7 +109,7 @@ const OutreachForm = () => {
         try {
             const payload = {
                 ...formData,
-                sentDate: formData.sentDate || null,
+                sentDate: formData.sentDate ? dateToUTCISO(formData.sentDate) : null,
                 sentByEmployee: user?._id
             };
 
@@ -175,9 +183,11 @@ const OutreachForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Country *</span></label>
-                                        <input type="text" name="country" placeholder="Country"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.country} onChange={handleChange} required />
+                                        <CountrySelect
+                                            value={formData.country}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, country: value }))}
+                                            required
+                                        />
                                     </div>
 
                                     <div className="form-control w-full">
@@ -255,9 +265,7 @@ const OutreachForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Date Sent</span></label>
-                                        <input type="date" name="sentDate"
-                                            className="input input-bordered w-full focus:input-primary"
-                                            value={formData.sentDate} onChange={handleChange} />
+                                        <ScholarsDateField value={formData.sentDate} onChange={setDate('sentDate')} />
                                     </div>
 
                                     <div className="form-control w-full">
@@ -305,10 +313,16 @@ const OutreachForm = () => {
                                 <div className="grid grid-cols-1 gap-6">
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Partnership Type</span></label>
-                                        <input type="text" name="partnershipType"
+                                        <Combobox
+                                            options={PARTNERSHIP_TYPE_SUGGESTIONS}
+                                            value={formData.partnershipType}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, partnershipType: value }))}
                                             placeholder="e.g. Research, Exchange, Joint Degree"
                                             className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.partnershipType} onChange={handleChange} />
+                                        />
+                                        <label className="label">
+                                            <span className="label-text-alt text-base-content/60">Select existing or type new</span>
+                                        </label>
                                     </div>
 
                                     <div className="form-control w-full">

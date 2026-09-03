@@ -4,6 +4,11 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, Calendar, Globe, Link as LinkIcon } from 'lucide-react';
+import ScholarsDateField from '../../components/ScholarsDateField';
+import CountrySelect from '../../components/CountrySelect';
+import Combobox from '../../components/Combobox';
+import { SCHOLAR_CAMPUSES } from '../../constants/options';
+import { dateToUTCISO } from '../../utils/dateFormat';
 
 const EventForm = () => {
     const navigate = useNavigate();
@@ -12,7 +17,7 @@ const EventForm = () => {
     const isEdit = Boolean(id);
 
     const [formData, setFormData] = useState({
-        date: '', type: '', title: '', dignitaries: '', department: '', campus: '', eventSummary: '', universityCountry: '', driveLink: ''
+        date: null, type: '', title: '', dignitaries: '', department: '', campus: '', eventSummary: '', universityCountry: '', driveLink: ''
     });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
@@ -40,7 +45,7 @@ const EventForm = () => {
             const response = await api.get(`/events/${id}`);
             const event = response.data.data;
             setFormData({
-                date: event.date ? new Date(event.date).toISOString().split('T')[0] : '',
+                date: event.date ? new Date(event.date) : null,
                 type: event.type || '',
                 title: event.title || '',
                 dignitaries: event.dignitaries || '',
@@ -60,15 +65,28 @@ const EventForm = () => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+    const setDate = (key) => (value) => setFormData((prev) => ({ ...prev, [key]: value }));
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.date) {
+            toast.error('Date is required (dd/MMM/yyyy)');
+            return;
+        }
+
+        const payload = {
+            ...formData,
+            date: dateToUTCISO(formData.date)
+        };
+
         setLoading(true);
         try {
             if (isEdit) {
-                await api.put(`/events/${id}`, formData);
+                await api.put(`/events/${id}`, payload);
                 toast.success(isAdmin ? 'Event updated successfully' : 'Update request submitted for approval');
             } else {
-                await api.post('/events', formData);
+                await api.post('/events', payload);
                 toast.success('Event created successfully');
             }
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -125,32 +143,18 @@ const EventForm = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Date *</span></label>
-                                        <input
-                                            type="date"
-                                            name="date"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.date}
-                                            onChange={handleChange}
-                                            required
-                                        />
+                                        <ScholarsDateField value={formData.date} onChange={setDate('date')} required />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Event Type</span></label>
-                                        <input
-                                            type="text"
-                                            name="type"
-                                            list="event-types-list"
+                                        <Combobox
+                                            options={eventTypes}
+                                            value={formData.type}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, type: value }))}
                                             placeholder="Select or enter event type"
                                             className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.type}
-                                            onChange={handleChange}
                                         />
-                                        <datalist id="event-types-list">
-                                            {eventTypes.map(type => (
-                                                <option key={type} value={type} />
-                                            ))}
-                                        </datalist>
                                         <label className="label">
                                             <span className="label-text-alt text-base-content/60">Select existing or type new</span>
                                         </label>
@@ -194,13 +198,12 @@ const EventForm = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Campus</span></label>
-                                        <input
-                                            type="text"
-                                            name="campus"
+                                        <Combobox
+                                            options={SCHOLAR_CAMPUSES}
+                                            value={formData.campus}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, campus: value }))}
                                             placeholder="Campus location"
                                             className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.campus}
-                                            onChange={handleChange}
                                         />
                                     </div>
 
@@ -218,13 +221,9 @@ const EventForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">University/Country</span></label>
-                                        <input
-                                            type="text"
-                                            name="universityCountry"
-                                            placeholder="External University or Country"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                        <CountrySelect
                                             value={formData.universityCountry}
-                                            onChange={handleChange}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, universityCountry: value }))}
                                         />
                                     </div>
 

@@ -4,6 +4,11 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, Calendar, Link as LinkIcon, MapPin } from 'lucide-react';
+import ScholarsDateField from '../../components/ScholarsDateField';
+import CountrySelect from '../../components/CountrySelect';
+import Combobox from '../../components/Combobox';
+import { SCHOLAR_CAMPUSES } from '../../constants/options';
+import { dateToUTCISO } from '../../utils/dateFormat';
 
 const ConferenceForm = () => {
     const navigate = useNavigate();
@@ -11,7 +16,7 @@ const ConferenceForm = () => {
     const { isAdmin } = useAuth();
     const isEdit = Boolean(id);
 
-    const [formData, setFormData] = useState({ date: '', conferenceName: '', country: '', department: '', campus: '', eventSummary: '', driveLink: '' });
+    const [formData, setFormData] = useState({ date: null, conferenceName: '', country: '', department: '', campus: '', eventSummary: '', driveLink: '' });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
 
@@ -21,7 +26,7 @@ const ConferenceForm = () => {
         try {
             const response = await api.get(`/conferences/${id}`);
             const conf = response.data.data;
-            setFormData({ date: conf.date ? new Date(conf.date).toISOString().split('T')[0] : '', conferenceName: conf.conferenceName || '', country: conf.country || '', department: conf.department || '', campus: conf.campus || '', eventSummary: conf.eventSummary || '', driveLink: conf.driveLink || '' });
+            setFormData({ date: conf.date ? new Date(conf.date) : null, conferenceName: conf.conferenceName || '', country: conf.country || '', department: conf.department || '', campus: conf.campus || '', eventSummary: conf.eventSummary || '', driveLink: conf.driveLink || '' });
         } catch (error) {
             toast.error('Error fetching conference');
             navigate('/conferences');
@@ -32,15 +37,28 @@ const ConferenceForm = () => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+    const setDate = (key) => (value) => setFormData((prev) => ({ ...prev, [key]: value }));
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.date) {
+            toast.error('Date is required (dd/MMM/yyyy)');
+            return;
+        }
+
+        const payload = {
+            ...formData,
+            date: dateToUTCISO(formData.date)
+        };
+
         setLoading(true);
         try {
             if (isEdit) {
-                await api.put(`/conferences/${id}`, formData);
+                await api.put(`/conferences/${id}`, payload);
                 toast.success(isAdmin ? 'Conference updated successfully' : 'Update request submitted for approval');
             } else {
-                await api.post('/conferences', formData);
+                await api.post('/conferences', payload);
                 toast.success('Conference created successfully');
             }
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -97,14 +115,7 @@ const ConferenceForm = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Date *</span></label>
-                                        <input
-                                            type="date"
-                                            name="date"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.date}
-                                            onChange={handleChange}
-                                            required
-                                        />
+                                        <ScholarsDateField value={formData.date} onChange={setDate('date')} required />
                                     </div>
 
                                     <div className="form-control w-full lg:col-span-2">
@@ -122,13 +133,9 @@ const ConferenceForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Country *</span></label>
-                                        <input
-                                            type="text"
-                                            name="country"
-                                            placeholder="Host country"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                        <CountrySelect
                                             value={formData.country}
-                                            onChange={handleChange}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, country: value }))}
                                             required
                                         />
                                     </div>
@@ -159,13 +166,12 @@ const ConferenceForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Campus Location</span></label>
-                                        <input
-                                            type="text"
-                                            name="campus"
+                                        <Combobox
+                                            options={SCHOLAR_CAMPUSES}
+                                            value={formData.campus}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, campus: value }))}
                                             placeholder="Specific campus"
                                             className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.campus}
-                                            onChange={handleChange}
                                         />
                                     </div>
 

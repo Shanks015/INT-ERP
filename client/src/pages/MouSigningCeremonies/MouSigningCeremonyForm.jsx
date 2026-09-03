@@ -4,6 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, PenTool, User, MapPin } from 'lucide-react';
+import ScholarsDateField from '../../components/ScholarsDateField';
+import Combobox from '../../components/Combobox';
+import { CEREMONY_TYPES, SCHOLAR_CAMPUSES } from '../../constants/options';
+import { dateToUTCISO } from '../../utils/dateFormat';
 
 const MouSigningCeremonyForm = () => {
     const navigate = useNavigate();
@@ -11,7 +15,7 @@ const MouSigningCeremonyForm = () => {
     const { isAdmin } = useAuth();
     const isEdit = Boolean(id);
 
-    const [formData, setFormData] = useState({ date: '', type: '', visitorName: '', university: '', department: '', eventSummary: '', campus: '', driveLink: '' });
+    const [formData, setFormData] = useState({ date: null, type: '', visitorName: '', university: '', department: '', eventSummary: '', campus: '', driveLink: '' });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
 
@@ -22,7 +26,7 @@ const MouSigningCeremonyForm = () => {
             const response = await api.get(`/mou-signing-ceremonies/${id}`);
             const item = response.data.data;
             setFormData({
-                date: item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+                date: item.date ? new Date(item.date) : null,
                 type: item.type || '',
                 visitorName: item.visitorName || '',
                 university: item.university || '',
@@ -41,15 +45,28 @@ const MouSigningCeremonyForm = () => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+    const setDate = (key) => (value) => setFormData((prev) => ({ ...prev, [key]: value }));
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.date) {
+            toast.error('Date is required (dd/MMM/yyyy)');
+            return;
+        }
+
+        const payload = {
+            ...formData,
+            date: dateToUTCISO(formData.date)
+        };
+
         setLoading(true);
         try {
             if (isEdit) {
-                await api.put(`/mou-signing-ceremonies/${id}`, formData);
+                await api.put(`/mou-signing-ceremonies/${id}`, payload);
                 toast.success(isAdmin ? 'Record updated successfully' : 'Update request submitted for approval');
             } else {
-                await api.post('/mou-signing-ceremonies', formData);
+                await api.post('/mou-signing-ceremonies', payload);
                 toast.success('Record created successfully');
             }
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -106,25 +123,17 @@ const MouSigningCeremonyForm = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Date *</span></label>
-                                        <input
-                                            type="date"
-                                            name="date"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.date}
-                                            onChange={handleChange}
-                                            required
-                                        />
+                                        <ScholarsDateField value={formData.date} onChange={setDate('date')} required />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Ceremony Type</span></label>
-                                        <input
-                                            type="text"
-                                            name="type"
+                                        <Combobox
+                                            options={CEREMONY_TYPES}
+                                            value={formData.type}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, type: value }))}
                                             placeholder="e.g. Virtual, In-Person"
                                             className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.type}
-                                            onChange={handleChange}
                                         />
                                     </div>
 
@@ -204,13 +213,12 @@ const MouSigningCeremonyForm = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Campus Location</span></label>
-                                        <input
-                                            type="text"
-                                            name="campus"
+                                        <Combobox
+                                            options={SCHOLAR_CAMPUSES}
+                                            value={formData.campus}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, campus: value }))}
                                             placeholder="Specific Campus"
                                             className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.campus}
-                                            onChange={handleChange}
                                         />
                                     </div>
 

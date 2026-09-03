@@ -6,12 +6,9 @@ import toast from 'react-hot-toast';
 import { Save, ArrowLeft, GraduationCap, Calendar, FileText, Phone, Mail, Award, Timer } from 'lucide-react';
 import ScholarsDateField from '../../components/ScholarsDateField';
 import CountrySelect from '../../components/CountrySelect';
-import { SCHOLAR_DESIGNATIONS, SCHOLAR_CAMPUSES } from '../../constants/options';
-
-// For a <select>, offer the standard list but never silently drop a stored value
-// that isn't part of it (legacy records) — append it as a one-off option.
-const withCurrentOption = (options, current) =>
-    current && options.indexOf(current) === -1 ? [...options, current] : options;
+import { SCHOLAR_DESIGNATIONS, SCHOLAR_CAMPUSES, SCHOLAR_STATUSES } from '../../constants/options';
+import { withCurrentOption } from '../../utils/optionUtils';
+import { dateToUTCISO } from '../../utils/dateFormat';
 
 const ScholarForm = () => {
     const navigate = useNavigate();
@@ -99,8 +96,8 @@ const ScholarForm = () => {
             country: formData.country.trim(),
             qsRanking: formData.qsRanking === '' || formData.qsRanking == null ? null : Number(formData.qsRanking),
             durationDays: formData.durationDays === '' || formData.durationDays == null ? null : Number(formData.durationDays),
-            startDate: formData.startDate.toISOString(),
-            endDate: formData.endDate ? formData.endDate.toISOString() : null,
+            startDate: dateToUTCISO(formData.startDate),
+            endDate: formData.endDate ? dateToUTCISO(formData.endDate) : null,
             department: formData.department.trim(),
             campus: formData.campus.trim(),
             scholarStatus: formData.scholarStatus.trim(),
@@ -239,14 +236,17 @@ const ScholarForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Status</span></label>
-                                        <input
-                                            type="text"
+                                        <select
                                             name="scholarStatus"
-                                            placeholder="e.g. Completed, Ongoing"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            className="select select-bordered w-full focus:select-primary transition-all"
                                             value={formData.scholarStatus}
                                             onChange={handleChange}
-                                        />
+                                        >
+                                            <option value="">Select Status</option>
+                                            {withCurrentOption(SCHOLAR_STATUSES, formData.scholarStatus).map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
                             </div>

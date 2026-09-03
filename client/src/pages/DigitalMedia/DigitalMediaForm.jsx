@@ -4,6 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, Monitor, Link as LinkIcon } from 'lucide-react';
+import ScholarsDateField from '../../components/ScholarsDateField';
+import Combobox from '../../components/Combobox';
+import { MEDIA_CHANNELS } from '../../constants/options';
+import { dateToUTCISO } from '../../utils/dateFormat';
 
 const DigitalMediaForm = () => {
     const navigate = useNavigate();
@@ -12,7 +16,7 @@ const DigitalMediaForm = () => {
     const isEdit = Boolean(id);
 
     const [formData, setFormData] = useState({
-        date: '',
+        date: null,
         channel: '',
         articleTopic: '',
         articleLink: '',
@@ -30,11 +34,11 @@ const DigitalMediaForm = () => {
             const response = await api.get(`/digital-media/${id}`);
             const item = response.data.data;
             setFormData({
-                date: item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+                date: item.date ? new Date(item.date) : null,
                 channel: item.channel || '',
                 articleTopic: item.articleTopic || '',
                 articleLink: item.articleLink || '',
-                amountPaid: item.amountPaid || '',
+                amountPaid: item.amountPaid != null ? String(item.amountPaid) : '',
                 summary: item.summary || '',
                 driveLink: item.driveLink || ''
             });
@@ -48,15 +52,29 @@ const DigitalMediaForm = () => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+    const setDate = (key) => (value) => setFormData((prev) => ({ ...prev, [key]: value }));
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.date) {
+            toast.error('Date is required (dd/MMM/yyyy)');
+            return;
+        }
+
+        const payload = {
+            ...formData,
+            date: dateToUTCISO(formData.date),
+            amountPaid: formData.amountPaid === '' || formData.amountPaid == null ? null : Number(formData.amountPaid)
+        };
+
         setLoading(true);
         try {
             if (isEdit) {
-                await api.put(`/digital-media/${id}`, formData);
+                await api.put(`/digital-media/${id}`, payload);
                 toast.success(isAdmin ? 'Media updated successfully' : 'Update request submitted for approval');
             } else {
-                await api.post('/digital-media', formData);
+                await api.post('/digital-media', payload);
                 toast.success('Media created successfully');
             }
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -113,14 +131,7 @@ const DigitalMediaForm = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Date *</span></label>
-                                        <input
-                                            type="date"
-                                            name="date"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.date}
-                                            onChange={handleChange}
-                                            required
-                                        />
+                                        <ScholarsDateField value={formData.date} onChange={setDate('date')} required />
                                     </div>
 
                                     <div className="form-control w-full lg:col-span-2">
@@ -138,21 +149,22 @@ const DigitalMediaForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Channel Name</span></label>
-                                        <input
-                                            type="text"
-                                            name="channel"
+                                        <Combobox
+                                            options={MEDIA_CHANNELS}
+                                            value={formData.channel}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, channel: value }))}
                                             placeholder="e.g. LinkedIn, News Portal"
                                             className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.channel}
-                                            onChange={handleChange}
                                         />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Amount Paid</span></label>
                                         <input
-                                            type="text"
+                                            type="number"
                                             name="amountPaid"
+                                            min="0"
+                                            step="0.01"
                                             placeholder="e.g. 5000"
                                             className="input input-bordered w-full focus:input-primary transition-all"
                                             value={formData.amountPaid}

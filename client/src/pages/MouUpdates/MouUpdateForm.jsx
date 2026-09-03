@@ -4,6 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, FileText, User, Link as LinkIcon } from 'lucide-react';
+import ScholarsDateField from '../../components/ScholarsDateField';
+import CountrySelect from '../../components/CountrySelect';
+import Combobox from '../../components/Combobox';
+import { AGREEMENT_TYPES, MOU_UPDATE_STATUSES, MOU_VALIDITY_STATUSES } from '../../constants/options';
+import { withCurrentOption } from '../../utils/optionUtils';
+import { dateToUTCISO } from '../../utils/dateFormat';
 
 const MouUpdateForm = () => {
     const navigate = useNavigate();
@@ -12,7 +18,7 @@ const MouUpdateForm = () => {
     const isEdit = Boolean(id);
 
     const [formData, setFormData] = useState({
-        date: '',
+        date: null,
         university: '',
         country: '',
         contactPerson: '',
@@ -22,7 +28,7 @@ const MouUpdateForm = () => {
         department: '',
         agreementType: '',
         term: '',
-        completedDate: '',
+        completedDate: null,
         driveLink: ''
     });
     const [loading, setLoading] = useState(false);
@@ -35,7 +41,7 @@ const MouUpdateForm = () => {
             const response = await api.get(`/mou-updates/${id}`);
             const item = response.data.data;
             setFormData({
-                date: item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+                date: item.date ? new Date(item.date) : null,
                 university: item.university || '',
                 country: item.country || '',
                 contactPerson: item.contactPerson || '',
@@ -45,7 +51,7 @@ const MouUpdateForm = () => {
                 department: item.department || '',
                 agreementType: item.agreementType || '',
                 term: item.term || '',
-                completedDate: item.completedDate ? new Date(item.completedDate).toISOString().split('T')[0] : '',
+                completedDate: item.completedDate ? new Date(item.completedDate) : null,
                 driveLink: item.driveLink || ''
             });
         } catch (error) {
@@ -58,15 +64,29 @@ const MouUpdateForm = () => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+    const setDate = (key) => (value) => setFormData((prev) => ({ ...prev, [key]: value }));
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.date) {
+            toast.error('Initiation Date is required (dd/MMM/yyyy)');
+            return;
+        }
+
+        const payload = {
+            ...formData,
+            date: dateToUTCISO(formData.date),
+            completedDate: formData.completedDate ? dateToUTCISO(formData.completedDate) : null
+        };
+
         setLoading(true);
         try {
             if (isEdit) {
-                await api.put(`/mou-updates/${id}`, formData);
+                await api.put(`/mou-updates/${id}`, payload);
                 toast.success(isAdmin ? 'MoU update saved successfully' : 'Update request submitted for approval');
             } else {
-                await api.post('/mou-updates', formData);
+                await api.post('/mou-updates', payload);
                 toast.success('MoU update created successfully');
             }
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -136,26 +156,21 @@ const MouUpdateForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Country *</span></label>
-                                        <input
-                                            type="text"
-                                            name="country"
-                                            placeholder="Country"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                        <CountrySelect
                                             value={formData.country}
-                                            onChange={handleChange}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, country: value }))}
                                             required
                                         />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Agreement Type</span></label>
-                                        <input
-                                            type="text"
-                                            name="agreementType"
+                                        <Combobox
+                                            options={AGREEMENT_TYPES}
+                                            value={formData.agreementType}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, agreementType: value }))}
                                             placeholder="e.g. MoU, MoA"
                                             className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.agreementType}
-                                            onChange={handleChange}
                                         />
                                     </div>
 
@@ -173,26 +188,32 @@ const MouUpdateForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Status</span></label>
-                                        <input
-                                            type="text"
+                                        <select
                                             name="mouStatus"
-                                            placeholder="e.g. Active"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            className="select select-bordered w-full focus:select-primary transition-all"
                                             value={formData.mouStatus}
                                             onChange={handleChange}
-                                        />
+                                        >
+                                            <option value="">Select Status</option>
+                                            {withCurrentOption(MOU_UPDATE_STATUSES, formData.mouStatus).map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Validity Status</span></label>
-                                        <input
-                                            type="text"
+                                        <select
                                             name="validityStatus"
-                                            placeholder="e.g. Valid, Expired"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            className="select select-bordered w-full focus:select-primary transition-all"
                                             value={formData.validityStatus}
                                             onChange={handleChange}
-                                        />
+                                        >
+                                            <option value="">Select Validity</option>
+                                            {withCurrentOption(MOU_VALIDITY_STATUSES, formData.validityStatus).map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -209,25 +230,12 @@ const MouUpdateForm = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Initiation Date *</span></label>
-                                        <input
-                                            type="date"
-                                            name="date"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.date}
-                                            onChange={handleChange}
-                                            required
-                                        />
+                                        <ScholarsDateField value={formData.date} onChange={setDate('date')} required />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Completed Date</span></label>
-                                        <input
-                                            type="date"
-                                            name="completedDate"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.completedDate}
-                                            onChange={handleChange}
-                                        />
+                                        <ScholarsDateField value={formData.completedDate} onChange={setDate('completedDate')} />
                                     </div>
 
                                     <div className="form-control w-full">

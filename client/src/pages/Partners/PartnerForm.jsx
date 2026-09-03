@@ -5,6 +5,12 @@ import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, Globe, Link as LinkIcon, Calendar } from 'lucide-react';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
+import ScholarsDateField from '../../components/ScholarsDateField';
+import CountrySelect from '../../components/CountrySelect';
+import Combobox from '../../components/Combobox';
+import { AGREEMENT_TYPES, PARTNER_MOU_STATUS, ACTIVE_STATUSES } from '../../constants/options';
+import { withCurrentOption } from '../../utils/optionUtils';
+import { dateToUTCISO } from '../../utils/dateFormat';
 
 const PartnerForm = () => {
     const navigate = useNavigate();
@@ -23,10 +29,10 @@ const PartnerForm = () => {
         phoneNumber: '',
         agreementType: '',
         link: '',
-        completedOn: '',
-        submitted: '',
-        signingDate: '',
-        expiringDate: ''
+        completedOn: null,
+        submitted: null,
+        signingDate: null,
+        expiringDate: null
     });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
@@ -65,10 +71,10 @@ const PartnerForm = () => {
                 phoneNumber: partner.phoneNumber || '',
                 agreementType: partner.agreementType || '',
                 link: partner.link || '',
-                completedOn: partner.completedOn ? partner.completedOn.split('T')[0] : '',
-                submitted: partner.submitted ? partner.submitted.split('T')[0] : '',
-                signingDate: partner.signingDate ? partner.signingDate.split('T')[0] : '',
-                expiringDate: partner.expiringDate ? partner.expiringDate.split('T')[0] : ''
+                completedOn: partner.completedOn ? new Date(partner.completedOn) : null,
+                submitted: partner.submitted ? new Date(partner.submitted) : null,
+                signingDate: partner.signingDate ? new Date(partner.signingDate) : null,
+                expiringDate: partner.expiringDate ? new Date(partner.expiringDate) : null
             });
         } catch (error) {
             toast.error('Error fetching partner');
@@ -85,20 +91,36 @@ const PartnerForm = () => {
         });
     };
 
+    const setDate = (key) => (value) => setFormData((prev) => ({ ...prev, [key]: value }));
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (formData.signingDate && formData.expiringDate && formData.signingDate > formData.expiringDate) {
+            toast.error('Signing Date cannot be after Expiring Date');
+            return;
+        }
+
+        const payload = {
+            ...formData,
+            completedOn: formData.completedOn ? dateToUTCISO(formData.completedOn) : null,
+            submitted: formData.submitted ? dateToUTCISO(formData.submitted) : null,
+            signingDate: formData.signingDate ? dateToUTCISO(formData.signingDate) : null,
+            expiringDate: formData.expiringDate ? dateToUTCISO(formData.expiringDate) : null
+        };
+
         setLoading(true);
 
         try {
             if (isEdit) {
-                await api.put(`/partners/${id}`, formData);
+                await api.put(`/partners/${id}`, payload);
                 if (isAdmin) {
                     toast.success('Partner updated successfully');
                 } else {
                     toast.success('Update request submitted for approval');
                 }
             } else {
-                await api.post('/partners', formData);
+                await api.post('/partners', payload);
                 toast.success('Partner created successfully');
             }
 
@@ -158,13 +180,9 @@ const PartnerForm = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Country *</span></label>
-                                        <input
-                                            type="text"
-                                            name="country"
-                                            placeholder="e.g. United Kingdom"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                        <CountrySelect
                                             value={formData.country}
-                                            onChange={handleChange}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, country: value }))}
                                             required
                                         />
                                     </div>
@@ -196,17 +214,13 @@ const PartnerForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Agreement Type</span></label>
-                                        <select
-                                            name="agreementType"
-                                            className="select select-bordered w-full focus:select-primary transition-all"
+                                        <Combobox
+                                            options={[...new Set([...AGREEMENT_TYPES, ...agreementTypes])]}
                                             value={formData.agreementType}
-                                            onChange={handleChange}
-                                        >
-                                            <option value="">Select Agreement Type</option>
-                                            {agreementTypes.map(type => (
-                                                <option key={type} value={type}>{type}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, agreementType: value }))}
+                                            placeholder="Select or enter agreement type"
+                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -290,11 +304,9 @@ const PartnerForm = () => {
                                             onChange={handleChange}
                                         >
                                             <option value="">Select Status</option>
-                                            <option value="Draft">Draft</option>
-                                            <option value="In Progress">In Progress</option>
-                                            <option value="Signed">Signed</option>
-                                            <option value="Expired">Expired</option>
-                                            <option value="Renewed">Renewed</option>
+                                            {withCurrentOption(PARTNER_MOU_STATUS, formData.mouStatus).map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
                                         </select>
                                     </div>
 
@@ -307,53 +319,30 @@ const PartnerForm = () => {
                                             onChange={handleChange}
                                             required
                                         >
-                                            <option value="Active">Active</option>
-                                            <option value="Inactive">Inactive</option>
+                                            {withCurrentOption(ACTIVE_STATUSES, formData.activeStatus).map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
                                         </select>
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Signing Date</span></label>
-                                        <input
-                                            type="date"
-                                            name="signingDate"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.signingDate}
-                                            onChange={handleChange}
-                                        />
+                                        <ScholarsDateField value={formData.signingDate} onChange={setDate('signingDate')} />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Expiring Date</span></label>
-                                        <input
-                                            type="date"
-                                            name="expiringDate"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.expiringDate}
-                                            onChange={handleChange}
-                                        />
+                                        <ScholarsDateField value={formData.expiringDate} onChange={setDate('expiringDate')} />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Completed On</span></label>
-                                        <input
-                                            type="date"
-                                            name="completedOn"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.completedOn}
-                                            onChange={handleChange}
-                                        />
+                                        <ScholarsDateField value={formData.completedOn} onChange={setDate('completedOn')} />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Submitted Date</span></label>
-                                        <input
-                                            type="date"
-                                            name="submitted"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.submitted}
-                                            onChange={handleChange}
-                                        />
+                                        <ScholarsDateField value={formData.submitted} onChange={setDate('submitted')} />
                                     </div>
                                 </div>
                             </div>

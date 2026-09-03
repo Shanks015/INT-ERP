@@ -4,6 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, Globe, User, Phone, Link2, BookOpen } from 'lucide-react';
+import CountrySelect from '../../components/CountrySelect';
+import Combobox from '../../components/Combobox';
+
+const PARTNERSHIP_TYPE_SUGGESTIONS = ['Student Exchange', 'Research', 'Joint Degree', 'MoU/MoA', 'Faculty Exchange', 'Internship', 'Training', 'Collaborative Program'];
 
 const OutreachNewForm = () => {
     const navigate = useNavigate();
@@ -135,9 +139,11 @@ const OutreachNewForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Country *</span></label>
-                                        <input type="text" name="country" placeholder="Country"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.country} onChange={handleChange} required />
+                                        <CountrySelect
+                                            value={formData.country}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, country: value }))}
+                                            required
+                                        />
                                     </div>
 
                                     <div className="form-control w-full">
@@ -196,9 +202,16 @@ const OutreachNewForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Partnership Interest Type</span></label>
-                                        <input type="text" name="partnershipType" placeholder="Student Exchange / Research"
+                                        <Combobox
+                                            options={PARTNERSHIP_TYPE_SUGGESTIONS}
+                                            value={formData.partnershipType}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, partnershipType: value }))}
+                                            placeholder="Student Exchange / Research"
                                             className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.partnershipType} onChange={handleChange} />
+                                        />
+                                        <label className="label">
+                                            <span className="label-text-alt text-base-content/60">Select existing or type new</span>
+                                        </label>
                                     </div>
                                 </div>
                             </div>

@@ -4,6 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Save, ArrowLeft, Award, Calendar, Link as LinkIcon } from 'lucide-react';
+import ScholarsDateField from '../../components/ScholarsDateField';
+import CountrySelect from '../../components/CountrySelect';
+import Combobox from '../../components/Combobox';
+import { MEMBERSHIP_STATUSES, MEMBERSHIP_DURATIONS } from '../../constants/options';
+import { withCurrentOption } from '../../utils/optionUtils';
+import { dateToUTCISO } from '../../utils/dateFormat';
 
 const MembershipForm = () => {
     const navigate = useNavigate();
@@ -11,7 +17,7 @@ const MembershipForm = () => {
     const { isAdmin } = useAuth();
     const isEdit = Boolean(id);
 
-    const [formData, setFormData] = useState({ date: '', name: '', membershipStatus: '', country: '', membershipDuration: '', summary: '', startDate: '', endDate: '', driveLink: '' });
+    const [formData, setFormData] = useState({ date: null, name: '', membershipStatus: '', country: '', membershipDuration: '', summary: '', startDate: null, endDate: null, driveLink: '' });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(isEdit);
 
@@ -22,14 +28,14 @@ const MembershipForm = () => {
             const response = await api.get(`/memberships/${id}`);
             const item = response.data.data;
             setFormData({
-                date: item.date ? new Date(item.date).toISOString().split('T')[0] : '',
+                date: item.date ? new Date(item.date) : null,
                 name: item.name || '',
                 membershipStatus: item.membershipStatus || '',
                 country: item.country || '',
                 membershipDuration: item.membershipDuration || '',
                 summary: item.summary || '',
-                startDate: item.startDate ? new Date(item.startDate).toISOString().split('T')[0] : '',
-                endDate: item.endDate ? new Date(item.endDate).toISOString().split('T')[0] : '',
+                startDate: item.startDate ? new Date(item.startDate) : null,
+                endDate: item.endDate ? new Date(item.endDate) : null,
                 driveLink: item.driveLink || ''
             });
         } catch (error) {
@@ -42,15 +48,34 @@ const MembershipForm = () => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+    const setDate = (key) => (value) => setFormData((prev) => ({ ...prev, [key]: value }));
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.date) {
+            toast.error('Initial Date is required (dd/MMM/yyyy)');
+            return;
+        }
+        if (formData.endDate && formData.startDate && formData.endDate < formData.startDate) {
+            toast.error('End Date cannot be before Start Date');
+            return;
+        }
+
+        const payload = {
+            ...formData,
+            date: dateToUTCISO(formData.date),
+            startDate: formData.startDate ? dateToUTCISO(formData.startDate) : null,
+            endDate: formData.endDate ? dateToUTCISO(formData.endDate) : null
+        };
+
         setLoading(true);
         try {
             if (isEdit) {
-                await api.put(`/memberships/${id}`, formData);
+                await api.put(`/memberships/${id}`, payload);
                 toast.success(isAdmin ? 'Membership updated successfully' : 'Update request submitted for approval');
             } else {
-                await api.post('/memberships', formData);
+                await api.post('/memberships', payload);
                 toast.success('Membership created successfully');
             }
             window.dispatchEvent(new Event('pendingCountUpdated'));
@@ -120,36 +145,34 @@ const MembershipForm = () => {
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Status</span></label>
-                                        <input
-                                            type="text"
+                                        <select
                                             name="membershipStatus"
-                                            placeholder="e.g. Active, Pending"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                            className="select select-bordered w-full focus:select-primary transition-all"
                                             value={formData.membershipStatus}
                                             onChange={handleChange}
-                                        />
+                                        >
+                                            <option value="">Select Status</option>
+                                            {withCurrentOption(MEMBERSHIP_STATUSES, formData.membershipStatus).map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Duration</span></label>
-                                        <input
-                                            type="text"
-                                            name="membershipDuration"
+                                        <Combobox
+                                            options={MEMBERSHIP_DURATIONS}
+                                            value={formData.membershipDuration}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, membershipDuration: value }))}
                                             placeholder="e.g. 1 Year, Lifetime"
                                             className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.membershipDuration}
-                                            onChange={handleChange}
                                         />
                                     </div>
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Country</span></label>
-                                        <input
-                                            type="text"
-                                            name="country"
-                                            placeholder="Country"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
+                                        <CountrySelect
                                             value={formData.country}
-                                            onChange={handleChange}
+                                            onChange={(value) => setFormData((prev) => ({ ...prev, country: value }))}
                                         />
                                     </div>
                                 </div>
@@ -167,36 +190,17 @@ const MembershipForm = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Initial Date *</span></label>
-                                        <input
-                                            type="date"
-                                            name="date"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.date}
-                                            onChange={handleChange}
-                                            required
-                                        />
+                                        <ScholarsDateField value={formData.date} onChange={setDate('date')} required />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">Start Date</span></label>
-                                        <input
-                                            type="date"
-                                            name="startDate"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.startDate}
-                                            onChange={handleChange}
-                                        />
+                                        <ScholarsDateField value={formData.startDate} onChange={setDate('startDate')} />
                                     </div>
 
                                     <div className="form-control w-full">
                                         <label className="label font-medium"><span className="label-text">End Date</span></label>
-                                        <input
-                                            type="date"
-                                            name="endDate"
-                                            className="input input-bordered w-full focus:input-primary transition-all"
-                                            value={formData.endDate}
-                                            onChange={handleChange}
-                                        />
+                                        <ScholarsDateField value={formData.endDate} onChange={setDate('endDate')} />
                                     </div>
                                 </div>
                             </div>
