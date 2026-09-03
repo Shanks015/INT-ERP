@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import { toDDMMM } from '../../utils/dateFormat';
+import { statusBadgeClass } from '../../utils/statusBadge';
 import { COUNTRIES, SCHOLAR_DESIGNATIONS, SCHOLAR_CAMPUSES } from '../../constants/options';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
@@ -158,7 +159,7 @@ const ScholarsList = () => {
                                         <td>{scholar.campus || '-'}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
-                                                <span>{scholar.scholarStatus || '-'}</span>
+                                                <span className={`badge badge-sm ${statusBadgeClass(scholar.scholarStatus)} whitespace-nowrap`}>{scholar.scholarStatus || '-'}</span>
                                                 {/* System flags — shown only when they add info */}
                                                 {scholar.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
                                                 {scholar.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}

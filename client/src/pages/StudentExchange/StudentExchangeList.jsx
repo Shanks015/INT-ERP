@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import { toDDMMM } from '../../utils/dateFormat';
+import { statusBadgeClass } from '../../utils/statusBadge';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
@@ -155,7 +156,7 @@ const StudentExchangeList = () => {
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Module status */}
-                                                <span>{exchange.exchangeStatus || '-'}</span>
+                                                <span className={`badge badge-sm ${statusBadgeClass(exchange.exchangeStatus)} whitespace-nowrap`}>{exchange.exchangeStatus || '-'}</span>
                                                 {/* System flags — shown only when they add info */}
                                                 {exchange.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
                                                 {exchange.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}

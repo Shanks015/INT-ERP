@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import { toDDMMM } from '../../utils/dateFormat';
+import { statusBadgeClass } from '../../utils/statusBadge';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { Plus, Edit, Trash2, Download, Upload, Plane, TrendingUp, Clock, Eye, Globe, CheckCircle, X, Search, FileText } from 'lucide-react';
@@ -216,7 +217,7 @@ const ImmersionProgramsList = () => {
                                         <td>
                                             <div className="flex flex-col gap-1">
                                                 {/* Module status */}
-                                                <span>{program.programStatus || '-'}</span>
+                                                <span className={`badge badge-sm ${statusBadgeClass(program.programStatus)} whitespace-nowrap`}>{program.programStatus || '-'}</span>
                                                 {/* System flags — shown only when they add info */}
                                                 {program.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
                                                 {program.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-2 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
