@@ -86,6 +86,7 @@ const Dashboard = () => {
                         icon={Globe}
                         color="info"
                         trend={partners?.trend}
+                        trendLabel="new vs last month"
                         onClick={() => navigate('/partners')}
                     />
                     <StatsCard
@@ -94,6 +95,7 @@ const Dashboard = () => {
                         icon={TrendingUp}
                         color="accent"
                         trend={outreach?.trend}
+                        trendLabel="new vs last month"
                         onClick={() => navigate('/outreach')}
                     />
                 </div>

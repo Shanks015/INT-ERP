@@ -95,8 +95,13 @@ const MailboxConnections = () => {
         if (!lastSyncAt) return 'Never';
         const dt = new Date(lastSyncAt);
         if (isNaN(dt.getTime())) return 'Never';
-        const timeParts = dt.toLocaleString('en-IN').split(', ').slice(1).join(', ');
-        return `${toDDMMM(dt)}, ${timeParts}`;
+        // Time half is hand-formatted (12-hour, zero-padded) to match the
+        // project's dd/MMM/yyyy convention — no raw locale string.
+        let hours = dt.getHours();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        const minutes = String(dt.getMinutes()).padStart(2, '0');
+        return `${toDDMMM(dt)}, ${hours}:${minutes} ${ampm}`;
     };
 
     return (

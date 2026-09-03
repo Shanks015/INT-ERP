@@ -16,6 +16,8 @@
 export const MODULES = [
     { name: 'partners', label: 'Partners', endpoint: '/partners' },
     { name: 'campus-visits', label: 'Campus Visits', endpoint: '/campus-visits' },
+    { name: 'seminars', label: 'Seminars', endpoint: '/seminars' },
+    { name: 'consultant-visits', label: 'Consultant Visits', endpoint: '/consultant-visits' },
     { name: 'events', label: 'Events', endpoint: '/events' },
     { name: 'conferences', label: 'Conferences', endpoint: '/conferences' },
     { name: 'mou-signing-ceremonies', label: 'MoU Signing Ceremonies', endpoint: '/mou-signing-ceremonies' },
@@ -47,9 +49,16 @@ export const APPROVAL_MODULES = MODULES;
 export const MODULE_OPTIONS = MODULES.map(({ name, label }) => ({ value: name, label }));
 
 // Shape used by the permission checkbox grid in UserManagement: { id, name }
+// Seminars and consultant-visits are deliberately NOT separate grants: their nav
+// items and routes sit inside the Campus Visits group (client gating), and the
+// server resolves their prefixes to the campus-visits module (auth.js). Granting
+// "Campus Visits" is what exposes all three sub-modules.
+const PERMISSION_MODULE_NAMES = ['seminars', 'consultant-visits'];
 export const PERMISSION_MODULES = [
     { id: 'dashboard', name: 'Dashboard' },
-    ...MODULES.map(({ name, label }) => ({ id: name, name: label })),
+    ...MODULES
+        .filter(({ name }) => !PERMISSION_MODULE_NAMES.includes(name))
+        .map(({ name, label }) => ({ id: name, name: label })),
     { id: 'reports', name: 'Reports' },
     { id: 'settings', name: 'Settings' },
 ];

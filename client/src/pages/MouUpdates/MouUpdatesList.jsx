@@ -250,11 +250,20 @@ const MouUpdatesList = () => {
                                         <td>{update.agreementType || '-'}</td>
                                         <td>{update.term || '-'}</td>
                                         <td>
-                                            {update.validityStatus ? (
-                                                <span className={`badge badge-sm ${statusBadgeClass(update.validityStatus)} whitespace-nowrap`}>
-                                                    {update.validityStatus}
-                                                </span>
-                                            ) : '-'}
+                                            <div className="flex flex-col gap-1">
+                                                {/* mouStatus is filterable on this page but was never shown */}
+                                                {update.mouStatus && (
+                                                    <span className={`badge badge-sm ${statusBadgeClass(update.mouStatus)} whitespace-nowrap`}>
+                                                        {update.mouStatus}
+                                                    </span>
+                                                )}
+                                                {update.validityStatus && (
+                                                    <span className={`badge badge-sm ${statusBadgeClass(update.validityStatus)} whitespace-nowrap`}>
+                                                        {update.validityStatus}
+                                                    </span>
+                                                )}
+                                                {!update.mouStatus && !update.validityStatus && '-'}
+                                            </div>
                                         </td>
                                         <td>{update.department || '-'}</td>
                                         <td>
@@ -293,8 +302,11 @@ const MouUpdatesList = () => {
                     { key: 'completedDate', label: 'Completed Date', type: 'date' },
                     { key: 'agreementType', label: 'Agreement Type' },
                     { key: 'term', label: 'Term' },
-                    { key: 'validityStatus', label: 'Status' },
+                    { key: 'mouStatus', label: 'MoU Status' },
+                    { key: 'validityStatus', label: 'Validity Status' },
                     { key: 'department', label: 'Department' },
+                    { key: 'contactPerson', label: 'Contact Person' },
+                    { key: 'contactEmail', label: 'Contact Email', type: 'email' },
                     { key: 'driveLink', label: 'Drive Link', type: 'link' },
                     { key: 'createdAt', label: 'Created At', type: 'date' },
                     { key: 'updatedAt', label: 'Updated At', type: 'date' }

@@ -299,29 +299,19 @@ const OutreachList = () => {
             </div>
 
             {/* Filters */}
-            <FilterBar filters={filters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} showCountryFilter={false} showDateFilter={false}>
-                <div className="form-control">
-                    <label className="label"><span className="label-text">Outreach Status</span></label>
-                    <select className="select select-bordered w-full" value={filters.outreachStatus || ''} onChange={e => handleFilterChange({ outreachStatus: e.target.value })}>
-                        <option value="">All Statuses</option>
-                        {['Not Sent', 'Pending Partner Review', 'Reply Detected', 'Replied', 'Closed'].map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                </div>
-                <div className="form-control">
-                    <label className="label"><span className="label-text">Partnership Type</span></label>
-                    <select className="select select-bordered w-full" value={filters.partnershipType || ''} onChange={e => handleFilterChange({ partnershipType: e.target.value })}>
-                        <option value="">All Types</option>
-                        {partnershipTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                </div>
-                <div className="form-control">
-                    <label className="label"><span className="label-text">Country</span></label>
-                    <select className="select select-bordered w-full" value={filters.country || ''} onChange={e => handleFilterChange({ country: e.target.value })}>
-                        <option value="">All Countries</option>
-                        {countries.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                </div>
-            </FilterBar>
+            <FilterBar
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={handleClearFilters}
+                showCountryFilter={false}
+                showDateFilter={false}
+                showStatusFilter={false}
+                selectFilters={[
+                    { key: 'outreachStatus', label: 'Outreach Status', placeholder: 'All Statuses', options: ['Not Sent', 'Pending Partner Review', 'Reply Detected', 'Replied', 'Closed'] },
+                    { key: 'partnershipType', label: 'Partnership Type', placeholder: 'All Types', options: partnershipTypes },
+                    { key: 'country', label: 'Country', placeholder: 'All Countries', options: countries }
+                ]}
+            />
 
             {/* Table */}
             <div className="card bg-base-100 shadow-xl">

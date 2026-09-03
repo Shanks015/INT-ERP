@@ -7,11 +7,12 @@ import { statusBadgeClass } from '../../utils/statusBadge';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Users, Eye, Globe, CheckCircle, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Users, Eye, Globe, CheckCircle, FileText, Clock } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
 import SmartStatsCard from '../../components/SmartStatsCard';
+import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
 
 const PartnersList = () => {
@@ -36,7 +37,9 @@ const PartnersList = () => {
         mouStatus: '',
         agreementType: '',
         country: '',
-        recordStatus: ''
+        recordStatus: '',
+        startDate: '',
+        endDate: ''
     });
 
     // Debounce search to avoid excessive API calls
@@ -51,7 +54,7 @@ const PartnersList = () => {
         fetchPartners();
         fetchStats();
         fetchFilterData();
-    }, [currentPage, itemsPerPage, debouncedSearch, filters.mouStatus, filters.agreementType, filters.country, filters.recordStatus]);
+    }, [currentPage, itemsPerPage, debouncedSearch, filters.mouStatus, filters.agreementType, filters.country, filters.recordStatus, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {
@@ -95,7 +98,9 @@ const PartnersList = () => {
                 mouStatus: filters.mouStatus,
                 agreementType: filters.agreementType,
                 country: filters.country,
-                recordStatus: filters.recordStatus
+                recordStatus: filters.recordStatus,
+                startDate: filters.startDate,
+                endDate: filters.endDate
             };
 
             const response = await api.get('/partners', { params });
@@ -149,8 +154,8 @@ const PartnersList = () => {
         }
     };
 
-    const handleFilterChange = (name, value) => {
-        setFilters(prev => ({ ...prev, [name]: value }));
+    const handleFilterChange = (newFilters) => {
+        setFilters(prev => ({ ...prev, ...newFilters }));
         setCurrentPage(1);
     };
 
@@ -160,12 +165,12 @@ const PartnersList = () => {
             mouStatus: '',
             agreementType: '',
             country: '',
-            recordStatus: ''
+            recordStatus: '',
+            startDate: '',
+            endDate: ''
         });
         setCurrentPage(1);
     };
-
-    const hasActiveFilters = Object.values(filters).some(value => value !== '');
 
     if (loading && currentPage === 1) {
         return (
@@ -257,81 +262,20 @@ const PartnersList = () => {
                 />
             </div>
 
-            {/* Custom Filter UI for Partners */}
-            <div className="card bg-base-100 shadow-sm mb-6">
-                <div className="card-body">
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
-                        {/* Search */}
-                        <input
-                            type="text"
-                            placeholder="Search university..."
-                            className="input input-bordered w-full"
-                            value={filters.search}
-                            onChange={(e) => handleFilterChange('search', e.target.value)}
-                        />
-
-                        {/* Country */}
-                        <select
-                            id="country-filter"
-                            className="select select-bordered w-full"
-                            value={filters.country}
-                            onChange={(e) => handleFilterChange('country', e.target.value)}
-                        >
-                            <option value="">All Countries</option>
-                            {countries.map(country => (
-                                <option key={country} value={country}>{country}</option>
-                            ))}
-                        </select>
-
-                        {/* MoU Status */}
-                        <select
-                            className="select select-bordered w-full"
-                            value={filters.mouStatus}
-                            onChange={(e) => handleFilterChange('mouStatus', e.target.value)}
-                        >
-                            <option value="">All MoU Status</option>
-                            {mouStatuses.map(status => (
-                                <option key={status} value={status}>{status}</option>
-                            ))}
-                        </select>
-
-                        {/* Agreement Type */}
-                        <select
-                            className="select select-bordered w-full"
-                            value={filters.agreementType}
-                            onChange={(e) => handleFilterChange('agreementType', e.target.value)}
-                        >
-                            <option value="">All Agreement Types</option>
-                            {agreementTypes.map(type => (
-                                <option key={type} value={type}>{type}</option>
-                            ))}
-                        </select>
-
-                        {/* Record Status */}
-                        <select
-                            className="select select-bordered w-full"
-                            value={filters.recordStatus}
-                            onChange={(e) => handleFilterChange('recordStatus', e.target.value)}
-                        >
-                            <option value="">All Records</option>
-                            <option value="active">Active</option>
-                            <option value="expired">Expired</option>
-                        </select>
-                    </div>
-
-                    {/* Clear Filters Button */}
-                    {hasActiveFilters && (
-                        <div className="flex justify-end mt-4">
-                            <button
-                                onClick={handleClearFilters}
-                                className="btn btn-ghost btn-sm"
-                            >
-                                Clear Filters
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </div>
+            {/* Filters — FilterBar drives search, signing-date From/To (startDate/
+                endDate = signingDate window server-side, task #66), recordStatus,
+                country, plus MoU Status / Agreement Type from live data. */}
+            <FilterBar
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={handleClearFilters}
+                showCountryFilter={true}
+                countries={countries}
+                selectFilters={[
+                    { key: 'mouStatus', label: 'MoU Status', options: mouStatuses },
+                    { key: 'agreementType', label: 'Agreement Type', options: agreementTypes }
+                ]}
+            />
 
             {/* Partners Table */}
             <div className="card bg-base-100 shadow-xl">
@@ -342,7 +286,7 @@ const PartnersList = () => {
                                 <tr>
                                     <th>Country</th>
                                     <th>University</th>
-                                    <th>Department</th>
+                                    <th>School/Department</th>
                                     <th>Contact Person</th>
                                     <th>Email</th>
                                     <th>Signing Date</th>
@@ -388,23 +332,37 @@ const PartnersList = () => {
                                                 ) : '-'}
                                             </td>
                                             <td>
-                                                {partner.activeStatus ? (
-                                                    <span className={`badge badge-sm ${statusBadgeClass(partner.activeStatus)} whitespace-nowrap`}>
-                                                        {partner.activeStatus}
-                                                    </span>
-                                                ) : '-'}
+                                                <div className="flex flex-col gap-1">
+                                                    {/* Record lifecycle — reconciled with the Active stat card
+                                                        and the Record Status filter (both exclude expired). */}
+                                                    {partner.recordStatus === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
+                                                    {partner.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
+
+                                                    {/* Approval workflow badges */}
+                                                    {partner.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
+                                                    {partner.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
+                                                </div>
                                             </td>
                                             <td>
-                                                <div className="flex gap-2">
+                                                <div className="flex gap-2 justify-end">
+                                                    <button
+                                                        onClick={() => setDetailModal({ isOpen: true, partner })}
+                                                        className="btn btn-info btn-sm"
+                                                        title="View Details"
+                                                    >
+                                                        <Eye size={16} />
+                                                    </button>
                                                     <Link
                                                         to={`/partners/edit/${partner._id}`}
-                                                        className="btn btn-warning btn-sm"
+                                                        className={`btn btn-warning btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
+                                                        onClick={(e) => { if (partner.status !== 'active') e.preventDefault(); }}
                                                     >
                                                         <Edit size={16} />
                                                     </Link>
                                                     <button
                                                         onClick={() => setDeleteModal({ isOpen: true, partner })}
-                                                        className="btn btn-error btn-sm"
+                                                        disabled={partner.status !== 'active'}
+                                                        className={`btn btn-error btn-sm ${partner.status !== 'active' ? 'btn-disabled' : ''}`}
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -469,9 +427,9 @@ const PartnersList = () => {
                     { key: 'phoneNumber', label: 'Phone Number' },
                     { key: 'agreementType', label: 'Agreement Type' },
                     { key: 'link', label: 'Link', type: 'link' },
-                    { key: 'submitted', label: 'Submitted', type: 'date' },
                     { key: 'signingDate', label: 'Signing Date', type: 'date' },
                     { key: 'expiringDate', label: 'Expiry Date', type: 'date' },
+                    { key: 'status', label: 'Workflow Status' },
                     { key: 'recordStatus', label: 'Record Status' },
                     { key: 'createdAt', label: 'Created At', type: 'date' },
                     { key: 'updatedAt', label: 'Updated At', type: 'date' }

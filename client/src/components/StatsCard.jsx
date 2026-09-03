@@ -8,7 +8,11 @@ const StatsCard = ({
     color = 'primary',
     onClick,
     isActive = false,
-    loading = false
+    loading = false,
+    // What the trend actually compares. Most modules trend by their domain
+    // activity date; modules without one (Partners/Outreach/Masters Abroad)
+    // trend by createdAt — callers pass a label that says so (see S7/C6).
+    trendLabel = 'vs last month'
 }) => {
     const trendIcons = {
         up: <TrendingUp className="w-4 h-4" />,
@@ -48,7 +52,7 @@ const StatsCard = ({
                         <span className="font-semibold text-xs sm:text-sm whitespace-nowrap">
                             {trend.change > 0 ? '+' : ''}{trend.change} ({trend.percentage}%)
                         </span>
-                        <span className="text-base-content/50 text-xs">vs last month</span>
+                        <span className="text-base-content/50 text-xs">{trendLabel}</span>
                     </div>
                 )}
             </div>

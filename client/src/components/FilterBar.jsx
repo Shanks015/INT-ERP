@@ -12,6 +12,7 @@ const FilterBar = ({
     onClearFilters,
     showCountryFilter = false,
     showDateFilter = true,
+    showStatusFilter = true,
     countries = [],
     selectFilters = []
 }) => {
@@ -50,21 +51,26 @@ const FilterBar = ({
                         </div>
                     </div>
 
-                    {/* Record Status Filter */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">Status</span>
-                        </label>
-                        <select
-                            className="select select-bordered w-full"
-                            value={filters.recordStatus || ''}
-                            onChange={(e) => handleChange('recordStatus', e.target.value)}
-                        >
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="expired">Expired</option>
-                        </select>
-                    </div>
+                    {/* Record Status Filter — writes `recordStatus`. Pages whose
+                        status concept is a different field (e.g. Outreach's
+                        outreachStatus) hide this via showStatusFilter={false}
+                        and supply their own select through selectFilters. */}
+                    {showStatusFilter && (
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">Status</span>
+                            </label>
+                            <select
+                                className="select select-bordered w-full"
+                                value={filters.recordStatus || ''}
+                                onChange={(e) => handleChange('recordStatus', e.target.value)}
+                            >
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="expired">Expired</option>
+                            </select>
+                        </div>
+                    )}
 
                     {/* Start Date */}
                     {showDateFilter && (

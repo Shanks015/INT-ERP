@@ -327,10 +327,10 @@ const MeetingTrackersList = () => {
                                                     <button onClick={() => setDetailModal({ isOpen: true, item: meeting })} className="btn btn-info btn-sm" title="View Details">
                                                         <Eye size={16} />
                                                     </button>
-                                                    <Link to={`/meeting-trackers/edit/${meeting._id}`} className="btn btn-warning btn-sm" title="Edit">
+                                                    <Link to={`/meeting-trackers/edit/${meeting._id}`} className={`btn btn-warning btn-sm ${meeting.status !== 'active' ? 'btn-disabled' : ''}`} title="Edit" onClick={(e) => { if (meeting.status !== 'active') e.preventDefault(); }}>
                                                         <Edit size={16} />
                                                     </Link>
-                                                    <button onClick={() => setDeleteModal({ isOpen: true, item: meeting })} className="btn btn-error btn-sm" title="Delete">
+                                                    <button onClick={() => setDeleteModal({ isOpen: true, item: meeting })} disabled={meeting.status !== 'active'} className={`btn btn-error btn-sm ${meeting.status !== 'active' ? 'btn-disabled' : ''}`} title="Delete">
                                                         <Trash2 size={16} />
                                                     </button>
                                                 </div>

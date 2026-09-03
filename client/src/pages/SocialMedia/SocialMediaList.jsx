@@ -113,7 +113,7 @@ const SocialMediaList = () => {
                 <div className="card-body">
                     <div className="overflow-x-auto">
                         <table className="table table-zebra">
-                            <thead><tr><th>Post Name</th><th>Caption</th><th>Date</th><th>Platform Links</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>Post Name</th><th>Caption</th><th>Created</th><th>Platform Links</th><th>Actions</th></tr></thead>
                             <tbody>
                                 {posts.length === 0 ? (
                                     <tr><td colSpan="5" className="text-center py-8">No posts found</td></tr>
@@ -122,6 +122,7 @@ const SocialMediaList = () => {
                                         <tr key={post._id}>
                                             <td className="font-medium">{post.postName}</td>
                                             <td><div className="max-w-xs truncate">{post.caption || '-'}</div></td>
+                                            {/* Model has no post-date field; createdAt is the record's creation time */}
                                             <td>{formatDate(post.createdAt)}</td>
                                             <td>
                                                 <div className="flex gap-2">
@@ -149,7 +150,7 @@ const SocialMediaList = () => {
                 </div>
             </div>
 
-            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.postName || ''} requireReason={!isAdmin} />
+            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.postName || 'this social post'} requireReason={!isAdmin} />
             <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} moduleName="social-media" onSuccess={() => { fetchPosts(); fetchStats(); }} />
             <DetailModal isOpen={detailModal.isOpen} onClose={() => setDetailModal({ isOpen: false, item: null })} data={detailModal.item} title="Post Details" fields={[
                 { key: 'postName', label: 'Post Name' },

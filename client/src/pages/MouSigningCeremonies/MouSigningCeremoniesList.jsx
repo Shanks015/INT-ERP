@@ -150,7 +150,7 @@ const MouSigningCeremoniesList = () => {
                     {totalItems > 0 && <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} onItemsPerPageChange={(newLimit) => { setItemsPerPage(newLimit); setCurrentPage(1); }} />}
                 </div>
             </div>
-            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.title} requireReason={!isAdmin} />
+            <DeleteConfirmModal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, item: null })} onConfirm={handleDelete} itemName={deleteModal.item?.visitorName || deleteModal.item?.university} requireReason={!isAdmin} />
             <ImportModal isOpen={importModal} onClose={() => setImportModal(false)} onSuccess={() => { fetchCeremonies(); fetchStats(); }} moduleName="mou-signing-ceremonies" />
             <DetailModal
                 isOpen={detailModal.isOpen}
@@ -158,14 +158,16 @@ const MouSigningCeremoniesList = () => {
                 data={detailModal.item}
                 title="MoU Signing Ceremony Details"
                 fields={[
-                    { key: 'title', label: 'Title' },
+                    { key: 'visitorName', label: 'Visitor Name' },
                     { key: 'date', label: 'Date', type: 'date' },
                     { key: 'university', label: 'University' },
+                    { key: 'type', label: 'Type' },
                     { key: 'department', label: 'Department' },
-                    { key: 'location', label: 'Location' },
-                    { key: 'dignitaries', label: 'Dignitaries' },
+                    { key: 'campus', label: 'Campus' },
+                    { key: 'eventSummary', label: 'Event Summary' },
                     { key: 'driveLink', label: 'Drive Link', type: 'link' },
-                    { key: 'status', label: 'Status' },
+                    { key: 'status', label: 'Workflow Status' },
+                    { key: 'recordStatus', label: 'Record Status' },
                     { key: 'createdAt', label: 'Created At', type: 'date' },
                     { key: 'updatedAt', label: 'Updated At', type: 'date' }
                 ]}

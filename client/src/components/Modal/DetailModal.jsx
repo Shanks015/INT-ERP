@@ -14,6 +14,7 @@ import {
     Paperclip
 } from 'lucide-react';
 import { formatDate, toDDMMM } from '../../utils/dateFormat';
+import { statusBadgeClass } from '../../utils/statusBadge';
 
 // Timestamp render for outreach reply meta: canonical dd/MMM/yyyy date + the
 // time-of-day part of the localized string (e.g. "03/Sep/2026, 09:41:00").
@@ -27,26 +28,14 @@ const formatDateTime = (value) => {
 const DetailModal = ({ isOpen, onClose, data, title, fields }) => {
     if (!isOpen || !data) return null;
 
-    const serverBaseUrl = import.meta.env.VITE_API_URL 
-        ? import.meta.env.VITE_API_URL.replace('/api', '') 
+    const serverBaseUrl = import.meta.env.VITE_API_URL
+        ? import.meta.env.VITE_API_URL.replace('/api', '')
         : `${window.location.protocol}//${window.location.hostname}:5000`;
 
-    console.log('DetailModal data:', data);
-    console.log('DetailModal fields:', fields);
-
-    const getStatusBadgeClass = (val) => {
-        const v = String(val).trim().toLowerCase();
-        if (['active', 'replied', 'approved', 'confirmed', 'high', 'success'].includes(v)) {
-            return 'badge badge-success text-success-content gap-1 font-semibold py-2.5 px-3';
-        }
-        if (['pending', 'pending partner review', 'reply detected', 'pending_review', 'warning', 'pending_edit', 'pending_delete'].includes(v)) {
-            return 'badge badge-warning text-warning-content gap-1 font-semibold py-2.5 px-3';
-        }
-        if (['not sent', 'rejected', 'closed', 'expired', 'low', 'error'].includes(v)) {
-            return 'badge badge-error text-error-content gap-1 font-semibold py-2.5 px-3';
-        }
-        return 'badge badge-ghost gap-1 font-semibold py-2.5 px-3';
-    };
+    // Reuses the shared statusBadge util so detail-view badges match the module
+    // list badges for every human status (Scholar Completed/Upcoming…, Exchange
+    // statuses, programStatus, etc.) instead of a fixed palette (C4).
+    const getStatusBadgeClass = (val) => `badge ${statusBadgeClass(val)} gap-1 font-semibold py-2.5 px-3`;
 
     const getFieldIcon = (field) => {
         const key = field.key.toLowerCase();

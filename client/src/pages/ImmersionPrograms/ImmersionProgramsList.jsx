@@ -242,8 +242,12 @@ const ImmersionProgramsList = () => {
                                                 <button onClick={() => setDetailModal({ isOpen: true, item: program })} className="btn btn-info btn-sm" title="View Details">
                                                     <Eye size={16} />
                                                 </button>
-                                                <Link to={`/immersion-programs/edit/${program._id}`} className="btn btn-warning btn-sm"><Edit size={16} /></Link>
-                                                <button onClick={() => setDeleteModal({ isOpen: true, item: program })} className="btn btn-error btn-sm"><Trash2 size={16} /></button>
+                                                <Link
+                                                    to={`/immersion-programs/edit/${program._id}`}
+                                                    className={`btn btn-warning btn-sm ${program.status !== 'active' ? 'btn-disabled' : ''}`}
+                                                    onClick={(e) => { if (program.status !== 'active') e.preventDefault(); }}
+                                                ><Edit size={16} /></Link>
+                                                <button onClick={() => setDeleteModal({ isOpen: true, item: program })} disabled={program.status !== 'active'} className={`btn btn-error btn-sm ${program.status !== 'active' ? 'btn-disabled' : ''}`}><Trash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>
