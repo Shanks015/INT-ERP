@@ -1,6 +1,7 @@
 import OutreachNew from '../models/OutreachNew.js';
 import MailboxConnection from '../models/MailboxConnection.js';
 import { decrypt } from '../services/cryptoService.js';
+import { isGmailConfigured, sendViaGmail } from '../services/gmailSendService.js';
 import nodemailer from 'nodemailer';
 import { logUserActivity, sanitizeInput, escapeRegex } from './generic.controller.js';
 import * as XLSX from 'xlsx';
@@ -393,32 +394,48 @@ export const sendOutreachNewEmail = async (req, res) => {
             }))
         };
 
-        // Try each candidate until one connects. Fail over only on connect-level
-        // errors — an auth or content error would fail identically on every port.
-        let info = null;
-        let lastErr = null;
-        for (const cand of smtpCandidates) {
-            const transporter = nodemailer.createTransport({
-                host: smtpHost,
-                port: cand.port,
-                secure: cand.secure,
-                connectionTimeout: 15000,
-                greetingTimeout: 15000,
-                socketTimeout: 45000,
-                auth: { user: mailbox.emailAddress, pass: appPassword }
+        // SEND. Preferred: Gmail API over HTTPS when this mailbox has authorized
+        // Google (Render drops outbound TCP to Gmail's SMTP 465/587). Otherwise
+        // fall back to SMTP candidates (587 STARTTLS then 465) for local/dev or
+        // non-Gmail hosts.
+        let messageId;
+        if (mailbox.refreshToken && isGmailConfigured()) {
+            const sent = await sendViaGmail({
+                mailbox,
+                fromName: req.user.name,
+                from: mailbox.emailAddress,
+                to: outreach.email,
+                subject,
+                html: htmlContent,
+                attachments
             });
-            try {
-                info = await transporter.sendMail(mailOptions);
-                break;
-            } catch (err) {
-                lastErr = err;
-                const connectLevel = /ETIMEDOUT|ESOCKET|ECONNECTION|EDNS|ECONNREFUSED/i.test(err.code || '')
-                    || /timeout|connect|ECONN/i.test(err.message || '');
-                if (!connectLevel) break;
+            messageId = sent.messageId;
+        } else {
+            let info = null;
+            let lastErr = null;
+            for (const cand of smtpCandidates) {
+                const transporter = nodemailer.createTransport({
+                    host: smtpHost,
+                    port: cand.port,
+                    secure: cand.secure,
+                    connectionTimeout: 15000,
+                    greetingTimeout: 15000,
+                    socketTimeout: 45000,
+                    auth: { user: mailbox.emailAddress, pass: appPassword }
+                });
+                try {
+                    info = await transporter.sendMail(mailOptions);
+                    break;
+                } catch (err) {
+                    lastErr = err;
+                    const connectLevel = /ETIMEDOUT|ESOCKET|ECONNECTION|EDNS|ECONNREFUSED/i.test(err.code || '')
+                        || /timeout|connect|ECONN/i.test(err.message || '');
+                    if (!connectLevel) break;
+                }
             }
+            if (!info) throw lastErr || new Error('SMTP send failed');
+            messageId = info.messageId;
         }
-        if (!info) throw lastErr || new Error('SMTP send failed');
-        const messageId = info.messageId;
 
         // Log sent mail in the record thread
         outreach.emails.push({

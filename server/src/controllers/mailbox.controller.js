@@ -1,6 +1,13 @@
 import MailboxConnection from '../models/MailboxConnection.js';
 import { encrypt } from '../services/cryptoService.js';
 import { syncMailbox } from '../jobs/imapReplySync.job.js';
+import {
+    isGmailConfigured,
+    buildAuthUrl,
+    buildRedirectUri,
+    exchangeCodeForTokens,
+    getUserEmail
+} from '../services/gmailSendService.js';
 
 // Admins manage every connection; any other role manages only their own.
 const canManage = (connection, req) => {
@@ -32,10 +39,11 @@ export const getAllMailboxes = async (req, res) => {
             lastErrorAt:  c.lastErrorAt,
             lastError:    c.lastError,
             totalMatched: c.totalMatched,
+            gmailAuthorizedAt: c.gmailAuthorizedAt,
             createdAt:    c.createdAt
         }));
 
-        res.json({ data: safe });
+        res.json({ data: safe, gmailConfigured: isGmailConfigured() });
     } catch (err) {
         res.status(500).json({ message: 'Error fetching mailbox connections', error: err.message });
     }
@@ -133,5 +141,67 @@ export const updateMailboxStatus = async (req, res) => {
         res.json({ message: `Mailbox ${status}`, data: { _id: connection._id, status: connection.status } });
     } catch (err) {
         res.status(500).json({ message: 'Error updating mailbox status', error: err.message });
+    }
+};
+
+// GET /api/mailboxes/gmail/auth-url?mailboxId=... — build the Google consent URL.
+// The logged-in user (or admin) then opens it in the browser as the mailbox owner.
+export const gmailAuthUrl = async (req, res) => {
+    try {
+        const { mailboxId } = req.query;
+        if (!mailboxId) return res.status(400).json({ message: 'mailboxId is required' });
+        if (!isGmailConfigured()) {
+            return res.status(400).json({ message: 'Gmail API is not configured on this server yet (missing GOOGLE_CLIENT_SECRET)' });
+        }
+
+        const connection = await MailboxConnection.findById(mailboxId);
+        if (!connection) return res.status(404).json({ message: 'Connection not found' });
+        if (!canManage(connection, req)) {
+            return res.status(403).json({ message: 'Access denied. You can only authorize your own mailbox connection.' });
+        }
+
+        const redirectUri = buildRedirectUri(req);
+        const url = buildAuthUrl({ redirectUri, mailboxId: connection._id.toString() });
+        res.json({ url });
+    } catch (err) {
+        res.status(500).json({ message: 'Error building Google auth URL', error: err.message });
+    }
+};
+
+// GET /api/mailboxes/gmail/oauth/callback — Google redirects the browser here
+// after consent. PUBLIC route (no ERP JWT present). Exchanges the code, verifies
+// the authorized account is the mailbox's address, stores the refresh token.
+export const gmailOauthCallback = async (req, res) => {
+    const back = (msg) => res.redirect(`/mailbox-connections?gmail=error&msg=${encodeURIComponent(msg)}`);
+    try {
+        const { code, state, error } = req.query;
+        if (error) return back('Authorization was cancelled or denied');
+        if (!code) return back('Google returned no authorization code');
+
+        let mailboxId = null;
+        try { mailboxId = Buffer.from(String(state || ''), 'base64url').toString('utf8'); } catch {}
+        if (!mailboxId) return back('Invalid authorization state');
+
+        const connection = await MailboxConnection.findById(mailboxId);
+        if (!connection) return back('Mailbox connection not found');
+
+        const redirectUri = buildRedirectUri(req);
+        const tokens = await exchangeCodeForTokens({ code, redirectUri });
+        if (!tokens.refresh_token) return back('Google did not return a refresh token (offline access not granted)');
+
+        // Verify the account that authorized is the one this mailbox is for.
+        const authorizedEmail = await getUserEmail(tokens.access_token).catch(() => null);
+        if (authorizedEmail && authorizedEmail.toLowerCase() !== connection.emailAddress.toLowerCase()) {
+            return back(`Signed in as ${authorizedEmail}, but this mailbox is ${connection.emailAddress}`);
+        }
+
+        connection.refreshToken = encrypt(tokens.refresh_token);
+        connection.gmailAuthorizedAt = new Date();
+        await connection.save();
+
+        res.redirect('/mailbox-connections?gmail=ok');
+    } catch (err) {
+        console.error('[Gmail OAuth callback error]', err);
+        back('Authorization failed: ' + err.message);
     }
 };

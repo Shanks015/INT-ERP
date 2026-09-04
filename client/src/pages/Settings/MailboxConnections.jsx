@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
-import { PlusCircle, Trash2, RefreshCw, WifiOff, Wifi, Eye, EyeOff, X } from 'lucide-react';
+import { PlusCircle, Trash2, RefreshCw, WifiOff, Wifi, Eye, EyeOff, X, CheckCircle2, KeyRound } from 'lucide-react';
 import { toDDMMM } from '../../utils/dateFormat';
 
 const statusBadge = { active: 'badge-success', error: 'badge-error', disconnected: 'badge-neutral' };
@@ -38,6 +38,7 @@ const MailboxConnections = () => {
     const [form, setForm] = useState({ employeeId: '', employeeName: '', emailAddress: '', appPassword: '' });
     const [showPwd, setShowPwd] = useState(false);
     const [users, setUsers] = useState([]);
+    const [gmailConfigured, setGmailConfigured] = useState(false);
 
     useEffect(() => {
         fetchConnections();
@@ -45,11 +46,31 @@ const MailboxConnections = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAdmin]);
 
+    // Google OAuth redirects the browser back here with ?gmail=ok|error — toast once.
+    useEffect(() => {
+        const q = new URLSearchParams(window.location.search);
+        const g = q.get('gmail');
+        if (g === 'ok') toast.success('Google sending enabled ✅ The ERP can now send from this mailbox.');
+        else if (g === 'error') toast.error(q.get('msg') || 'Google authorization failed');
+        if (g) window.history.replaceState({}, '', window.location.pathname);
+    }, []);
+
+    const isGmailAddr = (c) => /@(gmail|googlemail)\.com$/i.test((c.emailAddress || '').toLowerCase().replace(/\s/g, ''));
+
+    const enableGmail = async (c) => {
+        try {
+            const r = await api.get('/mailboxes/gmail/auth-url', { params: { mailboxId: c._id } });
+            if (r.data?.url) window.location.href = r.data.url;
+            else toast.error(r.data?.message || 'Could not start Google authorization');
+        } catch (err) { toast.error(err.response?.data?.message || 'Failed to start Google authorization'); }
+    };
+
     const fetchConnections = async () => {
         try {
             setLoading(true);
             const r = await api.get('/mailboxes');
             setConnections(r.data.data || []);
+            setGmailConfigured(r.data.gmailConfigured === true);
         } catch { toast.error('Failed to load mailbox connections'); }
         finally { setLoading(false); }
     };
@@ -212,6 +233,31 @@ const MailboxConnections = () => {
                                         </button>
                                     </div>
                                 </div>
+
+                                {/* Sending capability — Gmail API (Google) is how the ERP
+                                    actually delivers mail from Render; IMAP handles inbound. */}
+                                {(isGmailAddr(c) || c.gmailAuthorizedAt) && (
+                                    <div className="mt-3 pt-3 border-t border-base-200 flex items-center justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <p className="text-xs font-semibold text-base-content/50 mb-1">Sending</p>
+                                            {c.gmailAuthorizedAt ? (
+                                                <span className="inline-flex items-center gap-1 text-sm text-success font-medium">
+                                                    <CheckCircle2 size={15} /> Sends via Google
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs text-base-content/50">
+                                                    Replies still auto-import. Connect Google so you can send from the ERP.
+                                                </span>
+                                            )}
+                                        </div>
+                                        {!c.gmailAuthorizedAt && gmailConfigured && (
+                                            <button onClick={() => enableGmail(c)}
+                                                className="btn btn-sm btn-outline btn-primary gap-1 shrink-0">
+                                                <KeyRound size={14} /> Enable Google sending
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
