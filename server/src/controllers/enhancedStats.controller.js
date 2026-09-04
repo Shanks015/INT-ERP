@@ -1298,6 +1298,51 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 break;
         }
 
+        // ---- trendline data: the last 12 calendar months (oldest → newest) on the
+        // same effective-date basis as `trend` above — the module's domain date when
+        // present, else createdAt — plus the same months a year earlier, so the
+        // "Growth Trend" chart can overlay year-over-year activity. Attached only when
+        // there is real activity in the window; an empty dataset keeps the client's
+        // "no data yet" state instead of drawing a flat zero line.
+        const TREND_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthWindow = (y, m) => ({
+            gte: new Date(y, m, 1),
+            lte: new Date(y, m + 1, 0, 23, 59, 59, 999)
+        });
+        const monthCount = (y, m) => {
+            const { gte, lte } = monthWindow(y, m);
+            return Model.countDocuments({
+                $and: [
+                    baseQuery,
+                    {
+                        $or: [
+                            { [dateField]: { $gte: gte, $lte: lte } },
+                            { [dateField]: { $exists: false }, createdAt: { $gte: gte, $lte: lte } },
+                            { [dateField]: null, createdAt: { $gte: gte, $lte: lte } }
+                        ]
+                    }
+                ]
+            });
+        };
+
+        const trendBasis = [];
+        for (let i = 11; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            trendBasis.push({ y: d.getFullYear(), m: d.getMonth() });
+        }
+        const trendCounts = await Promise.all(
+            trendBasis.flatMap(({ y, m }) => [monthCount(y, m), monthCount(y - 1, m)])
+        );
+        const trendData = trendBasis.map(({ y, m }, idx) => ({
+            month: `${TREND_MONTHS[m]} ${String(y).slice(2)}`,
+            current: trendCounts[idx * 2],
+            previous: trendCounts[idx * 2 + 1]
+        }));
+
+        if (trendData.some((pt) => pt.current > 0 || pt.previous > 0)) {
+            stats.trendData = trendData;
+        }
+
         res.json({
             success: true,
             stats

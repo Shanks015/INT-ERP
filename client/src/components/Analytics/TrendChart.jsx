@@ -2,8 +2,15 @@ import { motion } from 'framer-motion';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const TrendChart = ({ data }) => {
-    // Check if we have real trend data from backend
-    const hasTrendData = data.trendData && Array.isArray(data.trendData) && data.trendData.length > 0;
+    // The backend now sends a full 12-month trendData array; only treat it as real
+    // when at least one month has activity — a zero-array (empty module) should keep
+    // the "no data yet" state rather than drawing a flat line of zeros.
+    const hasTrendData = data.trendData && Array.isArray(data.trendData) && data.trendData.length > 0 &&
+        data.trendData.some((d) => (d.current || 0) > 0 || (d.previous || 0) > 0);
+    // A year-ago overlay is only meaningful when some prior-year month actually has
+    // records (bulk-imported datasets often have none) — hide it rather than imply a
+    // flat zero "previous year".
+    const hasPrevYear = hasTrendData && data.trendData.some((d) => (d.previous || 0) > 0);
 
     // Bulk-imported modules have no this/last-month records, so the derived 0%
     // growth is "no baseline" rather than a real flat month.
@@ -96,17 +103,19 @@ const TrendChart = ({ data }) => {
                                 fillOpacity={1}
                                 fill="url(#colorCurrent)"
                                 strokeWidth={2}
-                                name="Current Year"
+                                name="Records"
                             />
-                            <Area
-                                type="monotone"
-                                dataKey="previous"
-                                stroke="oklch(var(--s))"
-                                fillOpacity={1}
-                                fill="url(#colorPrevious)"
-                                strokeWidth={2}
-                                name="Previous Year"
-                            />
+                            {hasPrevYear && (
+                                <Area
+                                    type="monotone"
+                                    dataKey="previous"
+                                    stroke="oklch(var(--s))"
+                                    fillOpacity={1}
+                                    fill="url(#colorPrevious)"
+                                    strokeWidth={2}
+                                    name="Same month last year"
+                                />
+                            )}
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
