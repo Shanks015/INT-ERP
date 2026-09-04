@@ -30,7 +30,11 @@ const COUNTRY_CANONICAL = {
     'CZECH REPUBLIC': 'Czechia',
     'CZECH': 'Czechia',
     'UAE': 'United Arab Emirates',
-    'U.A.E.': 'United Arab Emirates'
+    'U.A.E.': 'United Arab Emirates',
+    'UZBEKISTHAN': 'Uzbekistan',
+    'KAZAKISTHAN': 'Kazakhstan',
+    'KRYGYSTHAN': 'Kyrgyzstan',
+    'LATUNIA': 'Latvia'
 };
 
 // Reduce the distribution to { UPPER_TOPONAME: { value, displayName } }, resolving
