@@ -1,6 +1,6 @@
 import MeetingTracker from '../models/MeetingTracker.js';
 import { Parser } from 'json2csv';
-import { logUserActivity, sanitizeInput, stringifyDates } from './generic.controller.js';
+import { logUserActivity, sanitizeInput, stringifyDates, escapeRegex } from './generic.controller.js';
 
 // Helper to parse date from Excel or user input
 const parseDate = (value) => {
@@ -28,7 +28,7 @@ export const getAll = async (req, res) => {
 
         // Search
         if (search && search.trim()) {
-            const searchRegex = { $regex: search.trim(), $options: 'i' };
+            const searchRegex = { $regex: escapeRegex(search.trim()), $options: 'i' };
             query.$or = [
                 { meetingId: searchRegex },
                 { meetingTitle: searchRegex },

@@ -1,6 +1,8 @@
 // Enhanced stats controller with module-specific statistics
 // Each module gets custom stats based on its unique fields
 
+const escapeRegex = (s) => String(s ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 export const getEnhancedStats = (Model) => async (req, res) => {
     try {
         const modelName = Model.modelName;
@@ -1215,7 +1217,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
 
                 // Search
                 if (search && search.trim()) {
-                    const searchRegex = { $regex: search.trim(), $options: 'i' };
+                    const searchRegex = { $regex: escapeRegex(search.trim()), $options: 'i' };
                     filterQuery.$or = [
                         { meetingId: searchRegex },
                         { meetingTitle: searchRegex },

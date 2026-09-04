@@ -33,7 +33,7 @@ export const getAll = async (req, res) => {
 
         // Search
         if (search && search.trim()) {
-            const searchRegex = { $regex: search.trim(), $options: 'i' };
+            const searchRegex = { $regex: escapeRegex(search.trim()), $options: 'i' };
             query.$or = [
                 { university: searchRegex },
                 { school: searchRegex },
@@ -314,7 +314,9 @@ export const exportCSV = async (req, res) => {
             });
         }
 
-        const partners = await Partner.find().sort({ createdAt: -1 }).lean();
+        // Match the list page: workflow-active only (excludes pending_edit /
+        // pending_delete rows the UI hides and gates), recordStatus expiry included.
+        const partners = await Partner.find({ status: 'active' }).sort({ createdAt: -1 }).lean();
 
         // Define fields for CSV
         const fields = [

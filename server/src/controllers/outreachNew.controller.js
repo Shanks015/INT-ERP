@@ -2,7 +2,7 @@ import OutreachNew from '../models/OutreachNew.js';
 import MailboxConnection from '../models/MailboxConnection.js';
 import { decrypt } from '../services/cryptoService.js';
 import nodemailer from 'nodemailer';
-import { logUserActivity, sanitizeInput } from './generic.controller.js';
+import { logUserActivity, sanitizeInput, escapeRegex } from './generic.controller.js';
 import * as XLSX from 'xlsx';
 import path from 'path';
 import fs from 'fs';
@@ -31,7 +31,7 @@ export const getAllOutreachNew = async (req, res) => {
         const query = { status: 'active' };
 
         if (search.trim()) {
-            const regex = new RegExp(search.trim(), 'i');
+            const regex = new RegExp(escapeRegex(search.trim()), 'i');
             query.$or = [
                 { university: regex },
                 { country: regex },

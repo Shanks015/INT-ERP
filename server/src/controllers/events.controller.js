@@ -1,6 +1,6 @@
 import Event from '../models/Event.js';
 import { Parser } from 'json2csv';
-import { logUserActivity, sanitizeInput, stringifyDates } from './generic.controller.js';
+import { logUserActivity, sanitizeInput, stringifyDates, escapeRegex } from './generic.controller.js';
 
 // Get all events
 export const getAll = async (req, res) => {
@@ -21,7 +21,7 @@ export const getAll = async (req, res) => {
 
         // Search
         if (search && search.trim()) {
-            const searchRegex = { $regex: search.trim(), $options: 'i' };
+            const searchRegex = { $regex: escapeRegex(search.trim()), $options: 'i' };
             query.$or = [
                 { title: searchRegex },
                 { eventSummary: searchRegex },

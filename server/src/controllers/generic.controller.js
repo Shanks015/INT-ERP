@@ -106,7 +106,10 @@ export const getAll = (Model) => async (req, res) => {
         // Search filter: Use regex for flexible partial matching across common fields
         // This works with all models without requiring text indexes
         if (search && search.trim()) {
-            const searchRegex = { $regex: search.trim(), $options: 'i' };
+            // Free-text search is a case-insensitive substring; escape so literal
+            // metacharacters (e.g. '(' in a channel) match instead of throwing or
+            // never matching (same class of bug as the anchored filter, S4).
+            const searchRegex = { $regex: escapeRegex(search.trim()), $options: 'i' };
 
             // Search across common fields that might exist in any model
             query.$or = [
