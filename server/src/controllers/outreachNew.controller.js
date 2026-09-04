@@ -341,15 +341,13 @@ export const sendOutreachNewEmail = async (req, res) => {
         const appPassword = decrypt(mailbox.appPassword);
         const smtpHost = getSmtpHost(mailbox.imapHost);
 
-        const transporter = nodemailer.createTransport({
-            host: smtpHost,
-            port: 465,
-            secure: true,
-            auth: {
-                user: mailbox.emailAddress,
-                pass: appPassword
-            }
-        });
+        // SMTP candidates, tried in order. Gmail's port 465 (implicit TLS) was
+        // observed timing out from Render while IMAP on 993 still worked, so we
+        // prefer 587 STARTTLS and keep 465 for hosts that only offer implicit TLS.
+        const smtpCandidates = [
+            { port: 587, secure: false },
+            { port: 465, secure: true }
+        ];
 
         // Parse attachments
         const attachments = [];
@@ -395,7 +393,31 @@ export const sendOutreachNewEmail = async (req, res) => {
             }))
         };
 
-        const info = await transporter.sendMail(mailOptions);
+        // Try each candidate until one connects. Fail over only on connect-level
+        // errors — an auth or content error would fail identically on every port.
+        let info = null;
+        let lastErr = null;
+        for (const cand of smtpCandidates) {
+            const transporter = nodemailer.createTransport({
+                host: smtpHost,
+                port: cand.port,
+                secure: cand.secure,
+                connectionTimeout: 15000,
+                greetingTimeout: 15000,
+                socketTimeout: 45000,
+                auth: { user: mailbox.emailAddress, pass: appPassword }
+            });
+            try {
+                info = await transporter.sendMail(mailOptions);
+                break;
+            } catch (err) {
+                lastErr = err;
+                const connectLevel = /ETIMEDOUT|ESOCKET|ECONNECTION|EDNS|ECONNREFUSED/i.test(err.code || '')
+                    || /timeout|connect|ECONN/i.test(err.message || '');
+                if (!connectLevel) break;
+            }
+        }
+        if (!info) throw lastErr || new Error('SMTP send failed');
         const messageId = info.messageId;
 
         // Log sent mail in the record thread
