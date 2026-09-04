@@ -8,6 +8,12 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import dns from 'node:dns';
+
+// Render instances have no route to public IPv6 (SMTP previously failed with
+// ENETUNREACH on smtp.gmail.com's AAAA records and no v4 fallback ran). Prefer
+// IPv4 for ALL outbound resolution; must run before the first socket opens.
+dns.setDefaultResultOrder('ipv4first');
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
