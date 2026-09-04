@@ -9,6 +9,7 @@ import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import Pagination from '../../components/Pagination';
 import { toDDMMM } from '../../utils/dateFormat';
+import { stripQuotedReply } from '../../utils/emailQuote';
 
 const STATUS_BADGES = {
     'Not Sent': 'badge-neutral',
@@ -205,7 +206,11 @@ const EmailThreadModal = ({ isOpen, onClose, recordId, onRefreshList }) => {
                                                     <p className="font-semibold text-xs opacity-75 border-b border-current/15 pb-1 mb-1">
                                                         Subject: {mail.subject}
                                                     </p>
-                                                    <div className="whitespace-pre-wrap break-words">{mail.body}</div>
+                                                    {/* Received replies carry a verbatim quote of the original — strip
+                                                        it so the thread reads "Yes" instead of repeating our sent bubble. */}
+                                                    <div className="whitespace-pre-wrap break-words">
+                                                        {mail.direction === 'received' ? stripQuotedReply(mail.body) : mail.body}
+                                                    </div>
                                                     
                                                     {/* Attachments inside bubble */}
                                                     {mail.attachments && mail.attachments.length > 0 && (
