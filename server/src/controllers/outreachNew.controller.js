@@ -398,7 +398,7 @@ export const sendOutreachNewEmail = async (req, res) => {
         // Google (Render drops outbound TCP to Gmail's SMTP 465/587). Otherwise
         // fall back to SMTP candidates (587 STARTTLS then 465) for local/dev or
         // non-Gmail hosts.
-        let messageId;
+        let messageId, gmailId, threadId;
         if (mailbox.refreshToken && isGmailConfigured()) {
             const sent = await sendViaGmail({
                 mailbox,
@@ -410,6 +410,8 @@ export const sendOutreachNewEmail = async (req, res) => {
                 attachments
             });
             messageId = sent.messageId;
+            gmailId = sent.gmailId || null;
+            threadId = sent.threadId || null;
         } else {
             let info = null;
             let lastErr = null;
@@ -440,6 +442,8 @@ export const sendOutreachNewEmail = async (req, res) => {
         // Log sent mail in the record thread
         outreach.emails.push({
             messageId,
+            gmailId,
+            threadId,
             direction: 'sent',
             from: mailbox.emailAddress,
             to: outreach.email,

@@ -66,6 +66,13 @@ const outreachNewSchema = new mongoose.Schema({
     },
     emails: [{
         messageId: { type: String },
+        // Gmail internal ids from the Gmail API. The send leg records these so the
+        // thread modal can deep-link to the real conversation in Gmail
+        // (https://mail.google.com/mail/u/0/#all/<threadId>). Received (IMAP) legs
+        // only carry the RFC Message-ID header, which is resolved via a Gmail
+        // rfc822msgid search link instead.
+        gmailId: { type: String },
+        threadId: { type: String },
         direction: { type: String, enum: ['sent', 'received'] },
         from: { type: String },
         to: { type: String },

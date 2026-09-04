@@ -4,12 +4,13 @@ import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Mail, Eye, Send, Paperclip, Check, X, Search, AlertCircle, RefreshCw, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Mail, Eye, Send, Paperclip, Check, X, Search, AlertCircle, RefreshCw, FileText, ExternalLink } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import Pagination from '../../components/Pagination';
 import { toDDMMM } from '../../utils/dateFormat';
 import { stripQuotedReply } from '../../utils/emailQuote';
+import { conversationGmailLink } from '../../utils/gmailLink';
 
 const STATUS_BADGES = {
     'Not Sent': 'badge-neutral',
@@ -145,6 +146,8 @@ const EmailThreadModal = ({ isOpen, onClose, recordId, onRefreshList }) => {
 
     if (!isOpen) return null;
 
+    const gmailThreadHref = conversationGmailLink(record?.emails);
+
     return (
         <dialog open className="modal modal-open">
             <div className="modal-box max-w-5xl h-[85vh] flex flex-col p-6 rounded-2xl bg-base-100 shadow-2xl">
@@ -175,7 +178,21 @@ const EmailThreadModal = ({ isOpen, onClose, recordId, onRefreshList }) => {
                         <div className="flex-1 flex flex-col border border-base-200 rounded-xl overflow-hidden bg-base-50">
                             <div className="bg-base-200 px-4 py-2 font-semibold text-sm flex justify-between items-center border-b border-base-300">
                                 <span>Conversation Thread</span>
-                                <span className="badge badge-sm badge-outline">{record?.emails?.length || 0} messages</span>
+                                <div className="flex items-center gap-2">
+                                    {gmailThreadHref && (
+                                        <a
+                                            href={gmailThreadHref}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            title="Open the real conversation in Gmail"
+                                            className="inline-flex items-center gap-1 text-primary hover:underline text-xs font-semibold"
+                                        >
+                                            <ExternalLink size={12} />
+                                            Open in Gmail
+                                        </a>
+                                    )}
+                                    <span className="badge badge-sm badge-outline">{record?.emails?.length || 0} messages</span>
+                                </div>
                             </div>
                             
                             <div className="flex-1 p-4 overflow-y-auto space-y-4">
