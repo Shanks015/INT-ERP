@@ -14,6 +14,7 @@ const STATUS_BADGES = {
     'Not Sent': 'badge-neutral',
     'Sent': 'badge-primary',
     'Reply Received': 'badge-success',
+    'Replied': 'badge-info',
     'Closed': 'badge-ghost'
 };
 
@@ -27,6 +28,7 @@ const EmailThreadModal = ({ isOpen, onClose, recordId, onRefreshList }) => {
     const [signature, setSignature] = useState(localStorage.getItem('outreach_signature') || '');
     const [attachments, setAttachments] = useState([]);
     const [sending, setSending] = useState(false);
+    const [mailboxHint, setMailboxHint] = useState(false);
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -77,6 +79,7 @@ const EmailThreadModal = ({ isOpen, onClose, recordId, onRefreshList }) => {
         }
 
         setSending(true);
+        setMailboxHint(false);
         const formData = new FormData();
         formData.append('subject', subject);
         formData.append('body', body);
@@ -102,7 +105,9 @@ const EmailThreadModal = ({ isOpen, onClose, recordId, onRefreshList }) => {
             await fetchRecordDetails();
             if (onRefreshList) onRefreshList();
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to send email');
+            const msg = err.response?.data?.message || 'Failed to send email';
+            setMailboxHint(/no active mailbox/i.test(msg));
+            toast.error(msg);
         } finally {
             setSending(false);
         }
@@ -322,6 +327,16 @@ const EmailThreadModal = ({ isOpen, onClose, recordId, onRefreshList }) => {
                                         <Mail size={14} />
                                         Compose in Gmail
                                     </button>
+                                    {mailboxHint && (
+                                        <p className="text-[11px] text-error flex items-start gap-1 mt-1">
+                                            <AlertCircle size={13} className="shrink-0 mt-0.5" />
+                                            <span>
+                                                No mailbox linked to your account yet.&nbsp;
+                                                <Link to="/mailbox-connections" className="link link-primary">Connect it in Mailbox settings</Link>
+                                                , or use Compose in Gmail above.
+                                            </span>
+                                        </p>
+                                    )}
                                 </div>
                             </form>
                         </div>
@@ -338,7 +353,7 @@ const OutreachNewList = () => {
     const { user, isAdmin } = useAuth();
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({ total: 0, sent: 0, replied: 0, pending: 0 });
+    const [stats, setStats] = useState({ total: 0, notSent: 0, sent: 0, replyReceived: 0, replied: 0, unread: 0 });
     const [statsLoading, setStatsLoading] = useState(true);
     const [countries, setCountries] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -387,17 +402,11 @@ const OutreachNewList = () => {
     const fetchStats = async () => {
         try {
             setStatsLoading(true);
-            // Fetch stats by counting locally or hitting custom controller endpoints
-            // We can fetch page 1 with high limit to compute stats dynamically
-            const res = await api.get('/outreach-new', { params: { limit: 5000 } });
-            const data = res.data.data || [];
-            
-            const total = data.length;
-            const sent = data.filter(r => r.outreachStatus === 'Sent').length;
-            const replied = data.filter(r => r.outreachStatus === 'Reply Received').length;
-            const pending = data.filter(r => r.outreachStatus === 'Not Sent').length;
-
-            setStats({ total, sent, replied, pending });
+            // Cheap single countDocuments call; also feeds the sidebar unread pill
+            // and the Dashboard "waiting on you" strip via a window event.
+            const res = await api.get('/outreach-new/stats');
+            setStats(res.data.data || { total: 0, notSent: 0, sent: 0, replyReceived: 0, replied: 0, unread: 0 });
+            window.dispatchEvent(new Event('outreachMailChanged'));
         } catch (e) {
             console.error(e);
         } finally {
@@ -478,8 +487,8 @@ const OutreachNewList = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold">Outreach New</h1>
-                    <p className="text-base-content/70 mt-2">Upload country database spreadsheets, email partners directly, and sync email replies</p>
+                    <h1 className="text-3xl font-bold">Outreach Mail</h1>
+                    <p className="text-base-content/70 mt-2">Email university partners and reply to them from here — their replies appear automatically in each conversation</p>
                 </div>
                 <div className="flex flex-wrap gap-2 w-full md:w-auto">
                     <button onClick={() => setImportModal(true)} className="btn btn-outline flex-1 md:flex-none">
@@ -510,7 +519,7 @@ const OutreachNewList = () => {
                         <div className="p-3 bg-neutral/10 rounded-xl text-neutral"><Mail size={24} /></div>
                         <div>
                             <p className="text-xs text-base-content/60 font-semibold uppercase">Not Contacted</p>
-                            <p className="text-2xl font-bold mt-0.5">{statsLoading ? '...' : stats.pending}</p>
+                            <p className="text-2xl font-bold mt-0.5">{statsLoading ? '...' : stats.notSent}</p>
                         </div>
                     </div>
                 </div>
@@ -518,8 +527,9 @@ const OutreachNewList = () => {
                     <div className="card-body p-4 flex flex-row items-center gap-4">
                         <div className="p-3 bg-primary/10 rounded-xl text-primary"><Mail size={24} /></div>
                         <div>
-                            <p className="text-xs text-base-content/60 font-semibold uppercase">Emailed / Sent</p>
-                            <p className="text-2xl font-bold mt-0.5">{statsLoading ? '...' : stats.sent}</p>
+                            <p className="text-xs text-base-content/60 font-semibold uppercase">Contacted</p>
+                            <p className="text-2xl font-bold mt-0.5">{statsLoading ? '...' : stats.sent + stats.replyReceived + stats.replied}</p>
+                            <p className="text-[11px] text-base-content/50">{statsLoading ? '' : `${stats.replied} replied`}</p>
                         </div>
                     </div>
                 </div>
@@ -527,8 +537,9 @@ const OutreachNewList = () => {
                     <div className="card-body p-4 flex flex-row items-center gap-4">
                         <div className="p-3 bg-success/10 rounded-xl text-success"><Check size={24} /></div>
                         <div>
-                            <p className="text-xs text-base-content/60 font-semibold uppercase">Replies Received</p>
-                            <p className="text-2xl font-bold mt-0.5 text-success">{statsLoading ? '...' : stats.replied}</p>
+                            <p className="text-xs text-base-content/60 font-semibold uppercase">Awaiting Reply</p>
+                            <p className="text-2xl font-bold mt-0.5 text-success">{statsLoading ? '...' : stats.replyReceived}</p>
+                            <p className="text-[11px] text-base-content/50">{statsLoading ? '' : `${stats.unread} unread`}</p>
                         </div>
                     </div>
                 </div>
@@ -584,6 +595,7 @@ const OutreachNewList = () => {
                                 <option value="Not Sent">Not Sent</option>
                                 <option value="Sent">Sent</option>
                                 <option value="Reply Received">Reply Received</option>
+                                <option value="Replied">Replied</option>
                                 <option value="Closed">Closed</option>
                             </select>
                         </div>

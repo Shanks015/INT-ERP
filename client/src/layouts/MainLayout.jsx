@@ -89,6 +89,30 @@ const MainLayout = () => {
         };
     }, [isAdmin]);
 
+    // Outreach "waiting on you" badge (sidebar). One cheap countDocuments call,
+    // then refreshed whenever Outreach Mail sends / marks-read / detects a reply
+    // (those actions dispatch 'outreachMailChanged').
+    const [outreachReplyCount, setOutreachReplyCount] = useState(0);
+    useEffect(() => {
+        if (user?.role === 'intern' && !(user.allowedModules || []).includes('outreach')) {
+            return undefined;
+        }
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const { data } = await api.get('/outreach-new/stats');
+                if (!cancelled) setOutreachReplyCount(data.data?.replyReceived || 0);
+            } catch (e) { /* badge is cosmetic; ignore */ }
+        };
+        load();
+        const onMailChanged = () => load();
+        window.addEventListener('outreachMailChanged', onMailChanged);
+        return () => {
+            cancelled = true;
+            window.removeEventListener('outreachMailChanged', onMailChanged);
+        };
+    }, [user]);
+
     const handleLogout = () => {
         logout();
         navigate('/login');
@@ -183,12 +207,20 @@ const MainLayout = () => {
                             {hasAccess('outreach') && (
                                 <>
                                     <li><Link to="/outreach" className={location.pathname === '/outreach' ? 'active' : ''}><Users size={16} /> Outreach</Link></li>
-                                    <li><Link to="/outreach-new" className={location.pathname.includes('/outreach-new') ? 'active' : ''}><Mail size={16} /> Outreach New</Link></li>
+                                    <li><Link to="/outreach-new" className={location.pathname.includes('/outreach-new') ? 'active' : ''}>
+                                        <Mail size={16} /> Outreach Mail
+                                        {outreachReplyCount > 0 && <span className="badge badge-error badge-sm ml-auto">{outreachReplyCount}</span>}
+                                    </Link></li>
                                 </>
                             )}
                         </ul>
                     )}
                 </li>
+            )}
+
+            {/* Email mailbox — every outreach user needs one connected to send & reply */}
+            {hasAccess('outreach') && (
+                <li><Link to="/mailbox-connections" className={location.pathname === '/mailbox-connections' ? 'active' : ''}><Mail size={18} /> {isAdmin ? 'Mailbox Connections' : 'My Mailbox'}</Link></li>
             )}
 
             {/* Product Dropdown Group */}
@@ -284,14 +316,6 @@ const MainLayout = () => {
                             <NavLink to="/activity-logs" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-lg ${isActive ? 'bg-primary text-primary-content' : 'hover:bg-base-200'}`}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
                                 Activity Logs
-                            </NavLink>
-                        )}
-                    </li>
-                    <li>
-                        {user.role === 'admin' && (
-                            <NavLink to="/mailbox-connections" className={({ isActive }) => `flex items-center gap-3 px-4 py-2 rounded-lg ${isActive ? 'bg-primary text-primary-content' : 'hover:bg-base-200'}`}>
-                                <Mail size={18} />
-                                Mailbox Connections
                             </NavLink>
                         )}
                     </li>

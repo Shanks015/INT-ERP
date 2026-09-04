@@ -416,7 +416,13 @@ export const sendOutreachNewEmail = async (req, res) => {
             }))
         });
 
-        outreach.outreachStatus = 'Sent';
+        // A send that answers a partner reply closes the loop (Reply Received →
+        // Replied); any other send just moves the record to Sent. Never downgrades
+        // an already-Replied record back to Sent on a later follow-up send.
+        outreach.outreachStatus =
+            outreach.outreachStatus === 'Reply Received' || outreach.outreachStatus === 'Replied'
+                ? 'Replied'
+                : 'Sent';
         outreach.hasUnreadReply = false;
         await outreach.save();
 
@@ -467,12 +473,36 @@ export const logSentEmail = async (req, res) => {
             sentByName: req.user.name
         });
 
-        outreach.outreachStatus = 'Sent';
+        // Same Reply Received → Replied rule as the SMTP send path, so the
+        // "Compose in Gmail" fallback keeps the status honest too.
+        outreach.outreachStatus =
+            outreach.outreachStatus === 'Reply Received' || outreach.outreachStatus === 'Replied'
+                ? 'Replied'
+                : 'Sent';
         outreach.hasUnreadReply = false;
         await outreach.save();
 
         res.json({ success: true, message: 'Email logged successfully', data: outreach });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error logging email: ' + error.message });
+    }
+};
+
+// GET /api/outreach-new/stats — cheap status counts for the nav unread pill,
+// dashboard "waiting on you" strip, and the list page header cards.
+export const getOutreachNewStats = async (req, res) => {
+    try {
+        const base = { status: 'active' };
+        const [total, notSent, sent, replyReceived, replied, unread] = await Promise.all([
+            OutreachNew.countDocuments({ ...base }),
+            OutreachNew.countDocuments({ ...base, outreachStatus: 'Not Sent' }),
+            OutreachNew.countDocuments({ ...base, outreachStatus: 'Sent' }),
+            OutreachNew.countDocuments({ ...base, outreachStatus: 'Reply Received' }),
+            OutreachNew.countDocuments({ ...base, outreachStatus: 'Replied' }),
+            OutreachNew.countDocuments({ ...base, hasUnreadReply: true })
+        ]);
+        res.json({ success: true, data: { total, notSent, sent, replyReceived, replied, unread } });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error fetching outreach-new stats', error: err.message });
     }
 };

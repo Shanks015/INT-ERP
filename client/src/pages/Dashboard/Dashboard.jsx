@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
-import { Users, Globe, Building2, Calendar, TrendingUp } from 'lucide-react';
+import { Users, Globe, Building2, Calendar, TrendingUp, Mail } from 'lucide-react';
 import StatsCard from '../../components/StatsCard';
 import DistributionPieChart from '../../components/Charts/DistributionPieChart';
 import DistributionBarChart from '../../components/Charts/DistributionBarChart';
@@ -17,10 +17,28 @@ const Dashboard = () => {
         partners: null,
         outreach: null
     });
+    const [outreachReplyCount, setOutreachReplyCount] = useState(0);
 
     useEffect(() => {
         fetchAllStats();
     }, []);
+
+    // "Universities waiting for your reply" — mirrors the sidebar pill so the
+    // strip stays in sync without polling.
+    useEffect(() => {
+        if (user?.role === 'intern' && !(user.allowedModules || []).includes('outreach')) return undefined;
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const { data } = await api.get('/outreach-new/stats');
+                if (!cancelled) setOutreachReplyCount(data.data?.replyReceived || 0);
+            } catch (e) { /* cosmetic; ignore */ }
+        };
+        load();
+        const onMailChanged = () => load();
+        window.addEventListener('outreachMailChanged', onMailChanged);
+        return () => { cancelled = true; window.removeEventListener('outreachMailChanged', onMailChanged); };
+    }, [user]);
 
     const fetchAllStats = async () => {
         try {
@@ -59,6 +77,26 @@ const Dashboard = () => {
                     Welcome back, {user?.name}! Here's your comprehensive overview.
                 </p>
             </div>
+
+            {/* Universities waiting for a reply — visible only while any outreach is awaiting us */}
+            {outreachReplyCount > 0 && (
+                <div className="mb-6">
+                    <div className="alert alert-info shadow-lg">
+                        <Mail size={22} />
+                        <div className="flex-1">
+                            <h3 className="font-bold">
+                                {outreachReplyCount} {outreachReplyCount === 1 ? 'university has' : 'universities have'} replied and {outreachReplyCount === 1 ? 'is' : 'are'} waiting for your reply
+                            </h3>
+                            <p className="text-sm opacity-80">
+                                {outreachReplyCount === 1 ? 'Their response' : 'Their responses'} appeared automatically from the mailbox. Open Outreach Mail to read and reply.
+                            </p>
+                        </div>
+                        <Link to="/outreach-new" className="btn btn-sm btn-primary">
+                            View conversations
+                        </Link>
+                    </div>
+                </div>
+            )}
 
             {/* Overview Stats - Always Visible */}
             <div className="mb-8">

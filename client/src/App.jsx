@@ -190,7 +190,7 @@ function App() {
                             <Route path="reports" element={<ProtectedRoute module="reports"><Reports /></ProtectedRoute>} />
                             <Route path="user-management" element={<ProtectedRoute adminOnly><UserManagement /></ProtectedRoute>} />
                             <Route path="settings" element={<ProtectedRoute module="settings"><Settings /></ProtectedRoute>} />
-                            <Route path="mailbox-connections" element={<ProtectedRoute adminOnly><MailboxConnections /></ProtectedRoute>} />
+                            <Route path="mailbox-connections" element={<ProtectedRoute module="outreach"><MailboxConnections /></ProtectedRoute>} />
                             <Route path="activity-logs" element={<ProtectedRoute adminOnly><ActivityLogs /></ProtectedRoute>} />
                         </Route>
 

@@ -57,7 +57,7 @@ const outreachNewSchema = new mongoose.Schema({
     },
     outreachStatus: {
         type: String,
-        enum: ['Not Sent', 'Sent', 'Reply Received', 'Closed'],
+        enum: ['Not Sent', 'Sent', 'Reply Received', 'Replied', 'Closed'],
         default: 'Not Sent'
     },
     hasUnreadReply: {

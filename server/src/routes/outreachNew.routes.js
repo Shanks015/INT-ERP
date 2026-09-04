@@ -10,6 +10,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.use(authenticate);
 
 router.get('/', controller.getAllOutreachNew);
+router.get('/stats', controller.getOutreachNewStats);
 router.get('/:id', controller.getOutreachNewById);
 router.post('/', controller.createOutreachNew);
 router.put('/:id', controller.updateOutreachNew);

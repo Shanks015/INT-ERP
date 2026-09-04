@@ -1,12 +1,34 @@
 import { useState, useEffect } from 'react';
 import api from '../../api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 import { PlusCircle, Trash2, RefreshCw, WifiOff, Wifi, Eye, EyeOff, X } from 'lucide-react';
 import { toDDMMM } from '../../utils/dateFormat';
 
 const statusBadge = { active: 'badge-success', error: 'badge-error', disconnected: 'badge-neutral' };
 
+// Step-by-step Gmail setup guide shown inside the connect modal (and the empty
+// state) so an employee can finish this without asking an admin.
+const AppPasswordGuide = () => (
+    <details className="collapse collapse-arrow bg-base-200 border border-base-300 rounded-box">
+        <summary className="collapse-title text-sm font-semibold">How to create a Gmail App Password (5 minutes)</summary>
+        <div className="collapse-content">
+            <ol className="list-decimal ml-4 mt-1 space-y-1.5 text-sm">
+                <li>Turn on <b>2-Step Verification</b>: <a className="link link-primary" href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer">myaccount.google.com/security</a></li>
+                <li>Open <a className="link link-primary" href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer">myaccount.google.com/apppasswords</a></li>
+                <li>App name: type <b>INT-ERP</b> (anything is fine) and press <b>Create</b></li>
+                <li>Copy the <b>16-character code</b> shown (spaces are okay) and paste it below</li>
+                <li>Press <b>Connect Mailbox</b> — done. The ERP then checks this inbox every 15 minutes for replies.</li>
+            </ol>
+            <p className="mt-2 text-xs text-base-content/50">
+                Note: if your organisation is on Google Workspace, an admin must allow IMAP access and app passwords.
+            </p>
+        </div>
+    </details>
+);
+
 const MailboxConnections = () => {
+    const { user, isAdmin } = useAuth();
     const [connections, setConnections] = useState([]);
     const [loading, setLoading] = useState(true);
     const [addModal, setAddModal] = useState(false);
@@ -17,7 +39,11 @@ const MailboxConnections = () => {
     const [showPwd, setShowPwd] = useState(false);
     const [users, setUsers] = useState([]);
 
-    useEffect(() => { fetchConnections(); fetchUsers(); }, []);
+    useEffect(() => {
+        fetchConnections();
+        if (isAdmin) fetchUsers();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAdmin]);
 
     const fetchConnections = async () => {
         try {
@@ -35,14 +61,27 @@ const MailboxConnections = () => {
         } catch (e) { console.error(e); }
     };
 
+    const openAddModal = () => {
+        // Non-admins always connect their own account — no picker, prefilled identity.
+        setForm({
+            employeeId: isAdmin ? '' : user._id,
+            employeeName: isAdmin ? '' : user.name,
+            emailAddress: isAdmin ? '' : (user.email || ''),
+            appPassword: ''
+        });
+        setShowPwd(false);
+        setAddModal(true);
+    };
+
     const handleAdd = async (e) => {
         e.preventDefault();
         try {
             await api.post('/mailboxes', form);
             toast.success('Mailbox connected successfully ✅');
             setAddModal(false);
-            setForm({ employeeId: '', employeeName: '', emailAddress: '', appPassword: '' });
             fetchConnections();
+            // Wake the sidebar/dashboard counts immediately if a reply is found on sync.
+            window.dispatchEvent(new Event('outreachMailChanged'));
         } catch (err) { toast.error(err.response?.data?.message || 'Failed to add mailbox'); }
     };
 
@@ -82,12 +121,12 @@ const MailboxConnections = () => {
     };
 
     const handleUserSelect = (e) => {
-        const user = users.find(u => u._id === e.target.value);
+        const selected = users.find(u => u._id === e.target.value);
         setForm(p => ({
             ...p,
             employeeId: e.target.value,
-            employeeName: user?.name || '',
-            emailAddress: user?.email || p.emailAddress
+            employeeName: selected?.name || '',
+            emailAddress: selected?.email || p.emailAddress
         }));
     };
 
@@ -108,10 +147,14 @@ const MailboxConnections = () => {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold">Mailbox Connections</h2>
-                    <p className="text-sm text-base-content/60 mt-1">Employee Gmail accounts monitored for partner replies via IMAP</p>
+                    <h2 className="text-2xl font-bold">{isAdmin ? 'Mailbox Connections' : 'My Mailbox'}</h2>
+                    <p className="text-sm text-base-content/60 mt-1">
+                        {isAdmin
+                            ? 'Employee Gmail accounts monitored for partner replies via IMAP'
+                            : 'Connect your Gmail so replies to the emails you send appear in Outreach Mail automatically, and you can reply from there'}
+                    </p>
                 </div>
-                <button onClick={() => setAddModal(true)} className="btn btn-primary gap-2">
+                <button onClick={openAddModal} className="btn btn-primary gap-2">
                     <PlusCircle size={18} /> Connect Mailbox
                 </button>
             </div>
@@ -120,10 +163,19 @@ const MailboxConnections = () => {
                 <div className="flex justify-center py-20"><span className="loading loading-spinner loading-lg" /></div>
             ) : connections.length === 0 ? (
                 <div className="card bg-base-200">
-                    <div className="card-body items-center text-center py-16">
+                    <div className="card-body items-center text-center py-10 px-6">
                         <EyeOff size={40} className="text-base-content/30 mb-3" />
-                        <p className="text-base-content/50">No mailboxes connected yet.</p>
-                        <p className="text-sm text-base-content/40">Add employee Gmail accounts to enable automatic reply detection.</p>
+                        <p className="text-base-content/60 font-medium">
+                            {isAdmin ? 'No mailboxes connected yet.' : 'You haven’t connected your Gmail yet.'}
+                        </p>
+                        <p className="text-sm text-base-content/40 max-w-lg mb-4">
+                            {isAdmin
+                                ? 'Add employee Gmail accounts to enable automatic reply detection and send-from-ERP.'
+                                : 'Connect it once and the ERP will watch for replies and let you send email from here.'}
+                        </p>
+                        <div className="w-full max-w-xl text-left">
+                            <AppPasswordGuide />
+                        </div>
                     </div>
                 </div>
             ) : (
@@ -171,38 +223,44 @@ const MailboxConnections = () => {
                 <dialog open className="modal modal-open">
                     <div className="modal-box max-w-lg">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-bold text-lg">Connect Employee Mailbox</h3>
+                            <h3 className="font-bold text-lg">{isAdmin ? 'Connect Employee Mailbox' : 'Connect Your Gmail'}</h3>
                             <button onClick={() => setAddModal(false)} className="btn btn-sm btn-ghost btn-circle"><X size={18} /></button>
                         </div>
 
-                        <div className="alert alert-info mb-4 text-sm">
-                            <div>
-                                <p className="font-semibold">Prerequisites:</p>
-                                <ul className="list-disc ml-4 mt-1 space-y-0.5">
-                                    <li>Gmail 2-Step Verification must be enabled</li>
-                                    <li>IMAP must be enabled in Gmail settings</li>
-                                    <li>Use App Password (not Gmail password)</li>
-                                </ul>
-                            </div>
+                        <div className="mb-4">
+                            <AppPasswordGuide />
                         </div>
 
                         <form onSubmit={handleAdd} className="space-y-4">
-                            <div className="form-control">
-                                <label className="label"><span className="label-text font-medium">Employee</span></label>
-                                <select className="select select-bordered" onChange={handleUserSelect} defaultValue="">
-                                    <option value="" disabled>Select employee...</option>
-                                    {users.map(u => <option key={u._id} value={u._id}>{u.name} — {u.email}</option>)}
-                                </select>
-                            </div>
+                            {isAdmin && (
+                                <div className="form-control">
+                                    <label className="label"><span className="label-text font-medium">Employee</span></label>
+                                    <select className="select select-bordered" onChange={handleUserSelect} defaultValue="">
+                                        <option value="" disabled>Select employee...</option>
+                                        {users.map(u => <option key={u._id} value={u._id}>{u.name} — {u.email}</option>)}
+                                    </select>
+                                </div>
+                            )}
+
+                            {!isAdmin && (
+                                <div className="form-control">
+                                    <label className="label"><span className="label-text font-medium">Connecting your account</span></label>
+                                    <div className="flex items-center gap-2 px-3 py-2 bg-base-200 rounded-lg text-sm">
+                                        <span className="font-semibold">{user.name}</span>
+                                        <span className="text-base-content/50 truncate">{user.email}</span>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="form-control">
                                 <label className="label"><span className="label-text font-medium">Gmail Address</span></label>
-                                <input type="email" className="input input-bordered" placeholder="employee@gmail.com"
+                                <input type="email" className="input input-bordered" placeholder="you@gmail.com"
                                     value={form.emailAddress} onChange={e => setForm(p => ({ ...p, emailAddress: e.target.value }))} required />
                             </div>
                             <div className="form-control">
                                 <label className="label">
                                     <span className="label-text font-medium">App Password</span>
-                                    <a href="https://myaccount.google.com/apppasswords" target="_blank" className="label-text-alt link link-primary">
+                                    <a href="https://myaccount.google.com/apppasswords" target="_blank" className="label-text-alt link link-primary" rel="noopener noreferrer">
                                         Generate →
                                     </a>
                                 </label>
@@ -239,22 +297,22 @@ const MailboxConnections = () => {
                                 <X size={18} />
                               </button>
                         </div>
-                        
+
                         <div className="py-2">
                             <p className="text-sm">
                                 Are you sure you want to remove the mailbox connection for <span className="font-semibold text-error">{deleteConfirmModal.employeeName}</span> ({deleteConfirmModal.emailAddress})?
                             </p>
                             <p className="text-xs text-base-content/50 mt-2">
-                                This will stop automatic reply detection, follow-up automation, and real-time statistics tracking for all outreach campaigns synchronized through this mailbox.
+                                This will stop automatic reply detection and send-from-ERP for this mailbox.
                             </p>
                         </div>
-                        
+
                         <div className="flex justify-end gap-2 pt-4">
                             <button type="button" onClick={() => setDeleteConfirmModal(null)} className="btn btn-ghost">Cancel</button>
-                            <button 
-                                type="button" 
-                                onClick={triggerDelete} 
-                                disabled={deleting === deleteConfirmModal._id} 
+                            <button
+                                type="button"
+                                onClick={triggerDelete}
+                                disabled={deleting === deleteConfirmModal._id}
                                 className="btn btn-error gap-2"
                             >
                                 {deleting === deleteConfirmModal._id ? (

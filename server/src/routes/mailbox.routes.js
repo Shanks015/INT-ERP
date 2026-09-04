@@ -1,11 +1,13 @@
 import express from 'express';
-import { authenticate, authorize } from '../middleware/auth.js';
+import { authenticate } from '../middleware/auth.js';
 import * as mailboxController from '../controllers/mailbox.controller.js';
 
 const router = express.Router();
 
+// Everyone can manage their OWN mailbox (self-service); admins additionally
+// see and manage every employee's connection. Ownership is enforced per-route
+// in the controller (mailbox.employee vs req.user._id).
 router.use(authenticate);
-router.use(authorize(['admin'])); // All mailbox management is admin-only
 
 router.get('/',            mailboxController.getAllMailboxes);
 router.post('/',           mailboxController.createMailbox);
