@@ -19,9 +19,11 @@ const gmailThreadLink = ({ threadId, messageId } = {}) => {
     if (messageId) {
         const raw = String(messageId).trim();
         if (!raw) return null;
-        // Percent-encode the whole "rfc822msgid:..." query; Gmail decodes the
-        // fragment before running the search, so brackets/plus/at are preserved.
-        return `${BASE}#search/` + encodeURIComponent('rfc822msgid:' + raw);
+        // Gmail's rfc822msgid operator matches the bare message-id value; strip
+        // any surrounding angle brackets so they are not parsed as query syntax.
+        const bare = raw.replace(/^<|>$/g, '');
+        if (!bare) return null;
+        return `${BASE}#search/` + encodeURIComponent('rfc822msgid:' + bare);
     }
     return null;
 };
