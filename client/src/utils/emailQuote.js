@@ -8,25 +8,40 @@
 //
 // The quoted original is already rendered as its own bubble in the thread, so
 // showing it a second time inside the reply is pure duplication. We cut
-// everything from the first quote marker onward, and fall back to the raw text
-// if the trim would leave nothing (e.g. a pure forward, which is all quote).
+// everything from the first *definite* quote marker onward.
+//
+// Safety: real reply content is never discarded. We only cut at an explicit
+// quote header — the "On ..., wrote:" attribution, a forwarded/original-message
+// divider, or an Outlook-style rule line followed by From:/Sent:/To:/Date:/
+// Subject:. A bare ">" line is NOT treated as a start, so a body that is
+// entirely quoted text (no header) falls back to showing as-is rather than
+// risking an empty bubble.
 
-// True when a line begins a quoted block. Deliberately conservative: only
-// unambiguous quote markers, so a body that legitimately starts "From: ..."
-// or contains ">" mid-text is left alone unless it clearly reads as a quote.
-const QUOTE_START = /^(\s*>\s*|On .+wrote:\s*$|^[-=*_]{3,}\s*(Forwarded|Original|Reply)\s+Message|^----------\s*Forwarded message\s*----------)/im;
+const WROTE_LINE = /^On .+wrote:\s*$/i;
+const FWD_MARKER = /^[-=_*#]{3,}\s*(Forwarded|Original)\s+Message/i;
+const RULE_LINE = /^[-=_*#]{3,}\s*$/;
+const HEADER_LINE = /^(From|Sent|To|Cc|Bcc|Subject|Date|Reply-To):/i;
 
-export const stripQuotedReply = (text = '') => {
+const stripQuotedReply = (text = '') => {
     const raw = String(text);
     const lines = raw.split('\n');
-    const cut = lines.findIndex((line) => QUOTE_START.test(line));
+    let cut = -1;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (WROTE_LINE.test(line.trim()) || FWD_MARKER.test(line)) { cut = i; break; }
+        // Outlook quotes: a rule of dashes/underscores immediately followed by
+        // message headers. Allow one blank line between the rule and the headers.
+        if (RULE_LINE.test(line.trim())) {
+            const probe = lines.slice(i + 1, i + 5);
+            if (probe.some((l) => HEADER_LINE.test(l.trim()))) { cut = i; break; }
+        }
+    }
 
     let kept;
     if (cut === -1) {
         kept = raw;
     } else {
-        // Keep content above the quote. Drop a trailing blank line that
-        // separates the real message from the quoted block.
         kept = lines.slice(0, cut).join('\n').replace(/[ \t]+\n/g, '\n').trimEnd();
     }
 
@@ -36,4 +51,5 @@ export const stripQuotedReply = (text = '') => {
     return cleaned || raw.trim();
 };
 
+export { stripQuotedReply };
 export default stripQuotedReply;
