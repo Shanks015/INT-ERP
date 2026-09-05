@@ -94,10 +94,24 @@ const foldBase64 = (b64) => {
     return out.join('\r\n');
 };
 
+// Wrap a raw Message-ID in angle brackets (RFC 5322 form for In-Reply-To/
+// References) if it is not already bracketed.
+const toHeaderId = (value) => {
+    const s = String(value).trim();
+    return s ? (/^<.*>$/.test(s) ? s : `<${s}>`) : null;
+};
+
 // Build a base64url RFC-822 message. HTML body and any attachments are base64
 // encoded (robust for arbitrary UTF-8, no quoted-printable edge cases). No
 // attachments -> single text/html part; otherwise multipart/mixed.
-const buildRawMessage = ({ fromName, from, to, subject, html, attachments }) => {
+//
+// When this message continues an existing conversation (a reply), pass the
+// parent's RFC Message-ID as `inReplyTo` so Gmail folds the send into the same
+// thread via In-Reply-To/References instead of opening a new conversation.
+// `references` is optional — when omitted and inReplyTo is set, References is
+// seeded with the parent id (we do not persist full ancestry chains).
+// Exported for unit tests (see tests/gmailSendService.test.js).
+export const buildRawMessage = ({ fromName, from, to, subject, html, attachments, inReplyTo, references }) => {
     const boundary = '----=_int_erp_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
     const CRLF = '\r\n';
     const lines = [];
@@ -107,6 +121,20 @@ const buildRawMessage = ({ fromName, from, to, subject, html, attachments }) => 
     lines.push(`Subject: ${encodeHeader(String(subject))}`);
     lines.push('MIME-Version: 1.0');
     lines.push('Auto-Submitted: auto-generated');
+
+    const parentId = inReplyTo ? toHeaderId(inReplyTo) : null;
+    if (parentId) lines.push(`In-Reply-To: ${parentId}`);
+    const refs = [];
+    if (references) {
+        for (const r of [].concat(references)) {
+            const h = toHeaderId(r);
+            if (h && !refs.includes(h)) refs.push(h);
+        }
+    }
+    // RFC 5322 wants the immediate parent last in References; if an explicit
+    // chain was supplied without it (or none was supplied at all), append it.
+    if (parentId && !refs.includes(parentId)) refs.push(parentId);
+    if (refs.length) lines.push(`References: ${refs.join(' ')}`);
 
     const htmlPart = (wrapBoundary) => {
         const p = [];
@@ -146,15 +174,23 @@ const buildRawMessage = ({ fromName, from, to, subject, html, attachments }) => 
 
 // Send an email as the mailbox's Google account. Returns the Gmail internal id,
 // thread id, and (fetched back) the real RFC Message-ID header.
-export const sendViaGmail = async ({ mailbox, fromName, from, to, subject, html, attachments }) => {
+//
+// To thread onto an existing conversation pass the parent's RFC Message-ID as
+// `inReplyTo` (buildRawMessage turns it into In-Reply-To/References) and, when
+// known, that conversation's Gmail `threadId`. Gmail only folds a send into an
+// existing thread when BOTH the request-body threadId AND the message headers
+// agree, so we always supply both. Omit both for a first-contact send (fresh thread).
+export const sendViaGmail = async ({ mailbox, fromName, from, to, subject, html, attachments, inReplyTo, threadId }) => {
     if (!isGmailConfigured()) throw new Error('Gmail API is not configured on this server (missing GOOGLE_CLIENT_SECRET)');
     if (!mailbox.refreshToken) throw new Error('Mailbox has no Google refresh token');
     const accessToken = await refreshAccessToken(decrypt(mailbox.refreshToken));
-    const raw = buildRawMessage({ fromName, from, to, subject, html, attachments });
+    const raw = buildRawMessage({ fromName, from, to, subject, html, attachments, inReplyTo });
+    const body = { raw };
+    if (threadId) body.threadId = threadId;
     const r = await fetch(SEND_ENDPOINT, {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ raw })
+        body: JSON.stringify(body)
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) {

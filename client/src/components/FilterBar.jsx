@@ -5,6 +5,8 @@ import { Search, X } from 'lucide-react';
  * dropdowns supplied by the page via `selectFilters`:
  *   [{ key: 'designation', label: 'Designation', options: [...], placeholder: 'All' }]
  * Legacy props (showCountryFilter/countries/showDateFilter) still work.
+ * `quickFilters` renders a row of toggle chips, each active when filters[key] === value
+ *   [{ key: 'hasUnreadReply', value: 'true', label: 'Unread only' }]
  */
 const FilterBar = ({
     filters,
@@ -14,7 +16,8 @@ const FilterBar = ({
     showDateFilter = true,
     showStatusFilter = true,
     countries = [],
-    selectFilters = []
+    selectFilters = [],
+    quickFilters = []
 }) => {
     const handleChange = (field, value) => {
         onFilterChange({ [field]: value });
@@ -144,6 +147,26 @@ const FilterBar = ({
                         </div>
                     ))}
                 </div>
+
+                {/* Quick filter chips (e.g. "Awaiting reply", "Unread only"). A chip
+                    is active when filters[key] === value; clicking toggles it. */}
+                {quickFilters.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-base-200">
+                        {quickFilters.map(({ key, value, label }) => {
+                            const active = filters[key] === value;
+                            return (
+                                <button
+                                    type="button"
+                                    key={label}
+                                    onClick={() => handleChange(key, active ? '' : value)}
+                                    className={`btn btn-sm ${active ? 'btn-primary text-primary-content' : 'btn-outline btn-ghost border-base-300'}`}
+                                >
+                                    {active ? '✓ ' : ''}{label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </div>
     );

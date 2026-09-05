@@ -3,7 +3,8 @@ import MailboxConnection from '../models/MailboxConnection.js';
 import { decrypt } from '../services/cryptoService.js';
 import { isGmailConfigured, sendViaGmail } from '../services/gmailSendService.js';
 import nodemailer from 'nodemailer';
-import { logUserActivity, sanitizeInput, escapeRegex } from './generic.controller.js';
+import { logUserActivity, sanitizeInput } from './generic.controller.js';
+import { buildOutreachNewStages } from '../utils/outreachNewQuery.js';
 import * as XLSX from 'xlsx';
 import path from 'path';
 import fs from 'fs';
@@ -16,7 +17,10 @@ const getSmtpHost = (imapHost) => {
     return imapHost.replace(/^imap\./i, 'smtp.');
 };
 
-// GET all records with pagination and filters
+// GET all records with pagination and filters.
+// Runs on an aggregation (see outreachNewQuery.js) so the list can sort/filter by the
+// last-activity date (emails[].sentAt) without a stored field, and so the heavy
+// `emails[]` thread is not shipped to the list page (threads load per-record via /:id).
 export const getAllOutreachNew = async (req, res) => {
     try {
         const {
@@ -25,51 +29,40 @@ export const getAllOutreachNew = async (req, res) => {
             search = '',
             country = '',
             outreachStatus = '',
+            hasUnreadReply = '',
+            dateField = '',
+            startDate = '',
+            endDate = '',
             sortBy = 'createdAt',
             sortOrder = 'desc'
         } = req.query;
 
-        const query = { status: 'active' };
+        const [result] = await OutreachNew.aggregate(buildOutreachNewStages({
+            page,
+            limit,
+            search,
+            country,
+            outreachStatus,
+            hasUnreadReply,
+            dateField,
+            startDate,
+            endDate,
+            sortBy,
+            sortOrder
+        }));
 
-        if (search.trim()) {
-            const regex = new RegExp(escapeRegex(search.trim()), 'i');
-            query.$or = [
-                { university: regex },
-                { country: regex },
-                { contactName: regex },
-                { email: regex }
-            ];
-        }
-
-        if (country) {
-            query.country = { $regex: `^${country}$`, $options: 'i' };
-        }
-
-        if (outreachStatus) {
-            query.outreachStatus = outreachStatus;
-        }
-
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-        const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
-
-        const [data, total] = await Promise.all([
-            OutreachNew.find(query)
-                .populate('createdBy', 'name email')
-                .populate('updatedBy', 'name email')
-                .sort(sort)
-                .skip(skip)
-                .limit(parseInt(limit)),
-            OutreachNew.countDocuments(query)
-        ]);
+        const data = result?.data || [];
+        const total = result?.metadata?.[0]?.total ?? 0;
+        const effLimit = Math.max(1, parseInt(limit, 10) || 10);
 
         res.json({
             success: true,
             data,
             pagination: {
-                page: parseInt(page),
-                limit: parseInt(limit),
+                page: Math.max(1, parseInt(page, 10) || 1),
+                limit: effLimit,
                 total,
-                pages: Math.ceil(total / parseInt(limit))
+                pages: Math.ceil(total / effLimit)
             }
         });
     } catch (error) {
@@ -338,6 +331,23 @@ export const sendOutreachNewEmail = async (req, res) => {
             });
         }
 
+        // ── Reply threading context ─────────────────────────────────────────
+        // A send that continues an existing conversation must reference the
+        // message it answers, or Gmail opens a brand-new thread. `emails[]` is
+        // stored chronologically, so the immediate parent is the last leg; its
+        // RFC Message-ID becomes In-Reply-To/References, which is enough for
+        // Gmail (and any partner mail client) to group the reply correctly —
+        // the parent's own threadId is only passed along when the parent is one
+        // of our Gmail-sent legs that already carries one, so the API body and
+        // the headers always agree. Received legs (IMAP ingest) store the
+        // partner's Message-ID but no threadId, so those replies thread by
+        // headers alone. With no prior legs this is a first contact and stays a
+        // fresh thread (both null).
+        const priorLegs = outreach.emails || [];
+        const parentLeg = priorLegs.length ? priorLegs[priorLegs.length - 1] : null;
+        const parentMessageId = (parentLeg && parentLeg.messageId) || null;
+        const replyThreadId = (parentLeg && parentLeg.threadId) || null;
+
         // Decrypt password
         const appPassword = decrypt(mailbox.appPassword);
         const smtpHost = getSmtpHost(mailbox.imapHost);
@@ -393,6 +403,12 @@ export const sendOutreachNewEmail = async (req, res) => {
                 contentType: a.contentType
             }))
         };
+        // Thread a follow-up onto the existing conversation on the SMTP path too
+        // (nodemailer emits In-Reply-To/References from these).
+        if (parentMessageId) {
+            mailOptions.inReplyTo = parentMessageId;
+            mailOptions.references = parentMessageId;
+        }
 
         // SEND. Preferred: Gmail API over HTTPS when this mailbox has authorized
         // Google (Render drops outbound TCP to Gmail's SMTP 465/587). Otherwise
@@ -407,7 +423,9 @@ export const sendOutreachNewEmail = async (req, res) => {
                 to: outreach.email,
                 subject,
                 html: htmlContent,
-                attachments
+                attachments,
+                inReplyTo: parentMessageId,
+                threadId: replyThreadId
             });
             messageId = sent.messageId;
             gmailId = sent.gmailId || null;
@@ -547,5 +565,16 @@ export const getOutreachNewStats = async (req, res) => {
         res.json({ success: true, data: { total, notSent, sent, replyReceived, replied, unread } });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Error fetching outreach-new stats', error: err.message });
+    }
+};
+
+// GET distinct active countries for the filter dropdown — replaces the old
+// "fetch up to 5000 rows and dedupe client-side" hack the page shared with legacy Outreach.
+export const getOutreachNewCountries = async (req, res) => {
+    try {
+        const countries = await OutreachNew.distinct('country', { status: 'active' });
+        res.json({ success: true, data: countries.filter(Boolean).sort() });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error fetching outreach countries', error: err.message });
     }
 };

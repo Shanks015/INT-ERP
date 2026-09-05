@@ -4,10 +4,11 @@ import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Mail, Eye, Send, Paperclip, Check, X, Search, AlertCircle, RefreshCw, FileText, ExternalLink } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Mail, Eye, Send, Paperclip, Check, X, AlertCircle, RefreshCw, FileText, ExternalLink } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import Pagination from '../../components/Pagination';
+import FilterBar from '../../components/FilterBar';
 import { toDDMMM } from '../../utils/dateFormat';
 import { stripQuotedReply } from '../../utils/emailQuote';
 import { conversationGmailLink } from '../../utils/gmailLink';
@@ -18,6 +19,24 @@ const STATUS_BADGES = {
     'Reply Received': 'badge-success',
     'Replied': 'badge-info',
     'Closed': 'badge-ghost'
+};
+
+const OUTREACH_STATUSES = ['Not Sent', 'Sent', 'Reply Received', 'Replied', 'Closed'];
+
+// Sort dropdown labels → { sortBy, sortOrder }. '' / 'Newest added' is the server default.
+const SORT_MAP = {
+    '': ['createdAt', 'desc'],
+    'Newest added': ['createdAt', 'desc'],
+    'Oldest added': ['createdAt', 'asc'],
+    'Newest activity': ['lastActivityAt', 'desc'],
+    'Oldest activity': ['lastActivityAt', 'asc'],
+    'University A-Z': ['university', 'asc']
+};
+
+// "Date filter is" labels → aggregation dateField.
+const DATE_FIELD_MAP = {
+    'Last activity': 'lastActivityAt',
+    'Date added': 'createdAt'
 };
 
 // ── Email Thread & Composer Component ──────────────────────────────────────────
@@ -389,7 +408,12 @@ const OutreachNewList = () => {
     const [filters, setFilters] = useState({
         search: '',
         country: '',
-        outreachStatus: ''
+        outreachStatus: '',
+        hasUnreadReply: '',
+        dateField: 'Last activity',
+        startDate: '',
+        endDate: '',
+        sort: ''
     });
     const debouncedSearch = useDebounce(filters.search, 500);
 
@@ -397,18 +421,25 @@ const OutreachNewList = () => {
         fetchRecords();
         fetchStats();
         fetchCountries();
-    }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.outreachStatus]);
+    }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.outreachStatus, filters.hasUnreadReply, filters.dateField, filters.startDate, filters.endDate, filters.sort]);
 
     const fetchRecords = async () => {
         try {
             setLoading(true);
+            const [sortBy, sortOrder] = SORT_MAP[filters.sort] || SORT_MAP[''];
             const res = await api.get('/outreach-new', {
                 params: {
                     page: currentPage,
                     limit: itemsPerPage,
                     search: debouncedSearch,
                     country: filters.country,
-                    outreachStatus: filters.outreachStatus
+                    outreachStatus: filters.outreachStatus,
+                    hasUnreadReply: filters.hasUnreadReply,
+                    dateField: DATE_FIELD_MAP[filters.dateField] || '',
+                    startDate: filters.startDate,
+                    endDate: filters.endDate,
+                    sortBy,
+                    sortOrder
                 }
             });
             setRecords(res.data.data || []);
@@ -438,10 +469,10 @@ const OutreachNewList = () => {
 
     const fetchCountries = async () => {
         try {
-            const res = await api.get('/outreach-new', { params: { limit: 5000 } });
-            const data = res.data.data || [];
-            const uniqueCountries = [...new Set(data.map(r => r.country).filter(Boolean))].sort();
-            setCountries(uniqueCountries);
+            // Dedicated distinct-country endpoint — no more pulling up to 5000 rows
+            // just to build the dropdown.
+            const res = await api.get('/outreach-new/countries');
+            setCountries(res.data.data || []);
         } catch (e) {
             console.error(e);
         }
@@ -465,8 +496,24 @@ const OutreachNewList = () => {
     };
 
     const handleClearFilters = () => {
-        setFilters({ search: '', country: '', outreachStatus: '' });
+        setFilters({
+            search: '',
+            country: '',
+            outreachStatus: '',
+            hasUnreadReply: '',
+            dateField: 'Last activity',
+            startDate: '',
+            endDate: '',
+            sort: ''
+        });
         setCurrentPage(1);
+    };
+
+    // Shared toggle behind the Awaiting Reply / Not Contacted quick controls: clicking
+    // the active one clears it; clicking the other swaps the status filter. Mirrors the
+    // FilterBar quick-chip behaviour so both stay in sync.
+    const toggleOutreachStatus = (value) => {
+        handleFilterChange({ outreachStatus: filters.outreachStatus === value ? '' : value });
     };
 
     const handleExportCSV = async () => {
@@ -536,7 +583,12 @@ const OutreachNewList = () => {
                         </div>
                     </div>
                 </div>
-                <div className="card bg-base-100 shadow border border-base-200">
+                <button
+                    type="button"
+                    onClick={() => toggleOutreachStatus('Not Sent')}
+                    aria-pressed={filters.outreachStatus === 'Not Sent'}
+                    className={`card bg-base-100 shadow border border-base-200 text-left cursor-pointer transition ${filters.outreachStatus === 'Not Sent' ? 'ring-2 ring-neutral border-neutral' : 'hover:border-base-300'}`}
+                >
                     <div className="card-body p-4 flex flex-row items-center gap-4">
                         <div className="p-3 bg-neutral/10 rounded-xl text-neutral"><Mail size={24} /></div>
                         <div>
@@ -544,7 +596,7 @@ const OutreachNewList = () => {
                             <p className="text-2xl font-bold mt-0.5">{statsLoading ? '...' : stats.notSent}</p>
                         </div>
                     </div>
-                </div>
+                </button>
                 <div className="card bg-base-100 shadow border border-base-200">
                     <div className="card-body p-4 flex flex-row items-center gap-4">
                         <div className="p-3 bg-primary/10 rounded-xl text-primary"><Mail size={24} /></div>
@@ -555,7 +607,12 @@ const OutreachNewList = () => {
                         </div>
                     </div>
                 </div>
-                <div className="card bg-base-100 shadow border border-base-200">
+                <button
+                    type="button"
+                    onClick={() => toggleOutreachStatus('Reply Received')}
+                    aria-pressed={filters.outreachStatus === 'Reply Received'}
+                    className={`card bg-base-100 shadow border border-base-200 text-left cursor-pointer transition ${filters.outreachStatus === 'Reply Received' ? 'ring-2 ring-success border-success' : 'hover:border-base-300'}`}
+                >
                     <div className="card-body p-4 flex flex-row items-center gap-4">
                         <div className="p-3 bg-success/10 rounded-xl text-success"><Check size={24} /></div>
                         <div>
@@ -564,66 +621,28 @@ const OutreachNewList = () => {
                             <p className="text-[11px] text-base-content/50">{statsLoading ? '' : `${stats.unread} unread`}</p>
                         </div>
                     </div>
-                </div>
+                </button>
             </div>
 
             {/* Filters */}
-            <div className="card bg-base-100 shadow-xl mb-6">
-                <div className="card-body">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold">Filters</h3>
-                        <button onClick={handleClearFilters} className="btn btn-ghost btn-sm gap-2">
-                            <X size={16} /> Clear All
-                        </button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Search */}
-                        <div className="form-control">
-                            <label className="label"><span className="label-text">Search</span></label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Search university, email..."
-                                    className="input input-bordered w-full pr-10"
-                                    value={filters.search}
-                                    onChange={(e) => handleFilterChange({ search: e.target.value })}
-                                />
-                                <Search className="absolute right-3 top-3 text-base-content/50" size={20} />
-                            </div>
-                        </div>
-
-                        {/* Country */}
-                        <div className="form-control">
-                            <label className="label"><span className="label-text">Country</span></label>
-                            <select 
-                                className="select select-bordered w-full" 
-                                value={filters.country || ''} 
-                                onChange={(e) => handleFilterChange({ country: e.target.value })}
-                            >
-                                <option value="">All Countries</option>
-                                {countries.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                        </div>
-
-                        {/* Status */}
-                        <div className="form-control">
-                            <label className="label"><span className="label-text">Outreach Status</span></label>
-                            <select 
-                                className="select select-bordered w-full" 
-                                value={filters.outreachStatus || ''} 
-                                onChange={(e) => handleFilterChange({ outreachStatus: e.target.value })}
-                            >
-                                <option value="">All Statuses</option>
-                                <option value="Not Sent">Not Sent</option>
-                                <option value="Sent">Sent</option>
-                                <option value="Reply Received">Reply Received</option>
-                                <option value="Replied">Replied</option>
-                                <option value="Closed">Closed</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <FilterBar
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={handleClearFilters}
+                showCountryFilter
+                showStatusFilter={false}
+                showDateFilter
+                countries={countries}
+                selectFilters={[
+                    { key: 'outreachStatus', label: 'Outreach Status', placeholder: 'All Statuses', options: OUTREACH_STATUSES },
+                    { key: 'dateField', label: 'Date filter is', placeholder: 'Last activity', options: ['Last activity', 'Date added'] },
+                    { key: 'sort', label: 'Sort by', placeholder: 'Newest added', options: ['Newest activity', 'Oldest activity', 'Oldest added', 'University A-Z'] }
+                ]}
+                quickFilters={[
+                    { key: 'outreachStatus', value: 'Reply Received', label: 'Awaiting reply' },
+                    { key: 'hasUnreadReply', value: 'true', label: 'Unread only' }
+                ]}
+            />
 
             {/* Table */}
             <div className="card bg-base-100 shadow-xl">
@@ -661,9 +680,7 @@ const OutreachNewList = () => {
                                             </span>
                                         </td>
                                         <td className="text-xs text-base-content/60">
-                                            {item.emails && item.emails.length > 0 
-                                                ? toDDMMM(item.emails[item.emails.length - 1].sentAt)
-                                                : 'No communication yet'}
+                                            {item.lastActivityAt ? toDDMMM(item.lastActivityAt) : 'No communication yet'}
                                         </td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
