@@ -330,7 +330,9 @@ const OutreachList = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {outreach.length === 0 ? (
+                                {loading && outreach.length === 0 ? (
+                                    <tr><td colSpan={7} className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td></tr>
+                                ) : outreach.length === 0 ? (
                                     <tr><td colSpan={7} className="text-center py-8">No outreach data found.</td></tr>
                                 ) : outreach.map(item => {
                                     const days = daysSince(item.sentDate);

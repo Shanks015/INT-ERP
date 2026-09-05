@@ -89,8 +89,6 @@ const MastersAbroadList = () => {
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
     const handleClearFilters = () => { setFilters({ search: '', country: '', recordStatus: '' }); setCurrentPage(1); };
 
-    if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
-
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -120,7 +118,7 @@ const MastersAbroadList = () => {
                         <table className="table table-zebra">
                             <thead><tr><th>Student Name</th><th>USN</th><th>University</th><th>Country</th><th>Course</th><th>Tenure</th><th>Passport</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {programs.length === 0 ? <tr><td colSpan={9} className="text-center py-8">No programs found</td></tr> : programs.map((program) => (
+                                {loading && programs.length === 0 ? <tr><td colSpan={9} className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td></tr> : programs.length === 0 ? <tr><td colSpan={9} className="text-center py-8">No programs found</td></tr> : programs.map((program) => (
                                     <tr key={program._id}>
                                         <td className="font-medium">{program.studentName}</td>
                                         <td>{program.usnNumber || '-'}</td>

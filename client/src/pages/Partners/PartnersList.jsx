@@ -172,14 +172,6 @@ const PartnersList = () => {
         setCurrentPage(1);
     };
 
-    if (loading && currentPage === 1) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <span className="loading loading-spinner loading-lg"></span>
-            </div>
-        );
-    }
-
     return (
         <div>
             {/* Header */}
@@ -286,7 +278,11 @@ const PartnersList = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {partners.length === 0 ? (
+                                {loading && partners.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={10} className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td>
+                                    </tr>
+                                ) : partners.length === 0 ? (
                                     <tr>
                                         <td colSpan={10} className="text-center py-8">
                                             No partners found. Add your first partner!

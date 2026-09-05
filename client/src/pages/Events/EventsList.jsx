@@ -109,8 +109,6 @@ const EventsList = () => {
         setCurrentPage(1);
     };
 
-    if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
-
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -181,7 +179,7 @@ const EventsList = () => {
                         <table className="table table-zebra">
                             <thead><tr><th>Title</th><th>Type</th><th>University / Country</th><th>Date</th><th>Department</th><th>Campus</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {events.length === 0 ? <tr><td colSpan={7} className="text-center py-8">No events found</td></tr> : events.map((event) => (
+                                {loading && events.length === 0 ? <tr><td colSpan={7} className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td></tr> : events.length === 0 ? <tr><td colSpan={7} className="text-center py-8">No events found</td></tr> : events.map((event) => (
                                     <tr key={event._id}>
                                         <td className="max-w-md" title={event.title}>{event.title}</td>
                                         <td><span className="badge badge-info badge-sm whitespace-nowrap">{event.type ? event.type.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\s*\/\s*/g, ' / ') : '-'}</span></td>

@@ -94,8 +94,6 @@ const MembershipsList = () => {
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
     const handleClearFilters = () => { setFilters({ search: '', membershipStatus: '', country: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
 
-    if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
-
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -125,7 +123,7 @@ const MembershipsList = () => {
                         <table className="table table-zebra">
                             <thead><tr><th>Name</th><th>Country</th><th>Start Date</th><th>Expiry Date</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {memberships.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No memberships found</td></tr> : memberships.map((membership) => (
+                                {loading && memberships.length === 0 ? <tr><td colSpan={6} className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td></tr> : memberships.length === 0 ? <tr><td colSpan={6} className="text-center py-8">No memberships found</td></tr> : memberships.map((membership) => (
                                     <tr key={membership._id}>
                                         <td>{membership.name}</td>
                                         <td>{membership.country || '-'}</td>

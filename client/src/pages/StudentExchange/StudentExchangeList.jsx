@@ -104,8 +104,6 @@ const StudentExchangeList = () => {
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
     const handleClearFilters = () => { setFilters({ search: '', country: '', direction: '', exchangeStatus: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
 
-    if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
-
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -138,7 +136,7 @@ const StudentExchangeList = () => {
                         <table className="table table-zebra">
                             <thead><tr><th>Student Name</th><th>Exchange University</th><th>Country</th><th>Direction</th><th>Date Range</th><th>Status</th><th>Notes</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {exchanges.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No exchanges found</td></tr> : exchanges.map((exchange) => (
+                                {loading && exchanges.length === 0 ? <tr><td colSpan={8} className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td></tr> : exchanges.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No exchanges found</td></tr> : exchanges.map((exchange) => (
                                     <tr key={exchange._id}>
                                         <td>{exchange.studentName}</td>
                                         <td>{exchange.exchangeUniversity}</td>

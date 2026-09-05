@@ -78,8 +78,6 @@ const SocialMediaList = () => {
         setCurrentPage(1);
     };
 
-    if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
-
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -115,7 +113,9 @@ const SocialMediaList = () => {
                         <table className="table table-zebra">
                             <thead><tr><th>Post Name</th><th>Caption</th><th>Created</th><th>Platform Links</th><th>Actions</th></tr></thead>
                             <tbody>
-                                {posts.length === 0 ? (
+                                {loading && posts.length === 0 ? (
+                                    <tr><td colSpan="5" className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td></tr>
+                                ) : posts.length === 0 ? (
                                     <tr><td colSpan="5" className="text-center py-8">No posts found</td></tr>
                                 ) : (
                                     posts.map((post) => (

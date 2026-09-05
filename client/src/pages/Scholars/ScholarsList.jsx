@@ -108,8 +108,6 @@ const ScholarsList = () => {
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
     const handleClearFilters = () => { setFilters({ search: '', country: '', department: '', designation: '', campus: '', scholarStatus: '', recordStatus: '', startDate: '', endDate: '' }); setCurrentPage(1); };
 
-    if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
-
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -143,7 +141,7 @@ const ScholarsList = () => {
                         <table className="table table-zebra">
                             <thead><tr><th>Scholar Name</th><th>University</th><th>Country</th><th>Duration</th><th>Campus</th><th>Status</th><th>Notes</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {scholars.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No scholars found</td></tr> : scholars.map((scholar) => (
+                                {loading && scholars.length === 0 ? <tr><td colSpan={8} className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td></tr> : scholars.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No scholars found</td></tr> : scholars.map((scholar) => (
                                     <tr key={scholar._id}>
                                         <td className="font-medium">{scholar.scholarName}</td>
                                         <td>{scholar.university || '-'}</td>

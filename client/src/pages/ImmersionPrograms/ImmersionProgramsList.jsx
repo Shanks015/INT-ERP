@@ -103,8 +103,6 @@ const ImmersionProgramsList = () => {
         setCurrentPage(1);
     };
 
-    if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
-
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -208,7 +206,7 @@ const ImmersionProgramsList = () => {
                         <table className="table table-zebra">
                             <thead><tr><th>University</th><th>Country</th><th>Direction</th><th>Participants</th><th>Status</th><th>Duration</th><th>Notes</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {programs.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No programs found</td></tr> : programs.map((program) => (
+                                {loading && programs.length === 0 ? <tr><td colSpan={8} className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td></tr> : programs.length === 0 ? <tr><td colSpan={8} className="text-center py-8">No programs found</td></tr> : programs.map((program) => (
                                     <tr key={program._id}>
                                         <td className="max-w-xs" title={program.university}>{program.university}</td>
                                         <td>{program.country}</td>

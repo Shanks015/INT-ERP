@@ -134,10 +134,6 @@ const MeetingTrackersList = () => {
         setCurrentPage(1);
     };
 
-    if (loading && currentPage === 1) {
-        return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
-    }
-
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -278,7 +274,9 @@ const MeetingTrackersList = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {meetings.length === 0 ? (
+                                {loading && meetings.length === 0 ? (
+                                    <tr><td colSpan={6} className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td></tr>
+                                ) : meetings.length === 0 ? (
                                     <tr><td colSpan={6} className="text-center py-8 text-base-content/50">No meeting trackers found</td></tr>
                                 ) : (
                                     meetings.map((meeting) => (

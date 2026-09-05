@@ -95,8 +95,6 @@ const DigitalMediaList = () => {
         setCurrentPage(1);
     };
 
-    if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
-
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -155,7 +153,7 @@ const DigitalMediaList = () => {
                         <table className="table table-zebra">
                             <thead><tr><th>Article Topic</th><th>Channel</th><th>Date</th><th>Amount Paid</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {media.length === 0 ? <tr><td colSpan={5} className="text-center py-8">No media found</td></tr> : media.map((item) => (
+                                {loading && media.length === 0 ? <tr><td colSpan={5} className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td></tr> : media.length === 0 ? <tr><td colSpan={5} className="text-center py-8">No media found</td></tr> : media.map((item) => (
                                     <tr key={item._id}>
                                         <td className="max-w-md" title={item.articleTopic}>{item.articleTopic}</td>
                                         <td>{item.channel}</td>

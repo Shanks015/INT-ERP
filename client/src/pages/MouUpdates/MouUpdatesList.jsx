@@ -122,8 +122,6 @@ const MouUpdatesList = () => {
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
     const handleClearFilters = () => { setFilters({ search: '', country: '', agreementType: '', mouStatus: '', validityStatus: '', startDate: '', endDate: '', selectedMonth: '' }); setCurrentPage(1); };
 
-    if (loading && currentPage === 1) return <div className="flex justify-center items-center h-64"><span className="loading loading-spinner loading-lg"></span></div>;
-
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -241,7 +239,7 @@ const MouUpdatesList = () => {
                         <table className="table table-zebra">
                             <thead><tr><th>University</th><th>Country</th><th>Update Date</th><th>Completed Date</th><th>Agreement Type</th><th>Term</th><th>Status</th><th>Department</th><th className="text-right">Actions</th></tr></thead>
                             <tbody>
-                                {updates.length === 0 ? <tr><td colSpan={9} className="text-center py-8">No updates found</td></tr> : updates.map((update) => (
+                                {loading && updates.length === 0 ? <tr><td colSpan={9} className="text-center py-8"><span className="loading loading-spinner loading-md"></span></td></tr> : updates.length === 0 ? <tr><td colSpan={9} className="text-center py-8">No updates found</td></tr> : updates.map((update) => (
                                     <tr key={update._id}>
                                         <td className="font-medium">{update.university}</td>
                                         <td>{update.country || '-'}</td>
