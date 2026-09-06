@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import { emitToAdmins } from '../services/notificationService.js';
 
 // Client-safe projection of a user doc. `password` is select:false on the
 // schema, but login queries with `select('+password')`, so strip it explicitly
@@ -42,6 +43,16 @@ export const register = async (req, res) => {
 
                 await existingUser.save();
 
+                // Notify admins: a previously-rejected account re-registered and
+                // is awaiting approval again. Non-blocking — never throws.
+                await emitToAdmins({
+                    category: 'approval',
+                    title: 'Re-registration awaiting approval',
+                    body: `${existingUser.name} (${existingUser.email}, ${existingUser.role}) re-registered after being rejected and needs approval.`,
+                    module: 'Users',
+                    link: '/user-management'
+                });
+
                 return res.status(200).json({
                     message: 'Registration successful! Your account is pending admin approval.',
                     requiresApproval: true,
@@ -61,6 +72,15 @@ export const register = async (req, res) => {
         // Create new user (pending approval)
         const user = new User({ name, email, password, role });
         await user.save();
+
+        // Notify admins: a new sign-up is awaiting approval. Non-blocking.
+        await emitToAdmins({
+            category: 'approval',
+            title: 'New sign-up awaiting approval',
+            body: `${name} (${email}, ${role}) registered and needs approval.`,
+            module: 'Users',
+            link: '/user-management'
+        });
 
         res.status(201).json({
             message: 'Registration successful! Your account is pending admin approval. You will be able to login once approved.',

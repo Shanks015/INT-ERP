@@ -46,6 +46,7 @@ import userSettingsRoutes from './routes/userSettings.routes.js';
 
 import googleFormsRoutes from './routes/googleForms.routes.js';
 import mailboxRoutes from './routes/mailbox.routes.js';
+import notificationsRoutes from './routes/notifications.routes.js';
 import outreachNewRoutes from './routes/outreachNew.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
@@ -151,6 +152,7 @@ app.use('/api/google-forms', googleFormsRoutes);
 app.use('/api/activity-logs', activityLogsRoutes);
 app.use('/api/settings', userSettingsRoutes);
 app.use('/api/mailboxes', mailboxRoutes);
+app.use('/api/notifications', notificationsRoutes);
 app.use('/api/outreach-new', outreachNewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/dashboard', dashboardRoutes);

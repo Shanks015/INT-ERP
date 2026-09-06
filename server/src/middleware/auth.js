@@ -9,6 +9,7 @@ const UNGATED_PREFIXES = [
     'admin', // admin-only: every route is guarded by authorize(['admin']) at the router level
     'activity-logs',
     'mailboxes',
+    'notifications', // own bell: any approved user reads/marks their own
     'google-forms',
     'health',
     'settings' // own profile/preferences — an intern manages their own settings

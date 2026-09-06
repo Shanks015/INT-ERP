@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Password is required'],
-    minlength: [6, 'Password must be at least 6 characters'],
+    minlength: [8, 'Password must be at least 8 characters'],
     select: false
   },
   role: {
@@ -90,6 +90,19 @@ const userSchema = new mongoose.Schema({
         newSubmission: { type: Boolean, default: true },
         approvalNeeded: { type: Boolean, default: true },
         statusUpdate: { type: Boolean, default: true }
+      }
+    },
+    // In-app notifications, surfaced in the header bell. Keys MUST be declared
+    // here so Mongoose strict mode keeps them when the whole block is $set
+    // (updateNotificationSettings merges). Keep the event keys in sync with
+    // Notification.category enum + notificationService.userAccepts.
+    inApp: {
+      enabled: { type: Boolean, default: true },
+      events: {
+        reply: { type: Boolean, default: true },
+        approval: { type: Boolean, default: true },
+        decision: { type: Boolean, default: true },
+        status: { type: Boolean, default: true }
       }
     }
   },

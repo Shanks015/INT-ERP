@@ -1,55 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Palette } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import api from '../api';
+import toast from 'react-hot-toast';
+import { THEMES } from '../constants/themes';
 
+// Navbar theme picker. The theme is a per-account setting: it lives in
+// user.preferences.theme on the server, is applied on login (AuthContext effect
+// + the inline script in index.html), and follows the user across devices.
+// Changing it here writes the SAME stored value the Settings → Preferences grid
+// writes — there is no separate localStorage 'theme' key anymore.
 const ThemeSwitcher = () => {
-    const themes = [
-        'light',
-        'bumblebee',
-        'forest',
-        'lofi',
-        //'fantasy',
-        'cmyk',
-        'autumn',
-        'acid',
-        'lemonade',
-        'winter',
-        'halloween',
-        'valentine',
+    const { user, updateUser } = useAuth();
+    const [busy, setBusy] = useState(false);
 
-        // Commented out themes (uncomment to re-enable):
-        // 'dark',
-        // 'cupcake',
-        // 'emerald',
-        // 'corporate',
-        // 'synthwave',
-        // 'retro',
-        // 'cyberpunk',
-        // 'aqua',
-        // 'garden',
-        // 'pastel',
-        // 'wireframe',
-        // 'black',
-        // 'luxury',
-        // 'dracula',
-        // 'business',
-        // 'night',
-        // 'coffee',
-        // 'dim',
-        // 'nord',
-        // 'sunset',
-    ];
+    const activeTheme = user?.preferences?.theme || 'light';
+    const applyTheme = (theme) => document.documentElement.setAttribute('data-theme', theme);
 
-    const [currentTheme, setCurrentTheme] = useState(
-        localStorage.getItem('theme') || 'light'
-    );
+    const handleThemeChange = async (theme) => {
+        if (busy || theme === activeTheme) return;
 
-    useEffect(() => {
-        document.documentElement.setAttribute('data-theme', currentTheme);
-        localStorage.setItem('theme', currentTheme);
-    }, [currentTheme]);
-
-    const handleThemeChange = (theme) => {
-        setCurrentTheme(theme);
+        applyTheme(theme); // instant visual feedback
+        setBusy(true);
+        try {
+            const response = await api.put('/settings/me/preferences', { theme });
+            updateUser({ ...user, preferences: response.data.data });
+        } catch (error) {
+            applyTheme(activeTheme); // revert on failure
+            toast.error(error.response?.data?.message || 'Could not save theme');
+        } finally {
+            setBusy(false);
+        }
     };
 
     return (
@@ -64,13 +45,14 @@ const ThemeSwitcher = () => {
                 <li className="menu-title">
                     <span>Choose Theme</span>
                 </li>
-                {themes.map((theme) => (
-                    <li key={theme}>
+                {THEMES.map((theme) => (
+                    <li key={theme.name}>
                         <button
-                            className={`capitalize ${currentTheme === theme ? 'active' : ''}`}
-                            onClick={() => handleThemeChange(theme)}
+                            className={`capitalize ${activeTheme === theme.name ? 'active' : ''}`}
+                            onClick={() => handleThemeChange(theme.name)}
+                            disabled={busy}
                         >
-                            {theme}
+                            {theme.label}
                         </button>
                     </li>
                 ))}

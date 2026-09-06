@@ -3,6 +3,7 @@ import { Link, useNavigate, Outlet, useLocation, NavLink } from 'react-router-do
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 import ThemeSwitcher from '../components/ThemeSwitcher';
+import NotificationsBell from '../components/NotificationsBell';
 import {
     LayoutDashboard,
     Users,
@@ -360,42 +361,6 @@ const MainLayout = () => {
         </>
     );
 
-    const themes = [
-        'light',
-        'bumblebee',
-        'forest',
-        'lofi',
-        'fantasy',
-        'cmyk',
-        'autumn',
-        'acid',
-        'lemonade',
-        'winter',
-        'halloween',
-        'valentine',
-
-        // Commented out themes (uncomment to re-enable):
-        // 'dark',
-        // 'cupcake',
-        // 'emerald',
-        // 'corporate',
-        // 'synthwave',
-        // 'retro',
-        // 'cyberpunk',
-        // 'aqua',
-        // 'garden',
-        // 'pastel',
-        // 'wireframe',
-        // 'black',
-        // 'luxury',
-        // 'dracula',
-        // 'business',
-        // 'night',
-        // 'coffee',
-        // 'dim',
-        // 'nord',
-        // 'sunset',
-    ];
     return (
         <div className="drawer">
             <input
@@ -423,18 +388,7 @@ const MainLayout = () => {
                     </div>
 
                     <div className="flex-none gap-2">
-                        {isAdmin && (
-                            <Link to="/pending-actions" className="btn btn-ghost btn-circle">
-                                <div className="indicator">
-                                    <Bell size={20} />
-                                    {pendingCount > 0 && (
-                                        <span className="badge badge-sm badge-error indicator-item">
-                                            {pendingCount}
-                                        </span>
-                                    )}
-                                </div>
-                            </Link>
-                        )}
+                        <NotificationsBell />
 
                         <ThemeSwitcher />
 

@@ -1,10 +1,26 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="corporate">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>International Affairs ERP | DSU</title>
+    <script>
+      // Apply the signed-in user's saved theme before React mounts so a reload
+      // never flashes the default. The theme is the per-account value stored in
+      // user.preferences.theme on the server; AuthContext keeps a copy under
+      // localStorage 'user' (kept fresh on login/session check). Falls back to
+      // the light default for anonymous/signed-out visitors.
+      (function () {
+        try {
+          var saved = JSON.parse(localStorage.getItem('user') || 'null');
+          var theme = (saved && saved.preferences && saved.preferences.theme) || 'light';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {
+          /* malformed/blocked localStorage — default light is already set on <html> */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

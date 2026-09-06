@@ -73,10 +73,10 @@ export const changePassword = async (req, res) => {
             });
         }
 
-        if (newPassword.length < 6) {
+        if (newPassword.length < 8) {
             return res.status(400).json({
                 success: false,
-                message: 'New password must be at least 6 characters'
+                message: 'New password must be at least 8 characters'
             });
         }
 
@@ -110,20 +110,24 @@ export const changePassword = async (req, res) => {
     }
 };
 
-// Update preferences (theme, date format, time format)
+// Update preferences (theme only). Date/time/language pickers were removed:
+// dates across the ERP are dd/MMM/yyyy by policy (see client dateFormat utils),
+// so the only per-account preference surfaced is the theme. Mongoose
+// runValidators below rejects any theme outside the schema enum.
 export const updatePreferences = async (req, res) => {
     try {
-        const { theme, dateFormat, timeFormat, language } = req.body;
+        const { theme } = req.body;
 
-        const preferences = {};
-        if (theme) preferences['preferences.theme'] = theme;
-        if (dateFormat) preferences['preferences.dateFormat'] = dateFormat;
-        if (timeFormat) preferences['preferences.timeFormat'] = timeFormat;
-        if (language) preferences['preferences.language'] = language;
+        if (!theme) {
+            return res.status(400).json({
+                success: false,
+                message: 'Theme is required'
+            });
+        }
 
         const user = await User.findByIdAndUpdate(
             req.user._id,
-            { $set: preferences },
+            { $set: { 'preferences.theme': theme } },
             { new: true, runValidators: true }
         ).select('-password');
 
@@ -141,16 +145,52 @@ export const updatePreferences = async (req, res) => {
     }
 };
 
-// Update notification settings
+// Update in-app notification settings. The client sends only the `inApp` block
+// (master toggle + the four event toggles). We MERGE it onto the current doc
+// instead of $set-replacing the whole notificationSettings object, so the
+// legacy `email` block (still present on existing docs) is never wiped and a
+// partial PUT can't silently turn off events the user didn't mention.
+const IN_APP_EVENTS = ['reply', 'approval', 'decision', 'status'];
+
 export const updateNotificationSettings = async (req, res) => {
     try {
-        const { notificationSettings } = req.body;
+        // Accept both a bare `{ inApp }` (current client) and the legacy
+        // `{ notificationSettings: { inApp } }` wrapper.
+        const incoming = req.body?.inApp ?? req.body?.notificationSettings?.inApp;
+        if (!incoming) {
+            return res.status(400).json({
+                success: false,
+                message: 'inApp notification settings are required'
+            });
+        }
 
-        const user = await User.findByIdAndUpdate(
-            req.user._id,
-            { $set: { notificationSettings } },
-            { new: true, runValidators: true }
-        ).select('-password');
+        const user = await User.findById(req.user._id).select('-password');
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const current = user.notificationSettings?.inApp ?? {};
+        const currentEvents = current.events ?? {};
+
+        const events = {};
+        for (const key of IN_APP_EVENTS) {
+            const val = incoming.events?.[key];
+            events[key] = typeof val === 'boolean' ? val : (currentEvents[key] ?? true);
+        }
+
+        user.notificationSettings = {
+            email: user.notificationSettings?.email ?? {},
+            inApp: {
+                enabled: typeof incoming.enabled === 'boolean'
+                    ? incoming.enabled
+                    : (current.enabled ?? true),
+                events
+            }
+        };
+        await user.save();
 
         res.json({
             success: true,

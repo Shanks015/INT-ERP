@@ -8,6 +8,7 @@ import ActivityLog from '../models/ActivityLog.js';
 import { decrypt } from '../services/cryptoService.js';
 import { sendEmail } from '../services/emailService.js';
 import { buildAdminNotificationEmail } from '../services/outreachEmailTemplate.js';
+import { emitToUser, emitToAdmins } from '../services/notificationService.js';
 import { resolveSentMailboxPath, alreadyHasMessageId, reconciledStatus, sentReconcileEnabled } from '../utils/outreachSentSync.js';
 import path from 'path';
 import fs from 'fs';
@@ -68,10 +69,24 @@ export const syncMailbox = async (connection) => {
         appPassword = decrypt(connection.appPassword);
     } catch (err) {
         console.error(`[IMAP] Decryption failed for ${connection.emailAddress}:`, err.message);
+        // Break notification only on a healthy → error transition, so a mailbox
+        // that keeps failing (error again next poll) does not spam its owner.
+        const wasError = connection.status === 'error';
         connection.status = 'error';
         connection.lastError = 'Failed to decrypt app password';
         connection.lastErrorAt = new Date();
         await connection.save();
+
+        if (!wasError) {
+            await emitToUser({
+                recipientId: connection.employee,
+                category: 'status',
+                title: 'Mailbox connection broken',
+                body: `Mailbox ${connection.emailAddress} stopped syncing (could not decrypt its app password). Check the connection settings.`,
+                module: 'Mailboxes',
+                link: '/mailbox-connections'
+            });
+        }
         return;
     }
 
@@ -182,6 +197,17 @@ export const syncMailbox = async (connection) => {
 
                     console.log(`[IMAP] Reply detected for Outreach New: ${fromEmail} → ${outreachNew._id}`);
 
+                    // Notify the mailbox owner of the new partner reply (in-app bell).
+                    // Never throws.
+                    await emitToUser({
+                        recipientId: connection.employee,
+                        category: 'reply',
+                        title: 'New reply on Outreach Mail',
+                        body: `${outreachNew.university || outreachNew.name || 'A partner'} replied on a thread in your mailbox ${connection.emailAddress}.`,
+                        module: 'Outreach Mail',
+                        link: '/outreach-new'
+                    });
+
                     // Log to ActivityLog
                     await ActivityLog.logActivity({
                         user:       connection.employee,
@@ -259,6 +285,17 @@ export const syncMailbox = async (connection) => {
                     } catch (notifyErr) {
                         console.warn(`[IMAP] Admin notification failed:`, notifyErr.message);
                     }
+
+                    // Notify admins in-app too (additive to the email above) so a
+                    // legacy Outreach reply needing confirm/reject shows in the bell.
+                    // Never throws.
+                    await emitToAdmins({
+                        category: 'approval',
+                        title: 'Legacy Outreach reply to review',
+                        body: `A reply from ${fromEmail} was detected on "${outreach.university || outreach.name || 'a record'}" and needs confirm/reject.`,
+                        module: 'Outreach',
+                        link: '/outreach'
+                    });
                 }
             }
         } finally {
@@ -285,10 +322,25 @@ export const syncMailbox = async (connection) => {
         console.log(`[IMAP] ${connection.emailAddress}: done, ${inboxMatched} reply detection(s), ${sentMatched} sent reconcile(s)`);
     } catch (err) {
         console.error(`[IMAP] Error syncing ${connection.emailAddress}:`, err.message);
+        // Only break-notify on a healthy → error transition (see decrypt-fail
+        // path above): a mailbox stuck in error would otherwise re-notify every
+        // 15-minute poll forever.
+        const wasError = connection.status === 'error';
         connection.status = 'error';
         connection.lastError = err.message;
         connection.lastErrorAt = new Date();
         await connection.save();
+
+        if (!wasError) {
+            await emitToUser({
+                recipientId: connection.employee,
+                category: 'status',
+                title: 'Mailbox connection broken',
+                body: `Mailbox ${connection.emailAddress} stopped syncing: ${err.message}. Check the connection or its credentials.`,
+                module: 'Mailboxes',
+                link: '/mailbox-connections'
+            });
+        }
     } finally {
         try { await client.logout(); } catch (_) { /* ignore */ }
     }

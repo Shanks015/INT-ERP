@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Settings as SettingsIcon, User, Lock, Palette, Bell } from 'lucide-react';
 import ProfileTab from './ProfileTab';
@@ -8,7 +9,10 @@ import NotificationsTab from './NotificationsTab';
 
 const Settings = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState('profile');
+    const [searchParams, setSearchParams] = useSearchParams();
+    // Allow deep links to a tab, e.g. the bell's "Notification settings" →
+    // /settings?tab=notifications.
+    const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
 
     const tabs = [
         { id: 'profile', label: 'Profile', icon: User },
@@ -16,6 +20,11 @@ const Settings = () => {
         { id: 'preferences', label: 'Preferences', icon: Palette },
         { id: 'notifications', label: 'Notifications', icon: Bell }
     ];
+
+    const selectTab = (id) => {
+        setActiveTab(id);
+        setSearchParams(id === 'profile' ? {} : { tab: id }, { replace: true });
+    };
 
     return (
         <div>
@@ -41,7 +50,7 @@ const Settings = () => {
                                 <button
                                     key={tab.id}
                                     className={`tab gap-2 ${activeTab === tab.id ? 'tab-active' : ''}`}
-                                    onClick={() => setActiveTab(tab.id)}
+                                    onClick={() => selectTab(tab.id)}
                                 >
                                     <Icon size={16} />
                                     {tab.label}

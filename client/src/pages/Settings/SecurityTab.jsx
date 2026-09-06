@@ -33,9 +33,11 @@ const SecurityTab = () => {
     };
 
     const checkPasswordStrength = (password) => {
+        // Scored against meaningful thresholds ABOVE the enforced 8-character
+        // minimum, so an 8-char password isn't automatically "medium".
         let strength = 0;
-        if (password.length >= 8) strength++;
-        if (password.length >= 12) strength++;
+        if (password.length >= 10) strength++;
+        if (password.length >= 14) strength++;
         if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
         if (/\d/.test(password)) strength++;
         if (/[^a-zA-Z\d]/.test(password)) strength++;
@@ -63,8 +65,8 @@ const SecurityTab = () => {
             return;
         }
 
-        if (formData.newPassword.length < 6) {
-            toast.error('Password must be at least 6 characters');
+        if (formData.newPassword.length < 8) {
+            toast.error('Password must be at least 8 characters');
             return;
         }
 
@@ -156,7 +158,7 @@ const SecurityTab = () => {
                                 onChange={handleChange}
                                 className="input input-bordered w-full pr-10"
                                 required
-                                minLength={6}
+                                minLength={8}
                                 disabled={loading}
                             />
                             <button
@@ -252,10 +254,8 @@ const SecurityTab = () => {
                 <div className="card-body">
                     <h3 className="card-title text-lg">Password Requirements</h3>
                     <ul className="list-disc list-inside space-y-1 text-sm">
-                        <li>Minimum 6 characters (8+ recommended)</li>
-                        <li>Mix of uppercase and lowercase letters</li>
-                        <li>Include at least one number</li>
-                        <li>Special characters for added security</li>
+                        <li>Minimum 8 characters (enforced)</li>
+                        <li>For a stronger password: mix uppercase and lowercase letters, add a number, and use symbols</li>
                     </ul>
                 </div>
             </div>

@@ -110,6 +110,17 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(newUser));
     };
 
+    // Apply the per-account theme whenever the resolved user changes (login,
+    // /auth/me re-check, Preferences save). The stored value on the server is
+    // the single source of truth — navbar ThemeSwitcher and the Settings grid
+    // both write it, and this effect re-applies it on any device after login.
+    // Signed out → back to the light default. The inline script in index.html
+    // covers the pre-React paint; this covers every later change.
+    useEffect(() => {
+        const theme = user?.preferences?.theme || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+    }, [user?.preferences?.theme, user]);
+
     const value = {
         user,
         loading,

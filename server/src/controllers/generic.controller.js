@@ -1,6 +1,7 @@
 import { Parser } from 'json2csv';
 import fs from 'fs';
 import ActivityLog from '../models/ActivityLog.js';
+import { emitToAdmins, emitToUser } from '../services/notificationService.js';
 
 // Generic CRUD controller factory for all modules with approval workflow
 
@@ -25,6 +26,47 @@ const getModuleName = (modelName) => {
     };
     return mapping[modelName] || modelName.toLowerCase();
 };
+
+// Human label for the notification `module` field (shown in the bell), and the
+// client list path used as a decision-notification `link`. Keep in sync with the
+// routes in client/src/App.jsx. getModuleName() stays the ActivityLog slug — do
+// not overload it with display duties.
+const MODULE_LABELS = {
+    'Partner': 'Partners',
+    'Event': 'Events',
+    'Conference': 'Conferences',
+    'CampusVisit': 'Campus Visits',
+    'Seminar': 'Seminars',
+    'ConsultantVisit': 'Consultant Visits',
+    'ImmersionProgram': 'Immersion Programs',
+    'MouSigningCeremony': 'MoU Signing Ceremonies',
+    'ScholarInResidence': 'Scholars in Residence',
+    'MouUpdate': 'MoU Updates',
+    'StudentExchange': 'Student Exchange',
+    'MastersAbroad': 'Masters Abroad',
+    'Membership': 'Memberships',
+    'DigitalMedia': 'Digital Media',
+    'Outreach': 'Outreach'
+};
+const MODULE_PATHS = {
+    'Partner': '/partners',
+    'Event': '/events',
+    'Conference': '/conferences',
+    'CampusVisit': '/campus-visits',
+    'Seminar': '/seminars',
+    'ConsultantVisit': '/consultant-visits',
+    'ImmersionProgram': '/immersion-programs',
+    'MouSigningCeremony': '/mou-signing-ceremonies',
+    'ScholarInResidence': '/scholars-in-residence',
+    'MouUpdate': '/mou-updates',
+    'StudentExchange': '/student-exchange',
+    'MastersAbroad': '/masters-abroad',
+    'Membership': '/memberships',
+    'DigitalMedia': '/digital-media',
+    'Outreach': '/outreach'
+};
+const moduleLabel = (modelName) => MODULE_LABELS[modelName] || getModuleName(modelName);
+const modulePath = (modelName) => MODULE_PATHS[modelName] || `/pending-actions`;
 
 // Fields that are controlled by the server and must never be set from a request
 // body. Without this, `Object.assign(record, req.body)` lets a client set its own
@@ -58,12 +100,10 @@ export const escapeRegex = (s) => String(s ?? '').replace(/[.*+?^${}()|[\]\\]/g,
 export const logUserActivity = async (req, action, modelName, record) => {
     try {
         if (!req.user) return; // Must have authenticated user to log
-        
+
         let targetName = null;
         if (record) {
-            targetName = record.name || record.title || record.university || 
-                         record.visitorName || record.studentName || record.scholarName ||
-                         record.topic || record.nameOfOrganization || record.dignitaries;
+            targetName = recordLabel(record);
         }
 
         await ActivityLog.logActivity({
@@ -82,6 +122,19 @@ export const logUserActivity = async (req, action, modelName, record) => {
     } catch (err) {
         console.error('Error in logUserActivity helper:', err);
     }
+};
+
+// Best human-readable label for a record across all generic modules — the same
+// field sweep the activity log uses, factored out so notification bodies and
+// log entries name the record identically.
+export const recordLabel = (record) => {
+    if (!record) return null;
+    return record.name || record.title || record.university ||
+        record.universityName || record.visitorName || record.studentName ||
+        record.scholarName || record.topic || record.nameOfOrganization ||
+        record.dignitaries || record.conferenceName || record.organizationName ||
+        record.programName || record.postName || record.articleTopic ||
+        record.exchangeUniversity;
 };
 
 // Get all records with filters, search, sorting, and pagination
@@ -346,6 +399,15 @@ export const update = (Model) => async (req, res) => {
         record.updatedBy = req.userId;
         await record.save();
 
+        // Notify admins a staged edit awaits their decision. Never throws.
+        await emitToAdmins({
+            category: 'approval',
+            title: 'Edit request awaiting approval',
+            body: `${req.user.name} requested an edit to "${recordLabel(record) || 'a record'}" in ${moduleLabel(Model.modelName)}.`,
+            module: moduleLabel(Model.modelName),
+            link: '/pending-actions'
+        });
+
         // Log employee staged update activity
         await logUserActivity(req, 'update', Model.modelName, record);
 
@@ -403,6 +465,15 @@ export const remove = (Model) => async (req, res) => {
         record.updatedBy = req.userId;
         await record.save();
 
+        // Notify admins a staged delete awaits their decision. Never throws.
+        await emitToAdmins({
+            category: 'approval',
+            title: 'Delete request awaiting approval',
+            body: `${req.user.name} requested to delete "${recordLabel(record) || 'a record'}" in ${moduleLabel(Model.modelName)}.`,
+            module: moduleLabel(Model.modelName),
+            link: '/pending-actions'
+        });
+
         // Log employee staged delete activity
         await logUserActivity(req, 'delete', Model.modelName, record);
 
@@ -450,6 +521,10 @@ export const approve = (Model) => async (req, res) => {
         }
 
         if (record.status === 'pending_edit') {
+            // The requester is whoever staged the edit (record.updatedBy). Capture
+            // before approve() overwrites it with the admin, so the decision
+            // notification can reach them.
+            const requesterId = record.updatedBy;
             // Apply pending changes. Sanitized again on the way out, not only on
             // the way in: records staged before this safeguard existed may hold
             // protected fields in pendingChanges, and applying them here would
@@ -463,6 +538,18 @@ export const approve = (Model) => async (req, res) => {
             // Log admin approve edit activity
             await logUserActivity(req, 'update', Model.modelName, record);
 
+            // Notify the requester of the decision. Never throws.
+            if (requesterId) {
+                await emitToUser({
+                    recipientId: requesterId,
+                    category: 'decision',
+                    title: 'Edit approved',
+                    body: `Your edit to "${recordLabel(record) || 'a record'}" in ${moduleLabel(Model.modelName)} was approved and applied.`,
+                    module: moduleLabel(Model.modelName),
+                    link: modulePath(Model.modelName)
+                });
+            }
+
             return res.json({
                 success: true,
                 message: 'Edit approved and applied',
@@ -471,11 +558,25 @@ export const approve = (Model) => async (req, res) => {
         }
 
         if (record.status === 'pending_delete') {
+            // Requester must be captured before the record is deleted.
+            const requesterId = record.updatedBy;
             // Delete the record
             await Model.findByIdAndDelete(req.params.id);
 
             // Log admin approve delete activity
             await logUserActivity(req, 'delete', Model.modelName, record);
+
+            // Notify the requester of the decision. Never throws.
+            if (requesterId) {
+                await emitToUser({
+                    recipientId: requesterId,
+                    category: 'decision',
+                    title: 'Delete approved',
+                    body: `Your delete request for "${recordLabel(record) || 'a record'}" in ${moduleLabel(Model.modelName)} was approved.`,
+                    module: moduleLabel(Model.modelName),
+                    link: modulePath(Model.modelName)
+                });
+            }
 
             return res.json({
                 success: true,
@@ -511,6 +612,10 @@ export const reject = (Model) => async (req, res) => {
 
         if (record.status === 'pending_edit' || record.status === 'pending_delete') {
             const oldStatus = record.status;
+            // The requester (whoever staged the request) is still in
+            // record.updatedBy at this point — capture for the decision note.
+            const requesterId = record.updatedBy;
+            const stagedKind = oldStatus === 'pending_edit' ? 'edit' : 'delete';
             // Restore to active status
             record.status = 'active';
             record.pendingChanges = null;
@@ -520,6 +625,18 @@ export const reject = (Model) => async (req, res) => {
 
             // Log admin reject staging activity
             await logUserActivity(req, 'update', Model.modelName, record);
+
+            // Notify the requester of the decision. Never throws.
+            if (requesterId) {
+                await emitToUser({
+                    recipientId: requesterId,
+                    category: 'decision',
+                    title: `${stagedKind[0].toUpperCase() + stagedKind.slice(1)} rejected`,
+                    body: `Your ${stagedKind} request for "${recordLabel(record) || 'a record'}" in ${moduleLabel(Model.modelName)} was rejected${reason ? `: ${reason}` : ''}.`,
+                    module: moduleLabel(Model.modelName),
+                    link: modulePath(Model.modelName)
+                });
+            }
 
             return res.json({
                 success: true,
