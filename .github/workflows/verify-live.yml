@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Skip — admin secrets not configured
         if: env.ADMIN_EMAIL == '' || env.ADMIN_PASSWORD == ''
         run: echo "ADMIN_EMAIL / ADMIN_PASSWORD are not set as repository secrets; live smoke skipped. Add them under Settings -> Secrets and variables -> Actions."
