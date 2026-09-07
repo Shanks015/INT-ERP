@@ -50,7 +50,9 @@ export const register = async (req, res) => {
                     title: 'Re-registration awaiting approval',
                     body: `${existingUser.name} (${existingUser.email}, ${existingUser.role}) re-registered after being rejected and needs approval.`,
                     module: 'Users',
-                    link: '/user-management'
+                    link: '/user-management',
+                    // Resolved (deleted) when any admin approves/rejects the user.
+                    resolveKey: `user:${existingUser._id}`
                 });
 
                 return res.status(200).json({
@@ -79,7 +81,9 @@ export const register = async (req, res) => {
             title: 'New sign-up awaiting approval',
             body: `${name} (${email}, ${role}) registered and needs approval.`,
             module: 'Users',
-            link: '/user-management'
+            link: '/user-management',
+            // Resolved (deleted) when any admin approves/rejects the user.
+            resolveKey: `user:${user._id}`
         });
 
         res.status(201).json({

@@ -4,6 +4,7 @@ import { decrypt } from '../services/cryptoService.js';
 import { isGmailConfigured, sendViaGmail } from '../services/gmailSendService.js';
 import nodemailer from 'nodemailer';
 import { logUserActivity, sanitizeInput } from './generic.controller.js';
+import { resolveNotifications } from '../services/notificationService.js';
 import { buildOutreachNewStages } from '../utils/outreachNewQuery.js';
 import * as XLSX from 'xlsx';
 import path from 'path';
@@ -480,12 +481,21 @@ export const sendOutreachNewEmail = async (req, res) => {
         // A send that answers a partner reply closes the loop (Reply Received →
         // Replied); any other send just moves the record to Sent. Never downgrades
         // an already-Replied record back to Sent on a later follow-up send.
+        // Captured before reassignment so an answering send can clear the owner's
+        // "New reply" bell alert below.
+        const answeredPendingReply = outreach.outreachStatus === 'Reply Received';
         outreach.outreachStatus =
             outreach.outreachStatus === 'Reply Received' || outreach.outreachStatus === 'Replied'
                 ? 'Replied'
                 : 'Sent';
         outreach.hasUnreadReply = false;
         await outreach.save();
+
+        // The reply this send answers is handled — clear the owner's bell item
+        // for it. Never throws.
+        if (answeredPendingReply) {
+            await resolveNotifications({ resolveKey: `outreachnew:${outreach._id}`, category: 'reply' });
+        }
 
         res.json({ success: true, message: 'Email sent successfully', data: outreach });
     } catch (error) {
@@ -504,6 +514,10 @@ export const markAsRead = async (req, res) => {
 
         record.hasUnreadReply = false;
         await record.save();
+
+        // Owner has now seen the unread reply — clear its "New reply on Outreach
+        // Mail" bell item. Never throws.
+        await resolveNotifications({ resolveKey: `outreachnew:${record._id}`, category: 'reply' });
 
         res.json({ success: true, message: 'Record marked as read', data: record });
     } catch (error) {
@@ -536,12 +550,18 @@ export const logSentEmail = async (req, res) => {
 
         // Same Reply Received → Replied rule as the SMTP send path, so the
         // "Compose in Gmail" fallback keeps the status honest too.
+        const answeredPendingReply = outreach.outreachStatus === 'Reply Received';
         outreach.outreachStatus =
             outreach.outreachStatus === 'Reply Received' || outreach.outreachStatus === 'Replied'
                 ? 'Replied'
                 : 'Sent';
         outreach.hasUnreadReply = false;
         await outreach.save();
+
+        // Reply answered via the Gmail fallback — clear its bell item. Never throws.
+        if (answeredPendingReply) {
+            await resolveNotifications({ resolveKey: `outreachnew:${outreach._id}`, category: 'reply' });
+        }
 
         res.json({ success: true, message: 'Email logged successfully', data: outreach });
     } catch (error) {

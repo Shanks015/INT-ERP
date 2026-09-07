@@ -40,6 +40,18 @@ const notificationSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
         index: true
+    },
+    // Lifecycle tie to the record the event announced. Set at emit time for
+    // notifications whose event can be *handled* (sign-up approval, staged
+    // edit/delete, mailbox break, partner reply) so that when that underlying
+    // task is resolved elsewhere in the app the matching bell item is deleted
+    // via resolveNotifications(). Null for outcome notifications (decision)
+    // which are kept until read. Plain string key, never populated — survives
+    // even after the originating record is deleted.
+    resolveKey: {
+        type: String,
+        default: null,
+        index: true
     }
 }, { timestamps: true });
 

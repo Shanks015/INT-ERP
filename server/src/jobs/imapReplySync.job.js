@@ -8,7 +8,7 @@ import ActivityLog from '../models/ActivityLog.js';
 import { decrypt } from '../services/cryptoService.js';
 import { sendEmail } from '../services/emailService.js';
 import { buildAdminNotificationEmail } from '../services/outreachEmailTemplate.js';
-import { emitToUser, emitToAdmins } from '../services/notificationService.js';
+import { emitToUser, emitToAdmins, resolveNotifications } from '../services/notificationService.js';
 import { resolveSentMailboxPath, alreadyHasMessageId, reconciledStatus, sentReconcileEnabled } from '../utils/outreachSentSync.js';
 import path from 'path';
 import fs from 'fs';
@@ -84,7 +84,9 @@ export const syncMailbox = async (connection) => {
                 title: 'Mailbox connection broken',
                 body: `Mailbox ${connection.emailAddress} stopped syncing (could not decrypt its app password). Check the connection settings.`,
                 module: 'Mailboxes',
-                link: '/mailbox-connections'
+                link: '/mailbox-connections',
+                // Resolved (deleted) when this mailbox next syncs successfully.
+                resolveKey: `mailbox:${connection._id}`
             });
         }
         return;
@@ -205,7 +207,9 @@ export const syncMailbox = async (connection) => {
                         title: 'New reply on Outreach Mail',
                         body: `${outreachNew.university || outreachNew.name || 'A partner'} replied on a thread in your mailbox ${connection.emailAddress}.`,
                         module: 'Outreach Mail',
-                        link: '/outreach-new'
+                        link: '/outreach-new',
+                        // Resolved (deleted) once the owner reads/answers the reply.
+                        resolveKey: `outreachnew:${outreachNew._id}`
                     });
 
                     // Log to ActivityLog
@@ -294,7 +298,9 @@ export const syncMailbox = async (connection) => {
                         title: 'Legacy Outreach reply to review',
                         body: `A reply from ${fromEmail} was detected on "${outreach.university || outreach.name || 'a record'}" and needs confirm/reject.`,
                         module: 'Outreach',
-                        link: '/outreach'
+                        link: '/outreach',
+                        // Resolved (deleted) when an admin confirms/rejects the reply.
+                        resolveKey: `outreach:${outreach._id}`
                     });
                 }
             }
@@ -313,6 +319,11 @@ export const syncMailbox = async (connection) => {
         // either bubbles to the outer catch (mailbox → 'error', lastSyncAt
         // untouched) so the window is retried next tick. Message-ID dedupe keeps
         // the replay safe.
+        // A mailbox that was broken and now syncs cleanly no longer needs its
+        // owner's attention — clear its "connection broken" bell item. Never throws.
+        if (connection.status === 'error') {
+            await resolveNotifications({ resolveKey: `mailbox:${connection._id}`, category: 'status' });
+        }
         connection.lastSyncAt = new Date();
         connection.status = 'active';
         connection.lastError = null;
@@ -338,7 +349,9 @@ export const syncMailbox = async (connection) => {
                 title: 'Mailbox connection broken',
                 body: `Mailbox ${connection.emailAddress} stopped syncing: ${err.message}. Check the connection or its credentials.`,
                 module: 'Mailboxes',
-                link: '/mailbox-connections'
+                link: '/mailbox-connections',
+                // Resolved (deleted) when this mailbox next syncs successfully.
+                resolveKey: `mailbox:${connection._id}`
             });
         }
     } finally {
@@ -445,11 +458,21 @@ export const syncSentReplies = async ({ client, connection, since }) => {
                 // chronological (idempotent).
                 record.emails.sort((a, b) => new Date(a.sentAt) - new Date(b.sentAt));
 
+                // This owner send answers a pending partner reply when the record
+                // is currently at Reply Received — capture before reassignment so
+                // the matching bell alert can be cleared below.
+                const answeredPendingReply = record.outreachStatus === 'Reply Received';
                 const next = reconciledStatus(record.outreachStatus);
                 record.outreachStatus = next;
                 if (next === 'Replied') record.hasUnreadReply = false;
                 await record.save();
                 matched++;
+
+                // Out-of-band reply sent = handled — clear the owner's "New reply
+                // on Outreach Mail" bell item for this record. Never throws.
+                if (answeredPendingReply) {
+                    await resolveNotifications({ resolveKey: `outreachnew:${record._id}`, category: 'reply' });
+                }
 
                 console.log(`[IMAP] Sent reconcile: ${connection.emailAddress} → ${record.university} (${record.email}) ${messageId}`);
 

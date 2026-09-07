@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
     userAccepts,
     toNotificationDoc,
+    resolveFilter,
     NOTIFICATION_CATEGORIES,
     DEFAULT_IN_APP_SETTINGS
 } from '../src/services/notificationService.js';
@@ -78,7 +79,8 @@ describe('toNotificationDoc mapping', () => {
             body: '',
             module: null,
             link: null,
-            read: false
+            read: false,
+            resolveKey: null
         });
     });
 
@@ -101,5 +103,29 @@ describe('toNotificationDoc mapping', () => {
         const long = toNotificationDoc({ ...base, title: 'T'.repeat(500), body: 'B'.repeat(900) });
         expect(long.title.length).toBe(200);
         expect(long.body.length).toBe(500);
+    });
+
+    it('carries an optional resolveKey through', () => {
+        const doc = toNotificationDoc({ ...base, title: 'Awaiting approval', resolveKey: 'user:abc123' });
+        expect(doc.resolveKey).toBe('user:abc123');
+    });
+});
+
+describe('resolveFilter (handled-notification deletion target)', () => {
+    it('targets by resolveKey plus the announced category', () => {
+        expect(resolveFilter({ resolveKey: 'user:abc', category: 'approval' }))
+            .toEqual({ resolveKey: 'user:abc', category: 'approval' });
+        expect(resolveFilter({ resolveKey: 'record:Partner:xyz', category: 'approval' }))
+            .toEqual({ resolveKey: 'record:Partner:xyz', category: 'approval' });
+        expect(resolveFilter({ resolveKey: 'mailbox:1', category: 'status' }))
+            .toEqual({ resolveKey: 'mailbox:1', category: 'status' });
+    });
+
+    it('never scopes by category alone — a key is required to resolve', () => {
+        expect(resolveFilter({ category: 'reply' })).toEqual({ category: 'reply' });
+        expect(resolveFilter({})).toEqual({});
+        // Category is additive but a bare category must never be enough on its own
+        // to delete; resolveNotifications guards on resolveKey before calling.
+        expect(resolveFilter({ category: 'reply' })).not.toHaveProperty('resolveKey');
     });
 });

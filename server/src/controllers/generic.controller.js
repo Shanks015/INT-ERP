@@ -1,7 +1,7 @@
 import { Parser } from 'json2csv';
 import fs from 'fs';
 import ActivityLog from '../models/ActivityLog.js';
-import { emitToAdmins, emitToUser } from '../services/notificationService.js';
+import { emitToAdmins, emitToUser, resolveNotifications } from '../services/notificationService.js';
 import {
     expiryDateField,
     activeCondition,
@@ -443,7 +443,9 @@ export const update = (Model) => async (req, res) => {
             title: 'Edit request awaiting approval',
             body: `${req.user.name} requested an edit to "${recordLabel(record) || 'a record'}" in ${moduleLabel(Model.modelName)}.`,
             module: moduleLabel(Model.modelName),
-            link: '/pending-actions'
+            link: '/pending-actions',
+            // Resolved (deleted) for every admin when this request is decided.
+            resolveKey: `record:${Model.modelName}:${record._id}`
         });
 
         // Log employee staged update activity
@@ -509,7 +511,9 @@ export const remove = (Model) => async (req, res) => {
             title: 'Delete request awaiting approval',
             body: `${req.user.name} requested to delete "${recordLabel(record) || 'a record'}" in ${moduleLabel(Model.modelName)}.`,
             module: moduleLabel(Model.modelName),
-            link: '/pending-actions'
+            link: '/pending-actions',
+            // Resolved (deleted) for every admin when this request is decided.
+            resolveKey: `record:${Model.modelName}:${record._id}`
         });
 
         // Log employee staged delete activity
@@ -576,6 +580,10 @@ export const approve = (Model) => async (req, res) => {
             // Log admin approve edit activity
             await logUserActivity(req, 'update', Model.modelName, record);
 
+            // The request is decided — clear every admin's "awaiting approval"
+            // bell item for it. Never throws.
+            await resolveNotifications({ resolveKey: `record:${Model.modelName}:${record._id}`, category: 'approval' });
+
             // Notify the requester of the decision. Never throws.
             if (requesterId) {
                 await emitToUser({
@@ -603,6 +611,10 @@ export const approve = (Model) => async (req, res) => {
 
             // Log admin approve delete activity
             await logUserActivity(req, 'delete', Model.modelName, record);
+
+            // Request decided (record now deleted) — clear every admin's
+            // "awaiting approval" bell item for it. Key survives deletion.
+            await resolveNotifications({ resolveKey: `record:${Model.modelName}:${record._id}`, category: 'approval' });
 
             // Notify the requester of the decision. Never throws.
             if (requesterId) {
@@ -663,6 +675,10 @@ export const reject = (Model) => async (req, res) => {
 
             // Log admin reject staging activity
             await logUserActivity(req, 'update', Model.modelName, record);
+
+            // Rejected = decided — clear every admin's "awaiting approval" bell
+            // item for this request. Never throws.
+            await resolveNotifications({ resolveKey: `record:${Model.modelName}:${record._id}`, category: 'approval' });
 
             // Notify the requester of the decision. Never throws.
             if (requesterId) {

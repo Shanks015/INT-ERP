@@ -3,6 +3,7 @@ import OutreachReminder from '../models/OutreachReminder.js';
 import ActivityLog from '../models/ActivityLog.js';
 import { sendEmail } from '../services/emailService.js';
 import { buildReminderEmail } from '../services/outreachEmailTemplate.js';
+import { resolveNotifications } from '../services/notificationService.js';
 
 // GET /api/outreach/review-queue — records with replyReviewStatus: pending_review
 export const getReviewQueue = async (req, res) => {
@@ -45,6 +46,10 @@ export const confirmReply = async (req, res) => {
         outreach.reviewedAt = new Date();
         outreach.automationActive = false;
         await outreach.save();
+
+        // Reviewed = decided — clear the admins' "Legacy Outreach reply to
+        // review" bell items for this record. Never throws.
+        await resolveNotifications({ resolveKey: `outreach:${outreach._id}`, category: 'approval' });
 
         await ActivityLog.logActivity({
             user:       req.user._id,
@@ -94,6 +99,10 @@ export const rejectReply = async (req, res) => {
         outreach.reviewedBy = req.user._id;
         outreach.reviewedAt = new Date();
         await outreach.save();
+
+        // Reviewed (false positive) = decided — clear the admins' "Legacy
+        // Outreach reply to review" bell items for this record. Never throws.
+        await resolveNotifications({ resolveKey: `outreach:${outreach._id}`, category: 'approval' });
 
         await ActivityLog.logActivity({
             user:       req.user._id,

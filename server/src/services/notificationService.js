@@ -34,24 +34,37 @@ export const userAccepts = (user, category) => {
 };
 
 // Build the raw document shape (pure, for tests/insertMany).
-export const toNotificationDoc = ({ recipientId, category, title, body, module, link }) => ({
+export const toNotificationDoc = ({ recipientId, category, title, body, module, link, resolveKey }) => ({
     recipient: recipientId,
     category,
     title: String(title ?? '').slice(0, 200),
     body: String(body ?? '').slice(0, 500),
     module: module || null,
     link: link || null,
-    read: false
+    read: false,
+    resolveKey: resolveKey || null
 });
+
+// Pure filter builder for resolving (deleting) handled notifications. A
+// resolveKey alone is unique per announced event class (all admin copies of a
+// broadcast share one key), so a full delete clears every recipient's stale
+// copy in one write. `category` is optional but always passed to avoid ever
+// touching a different class that happens to share a record id.
+export const resolveFilter = ({ resolveKey, category }) => {
+    const filter = {};
+    if (resolveKey) filter.resolveKey = resolveKey;
+    if (category) filter.category = category;
+    return filter;
+};
 
 // Emit to a single recipient. Resolves their gate first (their settings are the
 // per-account switch). Returns 1 when created, 0 when skipped/failed.
-export const emitToUser = async ({ recipientId, category, title, body, module, link }) => {
+export const emitToUser = async ({ recipientId, category, title, body, module, link, resolveKey }) => {
     if (!recipientId || !category || !title) return 0;
     try {
         const recipient = await User.findById(recipientId).select('notificationSettings').lean();
         if (!recipient || !userAccepts(recipient, category)) return 0;
-        await Notification.create(toNotificationDoc({ recipientId, category, title, body, module, link }));
+        await Notification.create(toNotificationDoc({ recipientId, category, title, body, module, link, resolveKey }));
         return 1;
     } catch (err) {
         console.error('[notify] emitToUser failed:', err.message);
@@ -62,20 +75,35 @@ export const emitToUser = async ({ recipientId, category, title, body, module, l
 // Emit to every admin whose gate allows `category`. Recipients resolve against
 // their own in-app settings, so only the events a given admin keeps on reach
 // them. Returns how many notifications were created.
-export const emitToAdmins = async ({ category, title, body, module, link, exceptUserId }) => {
+export const emitToAdmins = async ({ category, title, body, module, link, exceptUserId, resolveKey }) => {
     if (!category || !title) return 0;
     try {
         const admins = await User.find({ role: 'admin' }).select('notificationSettings').lean();
         const docs = admins
             .filter((a) => !exceptUserId || String(a._id) !== String(exceptUserId))
             .filter((a) => userAccepts(a, category))
-            .map((a) => toNotificationDoc({ recipientId: a._id, category, title, body, module, link }));
+            .map((a) => toNotificationDoc({ recipientId: a._id, category, title, body, module, link, resolveKey }));
 
         if (docs.length === 0) return 0;
         await Notification.insertMany(docs);
         return docs.length;
     } catch (err) {
         console.error('[notify] emitToAdmins failed:', err.message);
+        return 0;
+    }
+};
+
+// Delete the notifications that announced an event now handled — the "remove it
+// from the bell once worked on" contract. Every copy of a broadcast shares the
+// same resolveKey, so one deleteMany clears the item for all recipients. NEVER
+// throws (same contract as the emit helpers); returns how many were removed.
+export const resolveNotifications = async ({ resolveKey, category }) => {
+    if (!resolveKey) return 0;
+    try {
+        const result = await Notification.deleteMany(resolveFilter({ resolveKey, category }));
+        return result.deletedCount ?? 0;
+    } catch (err) {
+        console.error('[notify] resolveNotifications failed:', err.message);
         return 0;
     }
 };

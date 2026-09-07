@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import { logUserActivity } from './generic.controller.js';
+import { resolveNotifications } from '../services/notificationService.js';
 
 // Get all pending users
 export const getPendingUsers = async (req, res) => {
@@ -74,6 +75,10 @@ export const approveUser = async (req, res) => {
 
         await user.save();
 
+        // The sign-up is decided — drop the admins' "awaiting approval" bell
+        // items for this user. Never throws.
+        await resolveNotifications({ resolveKey: `user:${user._id}`, category: 'approval' });
+
         res.json({
             message: 'User approved successfully',
             user: {
@@ -121,6 +126,10 @@ export const rejectUser = async (req, res) => {
             },
             { new: true, runValidators: true }
         );
+
+        // Rejected = decided — clear the admins' pending-approval bell items.
+        // Never throws.
+        await resolveNotifications({ resolveKey: `user:${id}`, category: 'approval' });
 
         res.json({
             message: 'User rejected successfully',
@@ -245,6 +254,12 @@ export const updateUser = async (req, res) => {
 
         await user.save();
 
+        // If this edit decided a pending sign-up, drop the admins' bell items.
+        // Never throws.
+        if (approvalStatus && approvalStatus !== 'pending') {
+            await resolveNotifications({ resolveKey: `user:${user._id}`, category: 'approval' });
+        }
+
         // Log user update activity
         await logUserActivity(req, 'update', 'User', user);
 
@@ -282,6 +297,10 @@ export const deleteUser = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
+
+        // Deleted (incl. pending) users no longer need admin review — clear the
+        // admins' approval bell items. Never throws.
+        await resolveNotifications({ resolveKey: `user:${id}`, category: 'approval' });
 
         // Log user deletion activity
         await logUserActivity(req, 'delete', 'User', user);
