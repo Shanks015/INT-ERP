@@ -1,0 +1,51 @@
+name: ci
+
+# Test + build gate. Runs on every PR and on push to main (Render then auto-deploys
+# main). No secrets, no DB: the server suite is pure unit tests, and the client
+# build catches JSX/import breakage before it ever reaches Render.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  server-tests:
+    name: Server unit tests + syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: Install server deps
+        working-directory: server
+        run: npm ci
+      - name: Unit tests (vitest — no DB access)
+        working-directory: server
+        run: npm test
+      - name: Syntax-check every committed server file
+        run: |
+          mapfile -t files < <(git ls-files 'server/**/*.js' 'server/**/*.mjs')
+          failed=0
+          for f in "${files[@]}"; do
+            node --check "$f" || { echo "SYNTAX FAIL: $f"; failed=1; }
+          done
+          exit $failed
+
+  client-build:
+    name: Client production build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npm run build

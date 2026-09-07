@@ -1,0 +1,37 @@
+name: verify-live
+
+# Read-only live smoke against the deployed app, hitting the LIST endpoint of
+# EVERY module mount (see server/scripts/ci/moduleSmoke.mjs). Purely GET — it
+# never writes to the shared Atlas database.
+#
+# Run manually via Actions → "verify-live" → Run workflow, or on the schedule.
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   LIVE_BASE       = https://int-erp.onrender.com/api
+#   ADMIN_EMAIL     = admin@dsu.edu   (or another admin account)
+#   ADMIN_PASSWORD  = that account's password
+on:
+  workflow_dispatch:
+  schedule:
+    # 03:1X nightly — deliberately off the :00/:30 marks.
+    - cron: '13 3 * * *'
+
+jobs:
+  smoke:
+    name: Every-module list smoke
+    # Skip (not fail) until the admin secrets are configured in the repo.
+    if: ${{ secrets.ADMIN_PASSWORD != '' && secrets.ADMIN_EMAIL != '' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run read-only module smoke
+        run: node scripts/ci/moduleSmoke.mjs
+        env:
+          LIVE_BASE: ${{ secrets.LIVE_BASE }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}

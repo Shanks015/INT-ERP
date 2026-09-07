@@ -2,6 +2,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "test": "vitest run",
     "create-admin": "node scripts/createAdmin.js"
   },
   "type": "module",
