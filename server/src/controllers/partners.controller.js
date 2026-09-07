@@ -1,6 +1,7 @@
 import Partner from '../models/Partner.js';
 import { Parser } from 'json2csv';
 import { logUserActivity, sanitizeInput, escapeRegex } from './generic.controller.js';
+import { activeCondition, expiredCondition, isExpiredValue, mergeConditions } from '../utils/recordExpiry.js';
 
 // dd/MMM/yyyy formatter (project standard; see ScholarInResidence model).
 const fmtDDMMM = (v) => {
@@ -29,7 +30,7 @@ export const getAll = async (req, res) => {
         } = req.query;
 
         // Build query
-        const query = {};
+        let query = {};
 
         // Search
         if (search && search.trim()) {
@@ -50,9 +51,14 @@ export const getAll = async (req, res) => {
         if (mouStatus && mouStatus !== 'all') query.mouStatus = { $regex: `^${escapeRegex(mouStatus)}$`, $options: 'i' };
         if (agreementType && agreementType !== 'all') query.agreementType = { $regex: `^${escapeRegex(agreementType)}$`, $options: 'i' };
 
-        // recordStatus (active/expired)
+        // recordStatus (active/expired) — derived from expiringDate at read time
+        // (stored value only refreshes in pre('save'), so imported/idle partners
+        // go stale; see utils/recordExpiry.js).
         if (recordStatus && recordStatus !== 'all') {
-            query.recordStatus = recordStatus;
+            const cond = recordStatus.toLowerCase() === 'expired'
+                ? expiredCondition('expiringDate')
+                : recordStatus.toLowerCase() === 'active' ? activeCondition('expiringDate') : null;
+            if (cond) query = mergeConditions(query, cond);
         }
 
         // Date window on signingDate (task #66): filter partners whose MoU was
@@ -83,6 +89,12 @@ export const getAll = async (req, res) => {
             Partner.countDocuments(query)
         ]);
 
+        // Derive each returned doc's recordStatus from expiringDate (serialization
+        // only — see utils/recordExpiry.js). lean() docs are plain objects.
+        partners.forEach(p => {
+            p.recordStatus = isExpiredValue(p.expiringDate) ? 'expired' : 'active';
+        });
+
         res.json({
             success: true,
             data: partners,
@@ -112,6 +124,8 @@ export const getById = async (req, res) => {
                 message: 'Partner not found'
             });
         }
+        // Same read-time derivation as getAll (serialization-only).
+        partner.recordStatus = isExpiredValue(partner.expiringDate) ? 'expired' : 'active';
         res.json({ success: true, data: partner });
     } catch (error) {
         res.status(500).json({
@@ -329,7 +343,7 @@ export const exportCSV = async (req, res) => {
             'agreementType',
             'mouStatus',
             'activeStatus',
-            'recordStatus',
+            { label: 'recordStatus', value: (row) => isExpiredValue(row.expiringDate) ? 'expired' : 'active' },
             { label: 'Signing Date', value: (row) => fmtDDMMM(row.signingDate) },
             { label: 'Expiry Date', value: (row) => fmtDDMMM(row.expiringDate) },
             'link'

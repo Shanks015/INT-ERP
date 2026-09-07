@@ -5,7 +5,7 @@ import { useDebounce } from '../../hooks/useDebounce';
 import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, FileText, TrendingUp, Clock, Eye, Globe, Building2, Award } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, FileText, Clock, Eye, Globe, Award } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
@@ -27,12 +27,12 @@ const MouSigningCeremoniesList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', startDate: '', endDate: '', recordStatus: '' });
+    const [filters, setFilters] = useState({ search: '', startDate: '', endDate: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
 
-    useEffect(() => { fetchCeremonies(); fetchStats(); }, [currentPage, itemsPerPage, debouncedSearch, filters.startDate, filters.endDate, filters.recordStatus]);
+    useEffect(() => { fetchCeremonies(); fetchStats(); }, [currentPage, itemsPerPage, debouncedSearch, filters.startDate, filters.endDate]);
 
     const fetchStats = async () => {
         try {
@@ -46,7 +46,7 @@ const MouSigningCeremoniesList = () => {
     const fetchCeremonies = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, startDate: filters.startDate, endDate: filters.endDate, recordStatus: filters.recordStatus };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, startDate: filters.startDate, endDate: filters.endDate };
             const response = await api.get('/mou-signing-ceremonies', { params });
             setCeremonies(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -79,7 +79,7 @@ const MouSigningCeremoniesList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', startDate: '', endDate: '', recordStatus: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', startDate: '', endDate: '' }); setCurrentPage(1); };
 
     return (
         <div>
@@ -99,6 +99,7 @@ const MouSigningCeremoniesList = () => {
                 filters={filters}
                 onFilterChange={handleFilterChange}
                 onClearFilters={handleClearFilters}
+                showStatusFilter={false}
             />
             <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
@@ -117,10 +118,6 @@ const MouSigningCeremoniesList = () => {
                                         <td className="max-w-xs truncate">{ceremony.eventSummary || '-'}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
-                                                {/* Record Status Badge */}
-                                                {ceremony.recordStatus === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
-                                                {ceremony.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
-
                                                 {/* Approval Workflow Badges */}
                                                 {ceremony.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
                                                 {ceremony.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}
@@ -165,7 +162,6 @@ const MouSigningCeremoniesList = () => {
                     { key: 'eventSummary', label: 'Event Summary' },
                     { key: 'driveLink', label: 'Drive Link', type: 'link' },
                     { key: 'status', label: 'Workflow Status' },
-                    { key: 'recordStatus', label: 'Record Status' },
                     { key: 'createdAt', label: 'Created At', type: 'date' },
                     { key: 'updatedAt', label: 'Updated At', type: 'date' }
                 ]}

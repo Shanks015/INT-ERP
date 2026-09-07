@@ -17,6 +17,7 @@ import DigitalMedia from '../models/DigitalMedia.js';
 import Outreach from '../models/Outreach.js';
 import MeetingTracker from '../models/MeetingTracker.js';
 import SocialMedia from '../models/SocialMedia.js';
+import { isExpiredValue } from '../utils/recordExpiry.js';
 
 // dd/MMM/yyyy date formatter for scholar reports
 const fmtDDMMM = (v) => {
@@ -50,6 +51,24 @@ const getModel = (moduleName) => {
     }
 };
 
+// Record Status in exported reports is derived from each dated module's real end
+// date — the stored field only refreshes in pre('save') (see utils/recordExpiry.js).
+// Report slug → expiry field; mirrors EXPIRY_DATE_FIELDS. Modules with no record
+// Status column (masters-abroad, mou-signing-ceremonies) don't appear here.
+const DERIVED_RS_FIELDS = {
+    partners: 'expiringDate',
+    'scholars-in-residence': 'endDate',
+    'immersion-programs': 'departureDate',
+    'student-exchange': 'toDate',
+    memberships: 'endDate'
+};
+
+const derivedRecordStatus = (moduleName, item) => {
+    const field = DERIVED_RS_FIELDS[moduleName];
+    if (field) return isExpiredValue(item?.[field]) ? 'expired' : 'active';
+    return item?.recordStatus || 'active';
+};
+
 const getDisplayFields = (moduleName) => {
     // Define columns for each module - returns { headers: [], extractor: (item) => [] }
     switch (moduleName) {
@@ -67,7 +86,7 @@ const getDisplayFields = (moduleName) => {
                     item.agreementType || '-',
                     fmtDDMMM(item.completedOn),
                     item.department || '-',
-                    item.recordStatus || 'active'
+                    derivedRecordStatus('partners', item)
                 ]
             };
         case 'campus-visits':
@@ -167,7 +186,7 @@ const getDisplayFields = (moduleName) => {
                     item.summary || '-',
                     item.driveLink || '-',
                     item.notes || '-',
-                    item.recordStatus || 'active'
+                    derivedRecordStatus('scholars-in-residence', item)
                 ]
             };
         case 'mou-updates':
@@ -202,7 +221,7 @@ const getDisplayFields = (moduleName) => {
                     item.feesPerPax != null && item.feesCurrency ? `${item.feesPerPax} ${item.feesCurrency}` : (item.feesPerPax ?? '-'),
                     item.driveLink || '-',
                     item.notes || '-',
-                    item.recordStatus || 'active'
+                    derivedRecordStatus('immersion-programs', item)
                 ]
             };
         case 'student-exchange':
@@ -221,7 +240,7 @@ const getDisplayFields = (moduleName) => {
                     fmtDDMMM(item.toDate),
                     item.driveLink || '-',
                     item.notes || '-',
-                    item.recordStatus || 'active'
+                    derivedRecordStatus('student-exchange', item)
                 ]
             };
         case 'masters-abroad':
@@ -247,7 +266,7 @@ const getDisplayFields = (moduleName) => {
                     item.membershipStatus || '-',
                     fmtDDMMM(item.startDate),
                     fmtDDMMM(item.endDate),
-                    item.recordStatus || 'active'
+                    derivedRecordStatus('memberships', item)
                 ]
             };
         case 'digital-media':

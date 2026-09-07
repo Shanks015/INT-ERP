@@ -1,6 +1,13 @@
 // Enhanced stats controller with module-specific statistics
 // Each module gets custom stats based on its unique fields
 
+import {
+    activeCondition,
+    currentlyActiveFragment,
+    mergeConditions,
+    startOfToday
+} from '../utils/recordExpiry.js';
+
 const escapeRegex = (s) => String(s ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 export const getEnhancedStats = (Model) => async (req, res) => {
@@ -18,6 +25,15 @@ export const getEnhancedStats = (Model) => async (req, res) => {
         const total = await Model.countDocuments({ status: 'active' });
 
         let stats = { total };
+
+        // Active scope for dated modules: workflow-active records that have NOT yet
+        // expired, derived from the module's real end date at read time (stored
+        // recordStatus only refreshes in pre('save'), so imported/idle rows go
+        // stale — see utils/recordExpiry.js). Modules without a lifecycle
+        // (MastersAbroad, MouSigningCeremony) reduce to { status: 'active' } because
+        // their expiry fragment is empty.
+        const activeScope = mergeConditions({ status: 'active' }, currentlyActiveFragment(modelName));
+        const startToday = startOfToday();
 
         // Determine the date field to use for trend calculation based on model
         let dateField = 'createdAt'; // fallback
@@ -76,13 +92,20 @@ export const getEnhancedStats = (Model) => async (req, res) => {
         // Events have no special case — they fall through to { status: 'active' }.
         let baseQuery = {};
         if (modelName === 'Partner') {
+            // Active partners = workflow-active with a case-insensitive 'Active'
+            // activeStatus AND a not-yet-expired expiringDate (derived; the stored
+            // recordStatus goes stale — see utils/recordExpiry.js).
             baseQuery = {
-                $or: [
-                    { activeStatus: 'Active' },
-                    { activeStatus: 'active' },
-                    { activeStatus: { $regex: /^active$/i } }
-                ],
-                recordStatus: { $ne: 'expired' }
+                $and: [
+                    {
+                        $or: [
+                            { activeStatus: 'Active' },
+                            { activeStatus: 'active' },
+                            { activeStatus: { $regex: /^active$/i } }
+                        ]
+                    },
+                    activeCondition('expiringDate')
+                ]
             };
         } else if (modelName === 'MouUpdate') {
             baseQuery = {
@@ -393,8 +416,9 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
                     Model.distinct('department').then(arr => arr.filter(Boolean).length),
 
-                    // Active ceremonies count
-                    Model.countDocuments({ recordStatus: 'active', status: 'active' }),
+                    // Active ceremonies count (no lifecycle on this module, so this
+                    // simply equals the workflow-active total)
+                    Model.countDocuments(activeScope),
 
                     // Country Distribution for Map
                     Model.aggregate([
@@ -425,6 +449,21 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 break;
 
             case 'ScholarInResidence':
+                // recordStatus is derived from endDate at read time — the stored
+                // field only refreshes in pre('save') (see utils/recordExpiry.js).
+                const derivedRecordStatusExpr = {
+                    $cond: [
+                        {
+                            $and: [
+                                { $ne: [{ $type: '$endDate' }, 'missing'] },
+                                { $ne: ['$endDate', null] },
+                                { $lt: ['$endDate', startToday] }
+                            ]
+                        },
+                        'expired',
+                        'active'
+                    ]
+                };
                 const [scholarCountries, scholarDepartments, countryDist, departmentDist, universityDist, designationDist, activeScholarsDist, recentScholars] = await Promise.all([
                     // Basic counts
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
@@ -465,10 +504,10 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                         { $project: { _id: 0, name: '$_id', value: 1 } }
                     ]),
 
-                    // Active vs Expired
+                    // Active vs Expired (derived from endDate)
                     Model.aggregate([
                         { $match: { status: 'active' } },
-                        { $group: { _id: '$recordStatus', value: { $sum: 1 } } },
+                        { $group: { _id: derivedRecordStatusExpr, value: { $sum: 1 } } },
                         { $project: { _id: 0, name: '$_id', value: 1 } }
                     ]),
 
@@ -488,7 +527,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                                 startDate: 1,
                                 endDate: 1,
                                 scholarStatus: 1,
-                                recordStatus: 1
+                                recordStatus: derivedRecordStatusExpr
                             }
                         }
                     ])
@@ -607,7 +646,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     avgProgramDuration
                 ] = await Promise.all([
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
-                    Model.countDocuments({ recordStatus: 'active', status: 'active' }),
+                    Model.countDocuments(activeScope),
                     Model.aggregate([
                         { $match: { country: { $exists: true, $ne: '' } } },
                         { $group: { _id: '$country', value: { $sum: 1 } } },
@@ -621,7 +660,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                         { $project: { _id: 0, name: '$_id', value: 1 } }
                     ]),
                     Model.aggregate([
-                        { $match: { recordStatus: 'active', status: 'active', university: { $exists: true, $ne: '' } } },
+                        { $match: { ...activeScope, university: { $exists: true, $ne: '' } } },
                         { $group: { _id: '$university', value: { $sum: 1 } } },
                         { $sort: { value: -1 } },
                         { $limit: 10 },
@@ -630,8 +669,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.aggregate([
                         {
                             $match: {
-                                recordStatus: 'active',
-                                status: 'active',
+                                ...activeScope,
                                 departureDate: { $exists: true, $ne: null }
                             }
                         },
@@ -664,8 +702,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.aggregate([
                         {
                             $match: {
-                                recordStatus: 'active',
-                                status: 'active',
+                                ...activeScope,
                                 departureDate: { $exists: true, $ne: null }
                             }
                         },
@@ -684,8 +721,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.aggregate([
                         {
                             $match: {
-                                recordStatus: 'active',
-                                status: 'active',
+                                ...activeScope,
                                 arrivalDate: { $exists: true, $ne: null },
                                 departureDate: { $exists: true, $ne: null }
                             }
@@ -729,7 +765,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                 const [exchangeUniversities, exchangeCountries, activeExchange, seUniversityDistribution, seCountryDistribution, recentExchanges] = await Promise.all([
                     Model.distinct('exchangeUniversity').then(arr => arr.filter(Boolean).length),
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
-                    Model.countDocuments({ recordStatus: 'active', status: 'active' }),
+                    Model.countDocuments(activeScope),
 
                     // University distribution
                     Model.aggregate([
@@ -786,7 +822,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     mastersUniversityDist
                 ] = await Promise.all([
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
-                    Model.countDocuments({ recordStatus: 'active', status: 'active' }),
+                    Model.countDocuments(activeScope),
                     Model.aggregate([
                         { $match: { country: { $exists: true, $ne: '' } } },
                         { $group: { _id: '$country', value: { $sum: 1 } } },
@@ -827,7 +863,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     avgMembershipDuration
                 ] = await Promise.all([
                     Model.distinct('country').then(arr => arr.filter(Boolean).length),
-                    Model.countDocuments({ recordStatus: 'active', status: 'active' }),
+                    Model.countDocuments(activeScope),
                     Model.aggregate([
                         { $match: { country: { $exists: true, $ne: '' } } },
                         { $group: { _id: '$country', value: { $sum: 1 } } },
@@ -836,7 +872,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                         { $project: { _id: 0, name: '$_id', value: 1 } }
                     ]),
                     Model.aggregate([
-                        { $match: { recordStatus: 'active', status: 'active', name: { $exists: true, $ne: '' } } },
+                        { $match: { ...activeScope, name: { $exists: true, $ne: '' } } },
                         { $group: { _id: '$name', value: { $sum: 1 } } },
                         { $sort: { value: -1 } },
                         { $limit: 10 },
@@ -850,8 +886,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.aggregate([
                         {
                             $match: {
-                                recordStatus: 'active',
-                                status: 'active',
+                                ...activeScope,
                                 endDate: { $exists: true, $ne: null }
                             }
                         },
@@ -884,8 +919,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.aggregate([
                         {
                             $match: {
-                                recordStatus: 'active',
-                                status: 'active',
+                                ...activeScope,
                                 endDate: { $exists: true, $ne: null }
                             }
                         },
@@ -904,8 +938,7 @@ export const getEnhancedStats = (Model) => async (req, res) => {
                     Model.aggregate([
                         {
                             $match: {
-                                recordStatus: 'active',
-                                status: 'active',
+                                ...activeScope,
                                 startDate: { $exists: true, $ne: null },
                                 endDate: { $exists: true, $ne: null }
                             }
@@ -1026,15 +1059,20 @@ export const getEnhancedStats = (Model) => async (req, res) => {
             case 'Partner':
                 const partnerCountries = await Model.distinct('country').then(arr => arr.filter(Boolean).length);
 
-                // Check for various casing of 'active' and ensure record is not expired
+                // Check for various casing of 'active' and derive "not expired" from
+                // expiringDate (stored recordStatus goes stale — see recordExpiry.js).
                 const activeMatch = {
-                    $or: [
-                        { activeStatus: 'Active' },
-                        { activeStatus: 'active' },
-                        { activeStatus: { $regex: /^active$/i } }
-                    ],
-                    recordStatus: { $ne: 'expired' },
-                    status: 'active'
+                    $and: [
+                        {
+                            $or: [
+                                { activeStatus: 'Active' },
+                                { activeStatus: 'active' },
+                                { activeStatus: { $regex: /^active$/i } }
+                            ]
+                        },
+                        activeCondition('expiringDate'),
+                        { status: 'active' }
+                    ]
                 };
 
                 const activePartners = await Model.countDocuments(activeMatch);

@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, GraduationCap, TrendingUp, Clock, Eye, Globe, CheckCircle, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, GraduationCap, Clock, Eye, Globe, FileText } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
@@ -25,14 +25,14 @@ const MastersAbroadList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
-    const [filters, setFilters] = useState({ search: '', country: '', recordStatus: '' });
+    const [filters, setFilters] = useState({ search: '', country: '' });
 
     // Debounce search to avoid excessive API calls
     const debouncedSearch = useDebounce(filters.search, 500);
 
     const [countries, setCountries] = useState([]);
 
-    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country, filters.recordStatus]);
+    useEffect(() => { fetchPrograms(); fetchStats(); fetchFilterData(); }, [currentPage, itemsPerPage, debouncedSearch, filters.country]);
 
     const fetchStats = async () => {
         try {
@@ -54,7 +54,7 @@ const MastersAbroadList = () => {
     const fetchPrograms = async () => {
         try {
             setLoading(true);
-            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, country: filters.country, recordStatus: filters.recordStatus };
+            const params = { page: currentPage, limit: itemsPerPage, search: debouncedSearch, country: filters.country };
             const response = await api.get('/masters-abroad', { params });
             setPrograms(response.data.data || []);
             setTotalItems(response.data.pagination?.total || 0);
@@ -87,7 +87,7 @@ const MastersAbroadList = () => {
     };
 
     const handleFilterChange = (newFilters) => { setFilters(prev => ({ ...prev, ...newFilters })); setCurrentPage(1); };
-    const handleClearFilters = () => { setFilters({ search: '', country: '', recordStatus: '' }); setCurrentPage(1); };
+    const handleClearFilters = () => { setFilters({ search: '', country: '' }); setCurrentPage(1); };
 
     return (
         <div>
@@ -99,10 +99,12 @@ const MastersAbroadList = () => {
                     <Link to="/masters-abroad/new" className="btn btn-primary flex-1 md:flex-none"><Plus size={18} />Add Program</Link>
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* No Active/Record-Status card: Masters Abroad has no time-based
+                lifecycle, so an "Active" count would always equal the total and
+                carry no information. */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <SmartStatsCard title="Total Programs" value={totalItems} icon={GraduationCap} color="primary" moduleType="masters-abroad" statType="total" moduleData={stats} loading={loading} />
                 <SmartStatsCard title="Countries" value={stats.countries} icon={Globe} color="secondary" moduleType="masters-abroad" statType="countries" moduleData={stats} loading={statsLoading} />
-                <SmartStatsCard title="Active" value={stats.active} icon={CheckCircle} color="success" moduleType="masters-abroad" statType="active" moduleData={stats} loading={statsLoading} />
             </div>
             <FilterBar
                 filters={filters}
@@ -110,6 +112,7 @@ const MastersAbroadList = () => {
                 onClearFilters={handleClearFilters}
                 showCountryFilter={true}
                 showDateFilter={false}
+                showStatusFilter={false}
                 countries={countries}
             />
             <div className="card bg-base-100 shadow-xl">
@@ -129,10 +132,6 @@ const MastersAbroadList = () => {
                                         <td>{program.passportNumber || '-'}</td>
                                         <td>
                                             <div className="flex flex-col gap-1">
-                                                {/* Record Status Badge */}
-                                                {program.recordStatus === 'active' && <span className="badge badge-success badge-sm whitespace-nowrap">Active</span>}
-                                                {program.recordStatus === 'expired' && <span className="badge badge-error badge-sm whitespace-nowrap">Expired</span>}
-
                                                 {/* Approval Workflow Badges */}
                                                 {program.status === 'pending_edit' && <span className="badge badge-warning badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Edit Pending</span>}
                                                 {program.status === 'pending_delete' && <span className="badge badge-error badge-sm gap-1 whitespace-nowrap"><Clock size={12} />Delete Pending</span>}

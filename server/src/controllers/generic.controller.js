@@ -2,6 +2,13 @@ import { Parser } from 'json2csv';
 import fs from 'fs';
 import ActivityLog from '../models/ActivityLog.js';
 import { emitToAdmins, emitToUser } from '../services/notificationService.js';
+import {
+    expiryDateField,
+    activeCondition,
+    expiredCondition,
+    isExpiredValue,
+    mergeConditions
+} from '../utils/recordExpiry.js';
 
 // Generic CRUD controller factory for all modules with approval workflow
 
@@ -214,6 +221,20 @@ export const getAll = (Model) => async (req, res) => {
         Object.keys(otherFilters).forEach(key => {
             const value = otherFilters[key];
             if (value && value !== 'all' && value.trim() !== '') {
+                // recordStatus is a stored field that only pre('save') keeps fresh,
+                // so imported/idle rows go stale. For modules with a real end date we
+                // derive the filter from that date instead of trusting the stored
+                // value (see utils/recordExpiry.js). Modules without a lifecycle
+                // (Masters Abroad, MoU Signing Ceremony) fall through to the stored
+                // field below — harmless, since every row is stored 'active' anyway.
+                const expiryField = expiryDateField(Model.modelName);
+                if (key === 'recordStatus' && expiryField) {
+                    const cond = value.toLowerCase() === 'expired'
+                        ? expiredCondition(expiryField)
+                        : value.toLowerCase() === 'active' ? activeCondition(expiryField) : null;
+                    if (cond) query = mergeConditions(query, cond);
+                    return;
+                }
                 const values = value.split(',').map(v => v.trim()).filter(Boolean);
                 if (values.length > 1) {
                     // Multi-value: case-insensitive OR matching
@@ -286,6 +307,17 @@ export const getAll = (Model) => async (req, res) => {
             Model.countDocuments(query)
         ]);
 
+        // Derive each returned doc's recordStatus from its real end date so row
+        // badges in the UI match reality (stored value goes stale — see
+        // utils/recordExpiry.js). Mutating the mongoose doc is serialization-only;
+        // nothing is saved. Modules without a lifecycle are untouched.
+        const expiryField = expiryDateField(Model.modelName);
+        if (expiryField) {
+            data.forEach(doc => {
+                doc.recordStatus = isExpiredValue(doc[expiryField]) ? 'expired' : 'active';
+            });
+        }
+
         res.json({
             success: true,
             data,
@@ -317,6 +349,12 @@ export const getById = (Model) => async (req, res) => {
                 success: false,
                 message: 'Record not found'
             });
+        }
+
+        // Same read-time derivation as getAll (serialization-only).
+        const expiryField = expiryDateField(Model.modelName);
+        if (expiryField) {
+            record.recordStatus = isExpiredValue(record[expiryField]) ? 'expired' : 'active';
         }
 
         res.json({ success: true, data: record });
@@ -710,9 +748,15 @@ export const exportCSV = (Model) => async (req, res) => {
             });
         }
 
-        // Remove MongoDB-specific fields
+        // Remove MongoDB-specific fields. recordStatus is derived from the module's
+        // real end date when one exists (stored value goes stale — see
+        // utils/recordExpiry.js).
+        const expiryField = expiryDateField(Model.modelName);
         const cleanRecords = records.map(record => {
             const { _id, __v, status, pendingChanges, deletionReason, createdBy, updatedBy, ...rest } = record;
+            if (expiryField && record[expiryField]) {
+                rest.recordStatus = isExpiredValue(record[expiryField]) ? 'expired' : 'active';
+            }
             return stringifyDates(rest);
         });
 

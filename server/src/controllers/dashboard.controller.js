@@ -16,6 +16,7 @@ import CampusVisit from '../models/CampusVisit.js';
 import Event from '../models/Event.js';
 import Partner from '../models/Partner.js';
 import Outreach from '../models/Outreach.js';
+import { activeCondition } from '../utils/recordExpiry.js';
 
 // Month boundaries exactly as getEnhancedStats computes them (server-local).
 const monthBounds = () => {
@@ -94,13 +95,20 @@ const facetStats = (Model, { totalMatch, baseMatch, dateField, distMatch, distKe
 };
 
 const partnerActiveBase = {
-    // Same casing-tolerant activeStatus check + non-expired as getEnhancedStats.
-    $or: [
-        { activeStatus: 'Active' },
-        { activeStatus: 'active' },
-        { activeStatus: { $regex: /^active$/i } }
-    ],
-    recordStatus: { $ne: 'expired' }
+    // Same casing-tolerant activeStatus check as getEnhancedStats, plus "not yet
+    // expired" derived from expiringDate (the stored recordStatus goes stale — see
+    // utils/recordExpiry.js). Two $or clauses can't sit at the same level, so they
+    // are joined with $and.
+    $and: [
+        {
+            $or: [
+                { activeStatus: 'Active' },
+                { activeStatus: 'active' },
+                { activeStatus: { $regex: /^active$/i } }
+            ]
+        },
+        activeCondition('expiringDate')
+    ]
 };
 
 const NO_RESPONSE = /^(no\s*(reply|response)|n\/?a|-)$/i;
