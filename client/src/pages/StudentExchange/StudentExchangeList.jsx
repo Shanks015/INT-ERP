@@ -7,10 +7,11 @@ import { statusBadgeClass } from '../../utils/statusBadge';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, UserCheck, TrendingUp, Clock, Eye, FileText, Building2, CheckCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, UserCheck, TrendingUp, Clock, Eye, FileText, Building2, CheckCircle, FolderOpen } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
+import DriveFilesModal from '../../components/Drive/DriveFilesModal';
 import SmartStatsCard from '../../components/SmartStatsCard';
 import FilterBar from '../../components/FilterBar';
 import Pagination from '../../components/Pagination';
@@ -24,6 +25,7 @@ const StudentExchangeList = () => {
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
     const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
+    const [filesFor, setFilesFor] = useState(null); // { _id, label } opened in the ERP Drive modal
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
@@ -170,6 +172,9 @@ const StudentExchangeList = () => {
                                         </td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
+                                                <button onClick={() => setFilesFor({ _id: exchange._id, label: exchange.studentName || 'Exchange' })} className="btn btn-outline btn-sm" title="Files">
+                                                    <FolderOpen size={16} />
+                                                </button>
                                                 {exchange.driveLink && (
                                                     <a href={exchange.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="View Documents">
                                                         <FileText size={16} />
@@ -211,6 +216,13 @@ const StudentExchangeList = () => {
                     { key: 'driveLink', label: 'Drive Link', type: 'link' },
                     { key: 'notes', label: 'Notes' }
                 ]}
+            />
+            <DriveFilesModal
+                isOpen={!!filesFor}
+                onClose={() => setFilesFor(null)}
+                moduleSlug="student-exchange"
+                recordId={filesFor?._id}
+                recordLabel={filesFor?.label}
             />
         </div>
     );

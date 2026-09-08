@@ -6,10 +6,11 @@ import { useDateFormat } from '../../utils/dateFormat';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Calendar, Search, X, Eye, FileText, Globe, User, Clock, CheckSquare } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Calendar, Search, X, Eye, FileText, Globe, User, Clock, CheckSquare, FolderOpen } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
+import DriveFilesModal from '../../components/Drive/DriveFilesModal';
 import SmartStatsCard from '../../components/SmartStatsCard';
 import Pagination from '../../components/Pagination';
 
@@ -23,6 +24,7 @@ const MeetingTrackersList = () => {
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
     const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
+    const [filesFor, setFilesFor] = useState(null); // { _id, label } opened in the ERP Drive modal
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
@@ -317,6 +319,9 @@ const MeetingTrackersList = () => {
                                             </td>
                                             <td>
                                                 <div className="flex gap-2 justify-end">
+                                                    <button onClick={() => setFilesFor({ _id: meeting._id, label: meeting.meetingTitle || 'Meeting' })} className="btn btn-outline btn-sm" title="Files">
+                                                        <FolderOpen size={16} />
+                                                    </button>
                                                     {meeting.driveLink && (
                                                         <a href={meeting.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="Drive Link">
                                                             <FileText size={16} />
@@ -393,6 +398,13 @@ const MeetingTrackersList = () => {
                     { key: 'driveLink', label: 'Drive Link (MoM/Recording)', type: 'link' },
                     { key: 'remarks', label: 'Remarks' }
                 ]}
+            />
+            <DriveFilesModal
+                isOpen={!!filesFor}
+                onClose={() => setFilesFor(null)}
+                moduleSlug="meeting-trackers"
+                recordId={filesFor?._id}
+                recordLabel={filesFor?.label}
             />
         </div>
     );

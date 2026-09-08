@@ -46,7 +46,8 @@ const MailboxConnections = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAdmin]);
 
-    // Google OAuth redirects the browser back here with ?gmail=ok|error — toast once.
+    // Google OAuth redirects the browser back here with ?gmail=ok|error (mailbox
+    // sending) — toast once.
     useEffect(() => {
         const q = new URLSearchParams(window.location.search);
         const g = q.get('gmail');

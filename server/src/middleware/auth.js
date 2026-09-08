@@ -9,6 +9,7 @@ const UNGATED_PREFIXES = [
     'admin', // admin-only: every route is guarded by authorize(['admin']) at the router level
     'activity-logs',
     'mailboxes',
+    'drive', // ERP Drive file storage: any approved user lists/uploads (delete is admin-or-uploader)
     'notifications', // own bell: any approved user reads/marks their own
     'google-forms',
     'health',

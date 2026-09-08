@@ -5,10 +5,11 @@ import { useDebounce } from '../../hooks/useDebounce';
 import { useDateFormat } from '../../utils/dateFormat';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Eye, Globe, Building2, X, Search, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Users, TrendingUp, Clock, Eye, Globe, Building2, X, Search, FileText, FolderOpen } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
+import DriveFilesModal from '../../components/Drive/DriveFilesModal';
 import SmartStatsCard from '../../components/SmartStatsCard';
 import Pagination from '../../components/Pagination';
 
@@ -22,6 +23,7 @@ const ConferencesList = () => {
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
     const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
+    const [filesFor, setFilesFor] = useState(null); // { _id, label } opened in the ERP Drive modal
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
@@ -203,6 +205,9 @@ const ConferencesList = () => {
 
                                         <td>
                                             <div className="flex gap-2 justify-end">
+                                                <button onClick={() => setFilesFor({ _id: conf._id, label: conf.conferenceName || 'Conference' })} className="btn btn-outline btn-sm" title="Files">
+                                                    <FolderOpen size={16} />
+                                                </button>
                                                 {conf.driveLink && (
                                                     <a href={conf.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="View Documents">
                                                         <FileText size={16} />
@@ -243,6 +248,13 @@ const ConferencesList = () => {
                     { key: 'createdAt', label: 'Created At', type: 'date' },
                     { key: 'updatedAt', label: 'Updated At', type: 'date' }
                 ]}
+            />
+            <DriveFilesModal
+                isOpen={!!filesFor}
+                onClose={() => setFilesFor(null)}
+                moduleSlug="conferences"
+                recordId={filesFor?._id}
+                recordLabel={filesFor?.label}
             />
         </div>
     );

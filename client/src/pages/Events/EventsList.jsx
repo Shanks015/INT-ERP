@@ -6,10 +6,11 @@ import { useDateFormat } from '../../utils/dateFormat';
 import { getCaseInsensitiveUnique } from '../../utils/filterUtils';
 import api from '../../api';
 import toast from 'react-hot-toast';
-import { Plus, Edit, Trash2, Download, Upload, Calendar, TrendingUp, Clock, Search, X, Eye, MapPin, FileText, Tag, Building2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Calendar, TrendingUp, Clock, Search, X, Eye, MapPin, FileText, Tag, Building2, FolderOpen } from 'lucide-react';
 import DeleteConfirmModal from '../../components/Modal/DeleteConfirmModal';
 import ImportModal from '../../components/Modal/ImportModal';
 import DetailModal from '../../components/Modal/DetailModal';
+import DriveFilesModal from '../../components/Drive/DriveFilesModal';
 import SmartStatsCard from '../../components/SmartStatsCard';
 import Pagination from '../../components/Pagination';
 
@@ -23,6 +24,7 @@ const EventsList = () => {
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null });
     const [importModal, setImportModal] = useState(false);
     const [detailModal, setDetailModal] = useState({ isOpen: false, item: null });
+    const [filesFor, setFilesFor] = useState(null); // { _id, label } opened in the ERP Drive modal
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
@@ -193,6 +195,9 @@ const EventsList = () => {
                                         <td>{event.campus || '-'}</td>
                                         <td>
                                             <div className="flex gap-2 justify-end">
+                                                <button onClick={() => setFilesFor({ _id: event._id, label: event.title || 'Event' })} className="btn btn-outline btn-sm" title="Files">
+                                                    <FolderOpen size={16} />
+                                                </button>
                                                 {event.driveLink && (
                                                     <a href={event.driveLink} target="_blank" rel="noopener noreferrer" className="btn btn-success btn-sm text-white" title="View Documents">
                                                         <FileText size={16} />
@@ -230,6 +235,13 @@ const EventsList = () => {
                     { key: 'eventSummary', label: 'Event Summary' },
                     { key: 'driveLink', label: 'Drive Link', type: 'link' }
                 ]}
+            />
+            <DriveFilesModal
+                isOpen={!!filesFor}
+                onClose={() => setFilesFor(null)}
+                moduleSlug="events"
+                recordId={filesFor?._id}
+                recordLabel={filesFor?.label}
             />
         </div>
     );
