@@ -360,6 +360,123 @@ const DATE_WINDOW = {
 // An endDate bound means "through the end of that day", matching every list filter.
 const endOfDay = (d) => { const end = new Date(d); end.setHours(23, 59, 59, 999); return end; };
 
+// PDF table layout. Cell text is the reason a row can outgrow the page: a 1,877
+// character Discussion Summary in a narrow column produced a row taller than an
+// A4 landscape page, which pdfkit-table then rendered as a near-empty page per
+// line (the "one line, then skip the page" report bug). So: collapse each cell
+// to a single line, cap its length, and size columns by their content instead of
+// an equal split.
+const TABLE_WIDTH = 800;
+const MAX_CELL_CHARS = 180;
+const CELL_PADDING = 2; // pdfkit-table options.padding, applied on each side
+const MAX_WORD_WIDTH = 60; // widest a single unbreakable token may claim in a column
+const MAX_COL_WIDTH = 200; // soft ceiling so one long cell cannot hog the page
+const ROW_ADVANCE = 6.5; // pdfkit-table columnSpacing (3) + columnSpacing + rowDistance (0.5)
+const PAGE_RESERVE = 40; // absorbs pdfkit-table's own per-table title/gap overhead
+
+export const clampCell = (v) => {
+    const s = String(v ?? '-').replace(/\s+/g, ' ').trim();
+    if (!s) return '-';
+    return s.length > MAX_CELL_CHARS ? `${s.slice(0, MAX_CELL_CHARS - 1)}…` : s;
+};
+
+// Column widths sized on the real rendered text: every column first gets room
+// for its widest single word (so dates, statuses and IDs never break mid-token),
+// then the space left over is shared in proportion to how much more each column
+// wants. Character counts would not do — "04/Apr/2026" is 11 characters but
+// nearly three times the width of a same-length run of narrow glyphs.
+export const columnWidths = (doc, headers, rows, total = TABLE_WIDTH) => {
+    const pad = CELL_PADDING * 2;
+    // Headers render bold and data rows in the row font, so each is measured in
+    // the face it actually draws with — Helvetica misses bold by a few percent,
+    // which is enough to wrap a header onto a second line for no reason.
+    const measure = (font, texts) => {
+        doc.font(font);
+        return {
+            widest: Math.max(0, ...texts.map((s) => doc.widthOfString(s))),
+            word: Math.max(0, ...texts.flatMap((s) => s.split(' ').map((w) => doc.widthOfString(w))))
+        };
+    };
+    const cols = headers.map((h, i) => {
+        const head = measure('Helvetica-Bold', [String(h)]);
+        const body = measure('Helvetica', rows.map((r) => String(r[i] ?? '-')));
+        return { widest: Math.max(head.widest, body.widest), word: Math.max(head.word, body.word) };
+    });
+    // A column that is one giant token (a URL) still wraps; it just gets the
+    // capped word width rather than demanding its whole length on one line.
+    const min = cols.map((c) => Math.min(c.word, MAX_WORD_WIDTH) + pad);
+    const want = cols.map((c, i) => Math.max(min[i], Math.min(c.widest + pad, MAX_COL_WIDTH)));
+    const minSum = min.reduce((a, b) => a + b, 0);
+    if (minSum > total) return min.map((m) => (m / minSum) * total);
+    // Share the leftover in proportion to what each column still wants; if no
+    // column wants more (a table of short values), widen them in proportion to
+    // their minimums instead, so the table still spans the page.
+    const wants = want.map((w, i) => w - min[i]);
+    const share = wants.some((w) => w > 0) ? wants : min;
+    const shareSum = share.reduce((a, b) => a + b, 0) || 1;
+    return min.map((m, i) => m + ((total - minSum) * share[i]) / shareSum);
+};
+
+const tableRows = (fieldConfig, data) =>
+    data.map((item) => fieldConfig.extractor(item).map(clampCell));
+
+// pdfkit-table breaks pages using its own `this.y` cursor, which after a row is
+// only the LAST cell's bottom rather than the row's — so a row that does not fit
+// slips past the bottom margin, pdfkit then breaks the page once per overflowing
+// cell, and the library's row cursor is left pointing at the old page. That is
+// what produced the run of near-empty pages. Rather than patch the library, pack
+// the rows into page-sized batches here and hand it one batch per page, so its
+// break path never runs.
+//
+// Space a row consumes: the library's own height for it, plus the gap it leaves
+// before the next. Measured in the font the rows render in, so it matches what
+// the library computes.
+export const rowHeight = (doc, row, widths) => ROW_ADVANCE + Math.max(...row.map((cell, i) =>
+    doc.heightOfString(String(cell), { width: widths[i] - CELL_PADDING * 2 })));
+
+// Splits rows into one batch per page, none taller than the page's budget
+// (already net of the header row). `firstBudget` is what the page the table
+// starts on still has free; every later page gets `budget`.
+export const planPages = (doc, headers, rows, widths, firstBudget, budget) => {
+    const pages = [];
+    let page = [];
+    let used = 0;
+    let free = firstBudget;
+    for (const row of rows) {
+        const h = rowHeight(doc, row, widths);
+        if (page.length && used + h > free) { pages.push(page); page = []; used = 0; free = budget; }
+        page.push(row);
+        used += h;
+    }
+    if (page.length) pages.push(page);
+    return pages;
+};
+
+// Renders a table across as many pages as it needs, header repeated on each.
+const renderTable = async (doc, headers, rows, tableConfig) => {
+    doc.font('Helvetica').fontSize(7);
+    const widths = columnWidths(doc, headers, rows);
+    const headerHeight = rowHeight(doc, headers, widths);
+
+    // Room for data rows on a clean page, and what the current one still has.
+    const budget = doc.page.height - doc.page.margins.top - doc.page.margins.bottom
+        - PAGE_RESERVE - headerHeight;
+    let firstBudget = budget - (doc.y - doc.page.margins.top);
+    if (firstBudget < rowHeight(doc, rows[0] || headers, widths)) {
+        doc.addPage(); // never start a table in the sliver left at a page bottom
+        firstBudget = budget;
+    }
+
+    let first = true;
+    const pages = planPages(doc, headers, rows, widths, firstBudget, budget);
+    // A filter that matches nothing still shows the header, not a blank page.
+    for (const page of pages.length ? pages : [[]]) {
+        if (!first) doc.addPage();
+        first = false;
+        await doc.table({ headers, rows: page }, { ...tableConfig, columnsSize: widths });
+    }
+};
+
 const fetchData = async (module, filters) => {
     const query = {};
 
@@ -459,7 +576,7 @@ export const generateReport = async (req, res) => {
             const tableConfig = {
                 prepareHeader: () => doc.font("Helvetica-Bold").fontSize(7),
                 prepareRow: () => doc.font("Helvetica").fontSize(7),
-                width: 800,
+                width: TABLE_WIDTH,
                 padding: 2, // Minimal padding
                 minHeight: 15, // Small row height
                 hideLines: false
@@ -473,44 +590,23 @@ export const generateReport = async (req, res) => {
                 });
 
                 for (const [moduleName, moduleData] of Object.entries(moduleGroups)) {
-                    // Check if we need a new page
-                    if (doc.y > 700) doc.addPage();
+                    // Keep the heading with its header row. A4 landscape is 595pt
+                    // tall, so the old `doc.y > 700` guard could never fire.
+                    if (doc.y > doc.page.height - doc.page.margins.bottom - 70) doc.addPage();
 
                     doc.fontSize(12).text(`${moduleName.toUpperCase()}`, { underline: true });
                     doc.moveDown(0.3);
 
                     const fieldConfig = getDisplayFields(moduleName);
-
-                    // Calculate column widths
-                    const columnWidth = 800 / fieldConfig.headers.length;
-                    const columnsSize = fieldConfig.headers.map(() => columnWidth);
-
-                    const tableData = {
-                        headers: fieldConfig.headers,
-                        rows: moduleData.map(item => fieldConfig.extractor(item))
-                    };
-
-                    await doc.table(tableData, {
-                        ...tableConfig,
-                        columnsSize
-                    });
+                    await renderTable(doc, fieldConfig.headers,
+                        tableRows(fieldConfig, moduleData), tableConfig);
 
                     doc.moveDown(0.3);
                 }
             } else {
                 const fieldConfig = getDisplayFields(modules);
-                const columnWidth = 800 / fieldConfig.headers.length;
-                const columnsSize = fieldConfig.headers.map(() => columnWidth);
-
-                const tableData = {
-                    headers: fieldConfig.headers,
-                    rows: allData.map(item => fieldConfig.extractor(item))
-                };
-
-                await doc.table(tableData, {
-                    ...tableConfig,
-                    columnsSize
-                });
+                await renderTable(doc, fieldConfig.headers,
+                    tableRows(fieldConfig, allData), tableConfig);
             }
 
             doc.end();
