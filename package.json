@@ -9,7 +9,7 @@
         "start": "cd server && npm start",
         "server": "cd server && npm run dev",
         "client": "cd client && npm run dev",
-        "create-admin": "cd server && node scripts/createAdminAuto.js"
+        "create-admin": "cd server && node scripts/createAdmin.js"
     },
     "devDependencies": {
         "concurrently": "^8.2.2"
