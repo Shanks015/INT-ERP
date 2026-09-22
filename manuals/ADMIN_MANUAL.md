@@ -9,7 +9,7 @@ Welcome to the **Administrator Manual** for the DSU International Affairs ERP. T
 To log into the administrator portal:
 1. Open your browser and navigate to the application URL: https://int-erp.onrender.com/ (or locally: `http://localhost:5173/`).
 2. You will be greeted by the secure login screen.
-3. Enter your administrator email and password (default: `admin@dsu.edu` / `admin123`).
+3. Enter your administrator email and password (the administrator account is created during first run — see the README; credentials are never stored in this repository).
 4. Click **Sign In**.
 
 ### The Login Interface

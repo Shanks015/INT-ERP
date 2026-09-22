@@ -34,12 +34,17 @@ const createAdmin = async () => {
             process.exit(1);
         }
 
-        // Create admin user
+        // Create admin user. approved/approvalStatus must be set explicitly: the
+        // model defaults them to the pending-registration state, and login rejects
+        // any account that is not approved — so without this the account this
+        // script exists to bootstrap cannot sign in.
         const admin = new User({
             name,
             email,
             password,
-            role: 'admin'
+            role: 'admin',
+            approved: true,
+            approvalStatus: 'approved'
         });
 
         await admin.save();
