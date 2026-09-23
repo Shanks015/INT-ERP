@@ -5,6 +5,7 @@ import {
     ROOT_FOLDER_NAME,
     parseFolderRef,
     sanitizeFolderName,
+    yearBucket,
     monthBucket,
     folderUrl,
     isDriveConfigured,
@@ -71,18 +72,22 @@ describe('sanitizeFolderName — Drive-safe record folder names', () => {
     });
 });
 
-describe('monthBucket — MMM YYYY folder bucket', () => {
-    it('formats a date as its UTC month-year (matches the dd/MMM/yyyy policy)', () => {
-        expect(monthBucket(new Date(Date.UTC(2026, 8, 15)))).toBe('Sep 2026');
-        expect(monthBucket(new Date(Date.UTC(2025, 0, 3)))).toBe('Jan 2025');
-        expect(monthBucket('2026-11-02T00:00:00.000Z')).toBe('Nov 2026');
+describe('yearBucket / monthBucket — <YYYY> / <MMM> path segments', () => {
+    it('splits a date into UTC year and month folders (matches the dd/MMM policy)', () => {
+        expect(yearBucket(new Date(Date.UTC(2026, 8, 15)))).toBe('2026');
+        expect(monthBucket(new Date(Date.UTC(2026, 8, 15)))).toBe('Sep');
+        expect(yearBucket(new Date(Date.UTC(2025, 0, 3)))).toBe('2025');
+        expect(monthBucket(new Date(Date.UTC(2025, 0, 3)))).toBe('Jan');
+        expect(yearBucket('2026-11-02T00:00:00.000Z')).toBe('2026');
+        expect(monthBucket('2026-11-02T00:00:00.000Z')).toBe('Nov');
     });
 
-    it('falls back to the current month-year for a missing/invalid date', () => {
+    it('falls back to the current year/month for a missing/invalid date', () => {
+        expect(yearBucket(null)).toBe(String(new Date().getUTCFullYear()));
         const fallback = monthBucket(null);
-        expect(fallback).toMatch(/^[A-Z][a-z]{2} \d{4}$/);
+        expect(fallback).toMatch(/^[A-Z][a-z]{2}$/);
         const now = new Date();
-        const expected = `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][now.getUTCMonth()]} ${now.getUTCFullYear()}`;
+        const expected = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][now.getUTCMonth()];
         expect(fallback).toBe(expected);
     });
 });
@@ -149,7 +154,7 @@ describe('buildServiceAccountJwt — RS256 assertion for the JWT-bearer grant', 
         const claims = decode(c);
         expect(claims.iss).toBe('erp@project.iam.gserviceaccount.com');
         expect(claims.sub).toBe('office@example.edu');
-        expect(claims.scope).toBe('https://www.googleapis.com/auth/drive');
+        expect(claims.scope).toBe('https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets');
         expect(claims.aud).toBe('https://oauth2.googleapis.com/token');
         expect(claims.iat).toBe(1_700_000_000);
         expect(claims.exp).toBe(1_700_000_000 + 3600);
@@ -201,7 +206,7 @@ describe('DRIVE_MODULES — scope/coverage guard', () => {
         expect(slugs.length).toBeGreaterThanOrEqual(13);
         const labels = Object.values(DRIVE_MODULES).map((c) => c.folderLabel);
         expect(new Set(labels).size).toBe(labels.length); // no two modules share a folder
-        expect(ROOT_FOLDER_NAME).toBe('INT-ERP Files');
+        expect(ROOT_FOLDER_NAME).toBe('ERP-Automation');
     });
 
     it('every config has a non-empty labelKeys and a usable bucket name', () => {

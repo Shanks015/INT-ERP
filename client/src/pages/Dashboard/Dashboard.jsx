@@ -17,21 +17,22 @@ const Dashboard = () => {
         partners: null,
         outreach: null
     });
-    const [outreachReplyCount, setOutreachReplyCount] = useState(0);
+    const [outreachUnreadCount, setOutreachUnreadCount] = useState(0);
 
     useEffect(() => {
         fetchAllStats();
     }, []);
 
-    // "Universities waiting for your reply" — mirrors the sidebar pill so the
-    // strip stays in sync without polling.
+    // Unread replies waiting for you — mirrors the sidebar pill so the strip
+    // stays in sync without polling. `unread` (hasUnreadReply) clears when the
+    // thread is opened; `replyReceived` (status) only clears after you reply.
     useEffect(() => {
         if (user?.role === 'intern' && !(user.allowedModules || []).includes('outreach')) return undefined;
         let cancelled = false;
         const load = async () => {
             try {
                 const { data } = await api.get('/outreach-new/stats');
-                if (!cancelled) setOutreachReplyCount(data.data?.replyReceived || 0);
+                if (!cancelled) setOutreachUnreadCount(data.data?.unread || 0);
             } catch (e) { /* cosmetic; ignore */ }
         };
         load();
@@ -78,17 +79,17 @@ const Dashboard = () => {
                 </p>
             </div>
 
-            {/* Universities waiting for a reply — visible only while any outreach is awaiting us */}
-            {outreachReplyCount > 0 && (
+            {/* Unread partner replies — visible only while a thread is still unread */}
+            {outreachUnreadCount > 0 && (
                 <div className="mb-6">
                     <div className="alert alert-info shadow-lg">
                         <Mail size={22} />
                         <div className="flex-1">
                             <h3 className="font-bold">
-                                {outreachReplyCount} {outreachReplyCount === 1 ? 'university has' : 'universities have'} replied and {outreachReplyCount === 1 ? 'is' : 'are'} waiting for your reply
+                                {outreachUnreadCount} {outreachUnreadCount === 1 ? 'partner reply is' : 'partner replies are'} unread
                             </h3>
                             <p className="text-sm opacity-80">
-                                {outreachReplyCount === 1 ? 'Their response' : 'Their responses'} appeared automatically from the mailbox. Open Outreach Mail to read and reply.
+                                Open the thread to mark it read. Replies sync automatically from your mailbox.
                             </p>
                         </div>
                         <Link to="/outreach-new" className="btn btn-sm btn-primary">

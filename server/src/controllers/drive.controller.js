@@ -171,8 +171,7 @@ export const getRecordFiles = async (req, res) => {
 
 // POST /api/drive/:module/:recordId/files — upload one or more files for a record.
 // Body is multipart (driveUpload middleware) under field `files`. When the record
-// has no real folder link yet, this lazily creates `INT-ERP Files/<Module>/<MMM
-// YYYY>/<record>` and writes its URL into the record's driveLink.
+// has no real folder link yet, this lazily creates `ERP-Automation/<Module>/<YYYY>/<MMM>/<record>` and writes its URL into the record's driveLink.
 export const uploadRecordFiles = async (req, res) => {
     try {
         const { module: slug, recordId } = req.params;
@@ -190,8 +189,8 @@ export const uploadRecordFiles = async (req, res) => {
         if (!record) return res.status(404).json({ message: 'Record not found' });
 
         // Resolve (or lazily create) the record folder. Reuses an existing
-        // driveLink folder untouched; creates a module/month/record tree when the
-        // link is absent or points at a single file.
+        // driveLink folder untouched (including old-layout trees); creates a
+        // module/year/month/record tree when the link is absent or a single file.
         const folder = await ensureRecordFolder({ moduleKey: slug, record, recordId: rid });
 
         // Persist the created link back onto the record (only when it wasn't a

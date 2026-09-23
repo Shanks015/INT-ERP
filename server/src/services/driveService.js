@@ -1,5 +1,5 @@
 // driveService.js — the STORAGE leg of the ERP Drive: one office Google account
-// owns a folder tree (`INT-ERP Files / <Module> / <MMM YYYY> / <record>`) and the
+// owns a folder tree (`ERP-Automation / <Module> / <YYYY> / <MMM> / <record>`) and the
 // server performs every Drive call as that account, so employees upload from the
 // ERP UI without their own Google authorization. No extra dependency: token
 // acquisition + Drive v3 REST + multipart upload all ride on Node's global fetch,
@@ -26,15 +26,16 @@ const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 // Full Drive scope = read/create/edit/delete everything on the office account —
 // required because the ERP must also manage pre-existing office folders (e.g. the
 // Scholars folders created by hand). drive.file would hide files the app never
-// opened.
-const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive';
+// opened. spreadsheets = daily tabular backup (sheetBackupService) writes cell
+// values through the Sheets API; re-run drive_connect after adding this scope.
+const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets';
 
-export const ROOT_FOLDER_NAME = 'INT-ERP Files';
+export const ROOT_FOLDER_NAME = 'ERP-Automation';
 
 // Module slug -> Drive metadata. folderLabel names the module folder inside the
 // root; labelKeys pick a human identifier for the record folder name; dateKey is
-// the record's own date whose month-year makes the bucket (undefined => a module
-// with no date, e.g. Masters Abroad — falls back to the upload month).
+// the record's own date whose year + month bucket the folder (undefined => a
+// module with no date, e.g. Masters Abroad — falls back to the upload date).
 export const DRIVE_MODULES = {
     'campus-visits':         { model: 'CampusVisit',         folderLabel: 'Campus Visits',          labelKeys: ['universityName', 'visitorName'], dateKey: 'date' },
     'seminars':              { model: 'Seminar',             folderLabel: 'Seminars',               labelKeys: ['universityName', 'visitorName'], dateKey: 'date' },
@@ -51,6 +52,16 @@ export const DRIVE_MODULES = {
     'digital-media':         { model: 'DigitalMedia',        folderLabel: 'Digital Media',          labelKeys: ['channel', 'articleTopic'], dateKey: 'date' },
     'meeting-trackers':      { model: 'MeetingTracker',      folderLabel: 'Meeting Trackers',       labelKeys: ['meetingTitle', 'hostOrganization', 'hostName'], dateKey: 'date' }
 };
+
+// Extra module folders under ERP-Automation that are not upload targets
+// (no driveLink on the model) but belong in the tree for organization and
+// to match the Sheets backup tabs.
+export const EXTRA_FOLDER_LABELS = [
+    'Partners',
+    'Social Media',
+    'Outreach (legacy)',
+    'Outreach Mail'
+];
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -95,10 +106,16 @@ export const sanitizeFolderName = (name) => {
 
 export const folderUrl = (id) => `https://drive.google.com/drive/folders/${id}`;
 
-// "Sep 2026" bucket from a date (UTC to match the dd/MMM/yyyy display policy).
+// UTC year folder name from a date ("2026"); upload date when absent/invalid.
+export const yearBucket = (date) => {
+    const d = date && !isNaN(new Date(date)) ? new Date(date) : new Date();
+    return String(d.getUTCFullYear());
+};
+
+// UTC month folder name from a date ("Sep") — sits under the year bucket.
 export const monthBucket = (date) => {
     const d = date && !isNaN(new Date(date)) ? new Date(date) : new Date();
-    return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+    return MONTHS[d.getUTCMonth()];
 };
 
 const escapeQ = (name) => String(name).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -189,6 +206,8 @@ export const getAccessToken = async () => {
 
 export const driveFetch = async (accessToken, { method = 'GET', url, query = '', json, buffer, contentType }) => {
     const sep = url.includes('?') ? '&' : '?';
+    const upper = method.toUpperCase();
+    const hasBody = upper !== 'GET' && upper !== 'HEAD' && (json !== undefined || buffer !== undefined);
     const r = await fetch(`${url}${query ? sep + query : ''}`, {
         method,
         headers: {
@@ -196,7 +215,7 @@ export const driveFetch = async (accessToken, { method = 'GET', url, query = '',
             ...(json !== undefined ? { 'Content-Type': 'application/json' } : {}),
             ...(contentType ? { 'Content-Type': contentType } : {})
         },
-        body: json !== undefined ? JSON.stringify(json) : buffer
+        ...(hasBody ? { body: json !== undefined ? JSON.stringify(json) : buffer } : {})
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) {
@@ -224,12 +243,24 @@ export const findFolderByName = async (accessToken, { name, parentId }) => {
 };
 
 // Ensure a folder exists under parent and return its id (find then create).
-const ensureFolder = async (accessToken, { name, parentId }) => {
-    const existing = await findFolderByName(accessToken, { name, parentId });
-    if (existing) return existing;
-    const created = await createFolder(accessToken, { name, parentId });
-    return created.id;
+// Serialized per parent+name: two concurrent ensureModuleFolders/sheet-backup
+// runs used to both see "missing" and create duplicate siblings. A tiny
+// in-process chain is enough — one Node process owns the Drive tree.
+const ensureLocks = new Map();
+const withEnsureLock = (key, fn) => {
+    const prev = ensureLocks.get(key) || Promise.resolve();
+    const next = prev.then(fn, fn);
+    ensureLocks.set(key, next.catch(() => {}));
+    return next;
 };
+
+const ensureFolder = (accessToken, { name, parentId }) =>
+    withEnsureLock(`${parentId}::${name}`, async () => {
+        const existing = await findFolderByName(accessToken, { name, parentId });
+        if (existing) return existing;
+        const created = await createFolder(accessToken, { name, parentId });
+        return created.id;
+    });
 
 // List the files directly inside a folder (live — reflects files the office adds
 // in Drive too). Never throws when the folder is empty.
@@ -270,7 +301,7 @@ export const deleteDriveFile = (accessToken, fileId) =>
 
 // Record-folder resolution ------------------------------------------------------
 
-// "INT-ERP Files" root id, found-or-created once and cached in memory (re-found
+// "ERP-Automation" root id, found-or-created once and cached in memory (re-found
 // after a restart — no DB row holds it).
 let cachedRootId = null;
 
@@ -282,11 +313,29 @@ const ensureRootFolder = async (accessToken) => {
     return rootId;
 };
 
+// Pre-create every module folder under the root so the tree is complete before
+// the first upload (Drive otherwise only shows folders that already have files).
+// Idempotent — existing folders are found, not duplicated. Returns root + list.
+export const ensureModuleFolders = async () => {
+    const accessToken = await getAccessToken();
+    const rootId = await ensureRootFolder(accessToken);
+    const labels = [
+        ...Object.values(DRIVE_MODULES).map((c) => c.folderLabel),
+        ...EXTRA_FOLDER_LABELS
+    ];
+    const folders = [];
+    for (const name of labels) {
+        const id = await ensureFolder(accessToken, { name, parentId: rootId });
+        folders.push({ name, id });
+    }
+    return { rootId, rootName: ROOT_FOLDER_NAME, folders };
+};
+
 // Resolve the folder that holds a record's files:
 //   - if the record's current driveLink points at a real Drive FOLDER, reuse it
 //     (no duplicate folder, never re-shared) — the ERP uploads into the existing
-//     office folder;
-//   - otherwise create `INT-ERP Files / <Module> / <MMM YYYY> / <label> - <id>`
+//     office folder, including trees created under the previous layout;
+//   - otherwise create `ERP-Automation / <Module> / <YYYY> / <MMM> / <label> - <id>`
 //     and share the leaf with anyone-with-the-link.
 // Returns { folderId, url, created, reused }.
 export const ensureRecordFolder = async ({ moduleKey, record, recordId }) => {
@@ -304,14 +353,15 @@ export const ensureRecordFolder = async ({ moduleKey, record, recordId }) => {
     // <Module> folder
     const moduleFolderId = await ensureFolder(accessToken, { name: cfg.folderLabel, parentId: rootId });
 
-    // <MMM YYYY> bucket — the record's own date, upload month when absent.
+    // <YYYY> then <MMM> — the record's own date, upload date when absent.
     const bucketDate = cfg.dateKey ? record[cfg.dateKey] : null;
-    const bucketId = await ensureFolder(accessToken, { name: monthBucket(bucketDate), parentId: moduleFolderId });
+    const yearId = await ensureFolder(accessToken, { name: yearBucket(bucketDate), parentId: moduleFolderId });
+    const monthId = await ensureFolder(accessToken, { name: monthBucket(bucketDate), parentId: yearId });
 
     // <record folder> leaf
     const label = cfg.labelKeys.map((k) => record[k]).find((v) => v && String(v).trim());
     const leafName = `${sanitizeFolderName(label || 'Record')} - ${String(recordId).slice(-6)}`;
-    const leafId = await ensureFolder(accessToken, { name: leafName, parentId: bucketId });
+    const leafId = await ensureFolder(accessToken, { name: leafName, parentId: monthId });
 
     // New leaf only — make it openable by any staff member.
     await setAnyoneReader(accessToken, leafId).catch(() => {});

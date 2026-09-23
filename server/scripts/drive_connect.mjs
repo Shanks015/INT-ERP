@@ -30,9 +30,10 @@ const DRIVE_CHECK = 'https://www.googleapis.com/drive/v3/files?pageSize=1';
 // (An ephemeral port could never be pre-registered — Google rejects it.)
 const PORT = 5312;
 
-// Full Drive scope: the ERP reads pre-existing office folders AND creates new
-// ones under the same account. userinfo.email only confirms WHICH account.
-const SCOPE = 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email';
+// Drive + Sheets: the ERP reads/creates office folders AND writes the daily
+// tabular backup through the Sheets API. userinfo.email only confirms WHICH
+// account. Enable both Drive API and Sheets API in Cloud Console.
+const SCOPE = 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email';
 
 const clientId = () => process.env.GOOGLE_CLIENT_ID || '795253947927-jbrdlu6s6djsj20d7190ktpqhivpf72r.apps.googleusercontent.com';
 const clientSecret = () => process.env.GOOGLE_CLIENT_SECRET || '';
@@ -82,7 +83,7 @@ const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString(
 
 console.log('One-time ERP Drive setup — sign in as the OFFICE account when the browser opens.');
 console.log('\nBefore continuing, make sure Cloud Console has:');
-console.log('  • the Drive API enabled for this OAuth project, and');
+console.log('  • the Drive API AND Sheets API enabled for this OAuth project, and');
 console.log(`  • ${redirectUri} registered as an Authorized redirect URI on the client.`);
 console.log('  (If Google shows "redirect_uri_mismatch" below, add that URI and re-run.)');
 console.log('\nIf the browser does not open, paste this into it:\n' + authUrl + '\n');
@@ -117,15 +118,26 @@ const result = await new Promise((resolve, reject) => {
                 if (u.ok) email = uj.email;
             } catch { /* best effort */ }
 
-            // Confirm the token can actually reach Drive before calling it done —
-            // catches a disabled Drive API / missing scope right here at setup.
+            // Confirm the token can reach Drive AND Sheets before calling it done —
+            // catches a disabled API / missing scope right here at setup.
             const d = await fetch(DRIVE_CHECK, { headers: { Authorization: 'Bearer ' + tokens.access_token } });
             if (!d.ok) {
                 const dj = await d.json().catch(() => ({}));
                 throw new Error('Drive API check failed (' + d.status + '): ' + (dj.error?.message || 'enable the Google Drive API for this OAuth project.'));
             }
+            const s = await fetch('https://sheets.googleapis.com/v4/spreadsheets', { method: 'POST', headers: { Authorization: 'Bearer ' + tokens.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ properties: { title: '__scope_probe__' } }) });
+            // 200 = created; 403/401 = missing sheets scope. Delete the probe if created.
+            if (s.ok) {
+                const sj = await s.json().catch(() => ({}));
+                if (sj.spreadsheetId) {
+                    await fetch('https://www.googleapis.com/drive/v3/files/' + sj.spreadsheetId, { method: 'DELETE', headers: { Authorization: 'Bearer ' + tokens.access_token } });
+                }
+            } else if (s.status === 403 || s.status === 401) {
+                const sj = await s.json().catch(() => ({}));
+                throw new Error('Sheets API scope missing (' + s.status + '): ' + (sj.error?.message || 'enable the Google Sheets API and re-consent.'));
+            }
 
-            res.end(`<h3>ERP Drive authorized as <b style="color:green">${email}</b></h3><p>Drive API reachable. You can close this tab.</p>`);
+            res.end(`<h3>ERP Drive authorized as <b style="color:green">${email}</b></h3><p>Drive + Sheets APIs reachable. You can close this tab.</p>`);
             resolve({ refreshToken: tokens.refresh_token, email });
         } catch (e) {
             res.end(`<h3 style="color:red">Authorization failed: ${e.message}</h3><p>You can close this tab and retry.</p>`);

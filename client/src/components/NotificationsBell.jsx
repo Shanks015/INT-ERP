@@ -66,14 +66,6 @@ const NotificationsBell = () => {
         return () => clearInterval(id);
     }, [refreshUnread]);
 
-    // Re-sync the badge when a notification is created in this tab (e.g. a
-    // staged edit just approved by another admin).
-    useEffect(() => {
-        const onPending = () => refreshUnread();
-        window.addEventListener('pendingCountUpdated', onPending);
-        return () => window.removeEventListener('pendingCountUpdated', onPending);
-    }, [refreshUnread]);
-
     const loadList = useCallback(async () => {
         setLoading(true);
         try {
@@ -85,6 +77,26 @@ const NotificationsBell = () => {
             setLoading(false);
         }
     }, []);
+
+    // Re-sync the badge when a notification is created in this tab (e.g. a
+    // staged edit just approved by another admin), or when Outreach Mail
+    // mark-as-read / send / reply-sync deletes a resolved reply item —
+    // resolveNotifications removes it server-side, so the badge must re-read
+    // immediately rather than wait for the next 30 s poll. If the dropdown is
+    // open, re-fetch the list too so the row disappears without a re-click.
+    const onNotificationsChanged = useCallback(() => {
+        refreshUnread();
+        if (items.length > 0) loadList();
+    }, [refreshUnread, loadList, items.length]);
+
+    useEffect(() => {
+        window.addEventListener('pendingCountUpdated', onNotificationsChanged);
+        window.addEventListener('outreachMailChanged', onNotificationsChanged);
+        return () => {
+            window.removeEventListener('pendingCountUpdated', onNotificationsChanged);
+            window.removeEventListener('outreachMailChanged', onNotificationsChanged);
+        };
+    }, [onNotificationsChanged]);
 
     const handleRowClick = async (item) => {
         if (busyRef.current[item._id]) return;

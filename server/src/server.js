@@ -56,6 +56,8 @@ import dashboardRoutes from './routes/dashboard.routes.js';
 import { startImapSyncJob } from './jobs/imapReplySync.job.js';
 import { startOutreachFollowUpJob } from './jobs/outreachFollowUp.job.js';
 import { startKeepAliveJob } from './jobs/keepAlive.job.js';
+import { startSheetBackupJob } from './jobs/sheetBackup.job.js';
+import { ensureModuleFolders, isDriveConfigured } from './services/driveService.js';
 
 // Load environment variables
 dotenv.config();
@@ -203,6 +205,15 @@ mongoose
         startImapSyncJob();
         startOutreachFollowUpJob();
         startKeepAliveJob();
+        startSheetBackupJob();
+
+        // Pre-create every module folder under ERP-Automation so the Drive tree
+        // is complete before the first upload (best-effort; Drive optional).
+        if (isDriveConfigured()) {
+            ensureModuleFolders()
+                .then(({ folders }) => console.log(`✅ Drive module folders ready under ERP-Automation (${folders.length})`))
+                .catch((e) => console.warn('⚠️ ensureModuleFolders skipped:', e.message));
+        }
 
         // Start server on all network interfaces
         const HOST = '0.0.0.0';

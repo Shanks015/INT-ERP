@@ -90,10 +90,12 @@ const MainLayout = () => {
         };
     }, [isAdmin]);
 
-    // Outreach "waiting on you" badge (sidebar). One cheap countDocuments call,
+    // Outreach "unread replies" badge (sidebar). One cheap countDocuments call,
     // then refreshed whenever Outreach Mail sends / marks-read / detects a reply
-    // (those actions dispatch 'outreachMailChanged').
-    const [outreachReplyCount, setOutreachReplyCount] = useState(0);
+    // (those actions dispatch 'outreachMailChanged'). Uses `unread`
+    // (hasUnreadReply) — not `replyReceived` (status stays "Reply Received"
+    // until you actually reply, so that count never drops on view alone).
+    const [outreachUnreadCount, setOutreachUnreadCount] = useState(0);
     useEffect(() => {
         if (user?.role === 'intern' && !(user.allowedModules || []).includes('outreach')) {
             return undefined;
@@ -102,7 +104,7 @@ const MainLayout = () => {
         const load = async () => {
             try {
                 const { data } = await api.get('/outreach-new/stats');
-                if (!cancelled) setOutreachReplyCount(data.data?.replyReceived || 0);
+                if (!cancelled) setOutreachUnreadCount(data.data?.unread || 0);
             } catch (e) { /* badge is cosmetic; ignore */ }
         };
         load();
@@ -210,7 +212,7 @@ const MainLayout = () => {
                                     <li><Link to="/outreach" className={location.pathname === '/outreach' ? 'active' : ''}><Users size={16} /> Outreach</Link></li>
                                     <li><Link to="/outreach-new" className={location.pathname.includes('/outreach-new') ? 'active' : ''}>
                                         <Mail size={16} /> Outreach Mail
-                                        {outreachReplyCount > 0 && <span className="badge badge-error badge-sm ml-auto">{outreachReplyCount}</span>}
+                                        {outreachUnreadCount > 0 && <span className="badge badge-error badge-sm ml-auto">{outreachUnreadCount}</span>}
                                     </Link></li>
                                 </>
                             )}
