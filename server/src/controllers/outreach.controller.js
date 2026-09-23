@@ -120,7 +120,7 @@ export const importOutreachCSV = async (req, res) => {
 
             // Build outreach record
             const record = {
-                name: contactName || contactPerson || university, // Best effort name
+                name: String(rowData.name || contactName || contactPerson || university || '').trim() || university,
                 country: String(country).trim(),
                 university: String(university).trim(),
                 email: String(email).trim(),
@@ -133,6 +133,9 @@ export const importOutreachCSV = async (req, res) => {
                 reply: String(reply).trim(),
                 notes: String(notes).trim(),
                 department: String(department).trim(),
+                outreachStatus: rowData['outreach status'] || 'Not Sent',
+                sentDate: rowData['sent date'] ? new Date(rowData['sent date']) : null,
+                sentFromEmail: rowData['sent from email'] || null,
                 approvalStatus: 'approved', // Auto-approve imported records
                 status: 'active',
                 createdBy: req.user._id,

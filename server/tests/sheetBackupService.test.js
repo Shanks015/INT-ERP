@@ -6,6 +6,7 @@ import {
     buildSheetRows,
     columnName,
     BACKUP_MODULES,
+    IMPORT_COLUMNS,
     backupSpreadsheetName
 } from '../src/services/sheetBackupService.js';
 
@@ -68,35 +69,117 @@ describe('exportablePaths — schema → columns', () => {
     });
 });
 
-describe('buildSheetRows — header + data alignment', () => {
-    it('prepends _id and maps each path in header order', () => {
-        const schema = {
-            paths: {
-                university: { options: {} },
-                country: { options: {} },
-                date: { options: {} }
-            }
-        };
-        const docs = [
-            { _id: 'abc', university: 'DSU', country: 'India', date: new Date(Date.UTC(2026, 0, 2)) },
-            { _id: 'def', university: 'MIT', country: 'USA', date: null }
-        ];
-        const { header, rows } = buildSheetRows(schema, docs);
-        expect(header).toEqual(['_id', 'university', 'country', 'date']);
-        expect(rows).toHaveLength(2);
-        expect(rows[0][0]).toBe('abc');
-        expect(rows[0][1]).toBe('DSU');
-        expect(rows[0][3]).toBe('2026-01-02T00:00:00.000Z');
-        expect(rows[1][3]).toBe('');
-        // missing optional fields still produce a cell
-        expect(rows[1]).toHaveLength(header.length);
+describe('buildSheetRows — import-ready headers when slug is known', () => {
+    it('uses IMPORT_COLUMNS headers (not _id/schema paths) for a known slug', () => {
+        const schema = { paths: { universityName: { options: {} }, country: { options: {} } } };
+        const docs = [{
+            _id: 'abc',
+            date: new Date(Date.UTC(2026, 0, 2)),
+            type: 'Seminar',
+            visitorName: 'Dr. Rao',
+            country: 'India',
+            universityName: 'DSU',
+            summary: 'Talk',
+            department: 'CSE',
+            campus: 'Kudlu',
+            driveLink: 'https://drive.google.com/x',
+            notes: 'ok'
+        }];
+        const { header, rows } = buildSheetRows(schema, docs, 'campus-visits');
+        expect(header).toEqual([
+            'Date', 'Type', "Visitor's Name & Details", 'Country', 'University Name',
+            'Summary', 'Purpose', 'Department', 'Campus', 'Drive Link', 'Notes'
+        ]);
+        expect(header).not.toContain('_id');
+        expect(rows[0][0]).toBe('2026-01-02T00:00:00.000Z');
+        expect(rows[0][4]).toBe('DSU');
+        expect(rows[0]).toHaveLength(header.length);
+    });
+
+    it('maps masters-abroad using the importer typo header', () => {
+        const schema = { paths: {} };
+        const docs = [{ studentName: 'Asha', country: 'India', university: 'MIT', cgpa: 8.2 }];
+        const { header, rows } = buildSheetRows(schema, docs, 'masters-abroad');
+        expect(header[0]).toBe('Studetns Name');
+        expect(rows[0][0]).toBe('Asha');
+        expect(rows[0][7]).toBe(8.2);
+    });
+
+    it('folds immersion fees + currency into one Fees Per Pax cell', () => {
+        const schema = { paths: {} };
+        const docs = [{ feesPerPax: 8450, feesCurrency: 'AUD', direction: 'Incoming' }];
+        const { header, rows } = buildSheetRows(schema, docs, 'immersion-programs');
+        const i = header.indexOf('Fees Per Pax');
+        expect(rows[0][i]).toBe('8450 AUD');
+    });
+
+    it('folds outreach-new alternate emails into the single Email cell', () => {
+        const schema = { paths: {} };
+        const docs = [{ email: 'a@x.edu', alternativeEmails: ['b@x.edu', 'c@x.edu'] }];
+        const { header, rows } = buildSheetRows(schema, docs, 'outreach-new');
+        expect(header[0]).toBe('University Name');
+        expect(header).not.toContain('Email 2');
+        expect(rows[0][2]).toBe('a@x.edu b@x.edu c@x.edu');
+    });
+
+    it('falls back to schema paths when slug is unknown', () => {
+        const schema = { paths: { title: { options: {} } } };
+        const { header, rows } = buildSheetRows(schema, [{ _id: 'x', title: 'T' }], undefined);
+        expect(header).toEqual(['_id', 'title']);
+        expect(rows).toEqual([['x', 'T']]);
     });
 
     it('handles an empty collection (header only is fine for the writer)', () => {
         const schema = { paths: { title: { options: {} } } };
-        const { header, rows } = buildSheetRows(schema, []);
+        const { header, rows } = buildSheetRows(schema, [], undefined);
         expect(header).toEqual(['_id', 'title']);
         expect(rows).toEqual([]);
+    });
+});
+
+describe('IMPORT_COLUMNS — every backup module has import headers', () => {
+    it('covers all BACKUP_MODULES slugs', () => {
+        for (const mod of BACKUP_MODULES) {
+            expect(IMPORT_COLUMNS[mod.slug], `columns for ${mod.slug}`).toBeTruthy();
+            const headers = IMPORT_COLUMNS[mod.slug].map((c) => c.header);
+            expect(new Set(headers).size, `duplicate header in ${mod.slug}`).toBe(headers.length);
+            for (const col of IMPORT_COLUMNS[mod.slug]) {
+                expect(col.header && col.header.length > 0).toBe(true);
+                expect(Boolean(col.path) || typeof col.get === 'function').toBe(true);
+            }
+        }
+    });
+
+    it('campus modules share the exact importer header set', () => {
+        const expected = [
+            'Date', 'Type', "Visitor's Name & Details", 'Country', 'University Name',
+            'Summary', 'Purpose', 'Department', 'Campus', 'Drive Link', 'Notes'
+        ];
+        for (const slug of ['campus-visits', 'seminars', 'consultant-visits']) {
+            expect(IMPORT_COLUMNS[slug].map((c) => c.header)).toEqual(expected);
+        }
+    });
+
+    it('covers every non-workflow business field from a known model shape', () => {
+        // Spot-check modules that previously dropped columns
+        const outreach = IMPORT_COLUMNS.outreach.map((c) => c.header);
+        expect(outreach).toContain('Name');
+        expect(outreach).toContain('Outreach Status');
+        expect(outreach).toContain('Sent Date');
+        const meetings = IMPORT_COLUMNS['meeting-trackers'].map((c) => c.header);
+        expect(meetings).toContain('Sheet Month');
+        const partners = IMPORT_COLUMNS.partners.map((c) => c.header);
+        expect(partners).toContain('Expiring Date');
+    });
+
+    it('partners keeps import headers first, then backup-only business fields', () => {
+        const headers = IMPORT_COLUMNS.partners.map((c) => c.header);
+        expect(headers.slice(0, 4)).toEqual(['Partner Name', 'Country', 'University', 'Status']);
+        expect(headers).toContain('School');
+        expect(headers).toContain('MoU Status');
+        expect(headers).toContain('Contact Person');
+        expect(headers).toContain('Expiring Date');
+        expect(headers.length).toBeGreaterThanOrEqual(10);
     });
 });
 

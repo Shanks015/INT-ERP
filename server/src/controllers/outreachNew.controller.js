@@ -285,7 +285,7 @@ export const importOutreachNewXLSX = async (req, res) => {
                 partnershipType: String(partnershipType).trim(),
                 notes: notes,
                 department: String(department).trim(),
-                outreachStatus: 'Not Sent',
+                outreachStatus: rowData['outreach status'] || 'Not Sent',
                 status: 'active',
                 createdBy: req.user._id,
                 updatedBy: req.user._id

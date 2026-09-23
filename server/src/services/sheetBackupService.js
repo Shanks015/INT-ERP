@@ -1,15 +1,13 @@
 // sheetBackupService.js — daily tabular mirror of ERP collections into ONE
 // Google Sheet ("ERP Data Backup") living inside the ERP-Automation Drive root.
 //
-// Why a sheet: handover / audit / offline read without Mongo. One tab per
-// business module; headers come from the Mongoose schema (passwords and other
-// select:false secrets never appear). The cron job runs once a day so an edit
-// in the ERP shows up on the next run — a natural ~1-day lag, not a per-row
-// watermark.
-//
-// Credentials reuse driveService (office refresh token or service account).
-// The token must include the spreadsheets scope — re-run scripts/drive_connect.mjs
-// after enabling the Sheets API if an older Drive-only token is still in config.
+// Tabs use the SAME Excel headers import.controller already reads (not raw
+// Mongo path names), so a tab can be downloaded and re-imported without
+// mapping errors. ERP schema columns are untouched — only the sheet layout.
+// One tab per module; credentials reuse driveService (office refresh token or
+// service account). Cron runs once a day so ERP edits show up on the next run
+// (~1-day lag). Token must include the spreadsheets scope — re-run
+// scripts/drive_connect.mjs after enabling the Sheets API if needed.
 import {
     getAccessToken,
     driveFetch,
@@ -31,7 +29,8 @@ export const sheetTitle = (name) =>
     String(name || 'Sheet').replace(/[\\/*?:[\]"<>|]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 100) || 'Sheet';
 
 // One cell → a value the Sheets API accepts (primitives pass through; dates →
-// ISO; objects/arrays → compact JSON so nested subdocs stay readable).
+// ISO — import parseDate accepts ISO via Date constructor; objects/arrays →
+// compact JSON so nested subdocs stay readable).
 export const cellValue = (v) => {
     if (v === null || v === undefined) return '';
     if (v instanceof Date) return isNaN(v.getTime()) ? '' : v.toISOString();
@@ -42,8 +41,272 @@ export const cellValue = (v) => {
     return v;
 };
 
-// Schema path names safe to export: skip Mongo internals and anything the
-// schema marked select:false (password hashes, tokens).
+// Excel headers import.controller expects, mapped to schema paths (or get()).
+// Typos are intentional where the importer still uses them (e.g. Confernce,
+// Studetns) so re-import matches pick()/row['…'] without touching ERP columns.
+export const IMPORT_COLUMNS = {
+    partners: [
+        // Import only picks Partner Name / Country / University / Status;
+        // the rest are backup-only (ignored on re-import, no errors).
+        { header: 'Partner Name', get: (d) => d.university || d.school || '' },
+        { header: 'Country', path: 'country' },
+        { header: 'University', path: 'university' },
+        { header: 'Status', path: 'activeStatus' },
+        { header: 'School', path: 'school' },
+        { header: 'MoU Status', path: 'mouStatus' },
+        { header: 'Contact Person', path: 'contactPerson' },
+        { header: 'Email', path: 'email' },
+        { header: 'Phone', path: 'phoneNumber' },
+        { header: 'Agreement Type', path: 'agreementType' },
+        { header: 'Completed On', path: 'completedOn' },
+        { header: 'Signing Date', path: 'signingDate' },
+        { header: 'Submitted', path: 'submitted' },
+        { header: 'Expiring Date', path: 'expiringDate' },
+        { header: 'Link', path: 'link' }
+    ],
+    'campus-visits': [
+        { header: 'Date', path: 'date' },
+        { header: 'Type', path: 'type' },
+        { header: "Visitor's Name & Details", path: 'visitorName' },
+        { header: 'Country', path: 'country' },
+        { header: 'University Name', path: 'universityName' },
+        { header: 'Summary', path: 'summary' },
+        { header: 'Purpose', path: 'purpose' },
+        { header: 'Department', path: 'department' },
+        { header: 'Campus', path: 'campus' },
+        { header: 'Drive Link', path: 'driveLink' },
+        { header: 'Notes', path: 'notes' }
+    ],
+    seminars: [
+        { header: 'Date', path: 'date' },
+        { header: 'Type', path: 'type' },
+        { header: "Visitor's Name & Details", path: 'visitorName' },
+        { header: 'Country', path: 'country' },
+        { header: 'University Name', path: 'universityName' },
+        { header: 'Summary', path: 'summary' },
+        { header: 'Purpose', path: 'purpose' },
+        { header: 'Department', path: 'department' },
+        { header: 'Campus', path: 'campus' },
+        { header: 'Drive Link', path: 'driveLink' },
+        { header: 'Notes', path: 'notes' }
+    ],
+    'consultant-visits': [
+        { header: 'Date', path: 'date' },
+        { header: 'Type', path: 'type' },
+        { header: "Visitor's Name & Details", path: 'visitorName' },
+        { header: 'Country', path: 'country' },
+        { header: 'University Name', path: 'universityName' },
+        { header: 'Summary', path: 'summary' },
+        { header: 'Purpose', path: 'purpose' },
+        { header: 'Department', path: 'department' },
+        { header: 'Campus', path: 'campus' },
+        { header: 'Drive Link', path: 'driveLink' },
+        { header: 'Notes', path: 'notes' }
+    ],
+    'mou-signing-ceremonies': [
+        { header: 'Date', path: 'date' },
+        { header: 'Type', path: 'type' },
+        { header: "Visitor's Name & Details", path: 'visitorName' },
+        // Import historically wrote universityName; schema requires `university`.
+        { header: 'University Name', path: 'university' },
+        { header: 'Department', path: 'department' },
+        { header: 'Event Summary', path: 'eventSummary' },
+        { header: 'Campus(Kudlu,Harohalli)', path: 'campus' },
+        { header: 'drive link', path: 'driveLink' }
+    ],
+    events: [
+        { header: 'Date', path: 'date' },
+        { header: 'Type', path: 'type' },
+        { header: 'Name & Details', path: 'title' },
+        { header: 'Department', path: 'department' },
+        { header: 'University with country', path: 'universityCountry' },
+        { header: 'Dignitaries', path: 'dignitaries' },
+        { header: 'Event Summary', path: 'eventSummary' },
+        { header: 'Campus', path: 'campus' },
+        { header: 'drive link', path: 'driveLink' }
+    ],
+    conferences: [
+        { header: 'Date', path: 'date' },
+        { header: 'Confernce Name', path: 'conferenceName' },
+        { header: 'Country', path: 'country' },
+        { header: 'Department', path: 'department' },
+        { header: 'Event Summary', path: 'eventSummary' },
+        { header: 'Campus(Kudlu,Harohalli)', path: 'campus' },
+        { header: 'drive link', path: 'driveLink' }
+    ],
+    'scholars-in-residence': [
+        { header: 'Scholar Name', path: 'scholarName' },
+        { header: 'Designation', path: 'designation' },
+        { header: 'University', path: 'university' },
+        { header: 'Country', path: 'country' },
+        { header: 'QS Ranking', path: 'qsRanking' },
+        { header: 'Duration / Days', path: 'durationDays' },
+        { header: 'Start Date', path: 'startDate' },
+        { header: 'End Date', path: 'endDate' },
+        { header: 'Schools / Department', path: 'department' },
+        { header: 'Accommodation / Campus', path: 'campus' },
+        { header: 'Status', path: 'scholarStatus' },
+        { header: 'Email', path: 'email' },
+        { header: 'Mobile', path: 'mobile' },
+        { header: 'Remarks / Summary', path: 'summary' },
+        { header: 'Drive Link', path: 'driveLink' },
+        { header: 'Notes', path: 'notes' }
+    ],
+    'mou-updates': [
+        { header: 'Date', path: 'date' },
+        { header: 'Country', path: 'country' },
+        { header: 'University', path: 'university' },
+        { header: 'Department', path: 'department' },
+        { header: 'Completed Date', path: 'completedDate' },
+        { header: 'MoU Status', path: 'mouStatus' },
+        { header: 'Contact Person', path: 'contactPerson' },
+        { header: 'Contact Email', path: 'contactEmail' },
+        { header: 'Agreement Type', path: 'agreementType' },
+        { header: 'Term', path: 'term' },
+        { header: 'Validity Status', path: 'validityStatus' },
+        { header: 'Drive Link', path: 'driveLink' }
+    ],
+    'immersion-programs': [
+        { header: 'Status', path: 'programStatus' },
+        { header: 'Incoming/Outgoing', path: 'direction' },
+        { header: 'University', path: 'university' },
+        { header: 'Country', path: 'country' },
+        { header: 'No of Pax', path: 'numberOfPax' },
+        { header: 'Department', path: 'department' },
+        { header: 'Arrival Date', path: 'arrivalDate' },
+        { header: 'Departure Date', path: 'departureDate' },
+        {
+            header: 'Fees Per Pax',
+            // money() strips the unit; currency() recovers it — keep "8450 AUD".
+            get: (d) => {
+                if (d.feesPerPax === null || d.feesPerPax === undefined || d.feesPerPax === '') return '';
+                return d.feesCurrency ? `${d.feesPerPax} ${d.feesCurrency}` : String(d.feesPerPax);
+            }
+        },
+        { header: 'Summary', path: 'summary' },
+        { header: 'Drive Link', path: 'driveLink' },
+        { header: 'Notes', path: 'notes' }
+    ],
+    'student-exchange': [
+        { header: 'Direction', path: 'direction' },
+        { header: 'Student Name', path: 'studentName' },
+        { header: 'Exchange University', path: 'exchangeUniversity' },
+        { header: 'Country', path: 'country' },
+        { header: 'Course', path: 'course' },
+        { header: 'Semester / Year', path: 'semesterYear' },
+        { header: 'USN', path: 'usnNo' },
+        { header: 'From Date', path: 'fromDate' },
+        { header: 'To Date', path: 'toDate' },
+        { header: 'Status', path: 'exchangeStatus' },
+        { header: 'Document Link', path: 'driveLink' },
+        { header: 'Notes', path: 'notes' }
+    ],
+    'masters-abroad': [
+        // Import still keys on the historical typo "Studetns Name".
+        { header: 'Studetns Name', path: 'studentName' },
+        { header: 'Country', path: 'country' },
+        { header: 'University', path: 'university' },
+        { header: 'Course Studying', path: 'courseStudying' },
+        { header: 'Course Tenure', path: 'courseTenure' },
+        { header: 'Passport Number', path: 'passportNumber' },
+        { header: 'USN Number', path: 'usnNumber' },
+        { header: 'CGPA', path: 'cgpa' },
+        { header: 'School of Study(UG at DSU)', path: 'schoolOfStudy' },
+        { header: 'drive link', path: 'driveLink' }
+    ],
+    memberships: [
+        { header: 'Date', path: 'date' },
+        { header: 'Status', path: 'membershipStatus' },
+        { header: 'Name', path: 'name' },
+        { header: 'Summary', path: 'summary' },
+        { header: 'Country', path: 'country' },
+        { header: 'Membership Duration', path: 'membershipDuration' },
+        { header: 'Start Date', path: 'startDate' },
+        { header: 'End Date', path: 'endDate' },
+        { header: 'drive link', path: 'driveLink' }
+    ],
+    'digital-media': [
+        { header: 'Date', path: 'date' },
+        { header: 'Channel', path: 'channel' },
+        { header: 'Link of the Article', path: 'articleLink' },
+        { header: 'Article Topic', path: 'articleTopic' },
+        { header: 'Amount Paid', path: 'amountPaid' },
+        { header: 'Summary', path: 'summary' },
+        { header: 'drive link', path: 'driveLink' }
+    ],
+    'social-media': [
+        { header: 'Post Name', path: 'postName' },
+        { header: 'Caption', path: 'caption' },
+        { header: 'Facebook', path: 'fbLink' },
+        { header: 'Instagram', path: 'instaLink' },
+        { header: 'LinkedIn', path: 'linkedinLink' },
+        { header: 'VK', path: 'vkLink' }
+    ],
+    'meeting-trackers': [
+        { header: 'Meeting ID', path: 'meetingId' },
+        { header: 'Meeting Title', path: 'meetingTitle' },
+        { header: 'Date', path: 'date' },
+        { header: 'Start Time', path: 'startTime' },
+        { header: 'End Time', path: 'endTime' },
+        { header: 'Timezone', path: 'timezone' },
+        { header: 'Mode (Online/Offline)', path: 'mode' },
+        { header: 'Platform/Location', path: 'platformLocation' },
+        { header: 'Host Organization', path: 'hostOrganization' },
+        { header: 'Host Name', path: 'hostName' },
+        { header: 'Host Email', path: 'hostEmail' },
+        { header: 'Participants', path: 'participants' },
+        { header: 'Key Agenda', path: 'keyAgenda' },
+        { header: 'Discussion Summary', path: 'discussionSummary' },
+        { header: 'Action Items', path: 'actionItems' },
+        { header: 'Next Meeting Date', path: 'nextMeetingDate' },
+        { header: 'Drive Link (MoM/Recording)', path: 'driveLink' },
+        { header: 'Remarks', path: 'remarks' },
+        { header: 'Sheet Month', path: 'sheetMonth' }
+    ],
+    outreach: [
+        // Custom /outreach/import-csv: University + Email + Country required.
+        { header: 'Name', path: 'name' },
+        { header: 'University', path: 'university' },
+        { header: 'Country', path: 'country' },
+        { header: 'Email', path: 'email' },
+        { header: 'Email 2', get: (d) => d.alternativeEmails?.[0] || '' },
+        { header: 'Email 3', get: (d) => d.alternativeEmails?.[1] || '' },
+        { header: 'Email 4', get: (d) => d.alternativeEmails?.[2] || '' },
+        { header: 'Contact Person', path: 'contactPerson' },
+        { header: 'Contact Name', path: 'contactName' },
+        { header: 'Phone', path: 'phone' },
+        { header: 'Website', path: 'website' },
+        { header: 'Partnership Type', path: 'partnershipType' },
+        { header: 'Reply', path: 'reply' },
+        { header: 'Notes', path: 'notes' },
+        { header: 'Department', path: 'department' },
+        { header: 'Outreach Status', path: 'outreachStatus' },
+        { header: 'Sent Date', path: 'sentDate' },
+        { header: 'Sent From Email', path: 'sentFromEmail' }
+    ],
+    'outreach-new': [
+        // Custom /outreach-new/import-xlsx: University + Email required.
+        // Import only reads one Email cell (splits on spaces/commas) — fold
+        // alternates in so they survive re-import.
+        { header: 'University Name', path: 'university' },
+        { header: 'Country', path: 'country' },
+        {
+            header: 'Email',
+            get: (d) => [d.email, ...(d.alternativeEmails || [])].filter(Boolean).join(' ')
+        },
+        { header: 'Contact Person Name', path: 'contactName' },
+        { header: 'Designation / Role', path: 'contactPerson' },
+        { header: 'Department', path: 'department' },
+        { header: 'Phone', path: 'phone' },
+        { header: 'Website', path: 'website' },
+        { header: 'Partnership Type', path: 'partnershipType' },
+        { header: 'Notes', path: 'notes' },
+        { header: 'Outreach Status', path: 'outreachStatus' }
+    ]
+};
+
+// Schema path names safe to export (fallback when a module has no
+// IMPORT_COLUMNS entry): skip Mongo internals and select:false secrets.
 export const exportablePaths = (schema) => {
     const out = [];
     for (const [path, type] of Object.entries(schema.paths)) {
@@ -54,8 +317,20 @@ export const exportablePaths = (schema) => {
     return out;
 };
 
-// Build a header row + data rows for one collection. `docs` are lean().
-export const buildSheetRows = (schema, docs) => {
+const columnCell = (col, doc) => {
+    if (col.get) return cellValue(col.get(doc));
+    return cellValue(doc[col.path]);
+};
+
+// Build a header row + data rows for one collection. Prefer IMPORT_COLUMNS
+// for `slug` so the tab re-imports cleanly; otherwise dump schema paths.
+export const buildSheetRows = (schema, docs, slug) => {
+    const cols = slug ? IMPORT_COLUMNS[slug] : null;
+    if (cols) {
+        const header = cols.map((c) => c.header);
+        const rows = docs.map((doc) => cols.map((c) => columnCell(c, doc)));
+        return { header, rows };
+    }
     const paths = exportablePaths(schema);
     const header = ['_id', ...paths];
     const rows = docs.map((doc) => [
@@ -238,7 +513,7 @@ export const runSheetBackup = async () => {
         const title = sheetTitle(mod.sheet);
         try {
             const { schema, docs } = await loadModuleDocs(mod);
-            const { header, rows } = buildSheetRows(schema, docs);
+            const { header, rows } = buildSheetRows(schema, docs, mod.slug);
             const n = await writeTab(accessToken, spreadsheetId, title, header, rows);
             results.push({ module: mod.slug, sheet: title, rows: n, ok: true });
         } catch (e) {

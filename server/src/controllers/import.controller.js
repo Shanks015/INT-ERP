@@ -140,7 +140,7 @@ export const importData = async (req, res) => {
                             nextMeetingDate: nextMeetingDateParsed,
                             driveLink: String(row['Drive Link (MoM/Recording)'] || row['Drive Link'] || row['drive link'] || '').trim(),
                             remarks: String(row['Remarks'] || '').trim(),
-                            sheetMonth: name,
+                            sheetMonth: String(row['Sheet Month'] || name).trim(),
                             status: 'active',
                             createdBy: req.user._id,
                             createdAt: new Date(),
@@ -206,6 +206,7 @@ export const importData = async (req, res) => {
                     country: row['Country'],
                     universityName: row['University Name'],
                     summary: row['Summary'],
+                    purpose: row['Purpose'],
                     department: row['Department'],
                     campus: row['Campus'],
                     driveLink: pick(row, ['Campus Visit- Upload Zip FIle', 'drive link', 'Drive Link', 'Upload Zip File']),
@@ -219,7 +220,9 @@ export const importData = async (req, res) => {
                     date: parseDate(row['Date']),
                     type: row['Type'],
                     visitorName: row['Visitor\'s Name & Details'],
-                    universityName: row['University Name'],
+                    // Schema field is `university` (required). Keep the Excel
+                    // header "University Name"; only the target path was wrong.
+                    university: row['University Name'] || row['University'] || row['university'],
                     department: row['Department'],
                     eventSummary: row['Event Summary'],
                     campus: row['Campus(Kudlu,Harohalli)'],
@@ -362,7 +365,8 @@ export const importData = async (req, res) => {
                 mappingFunction = (row) => ({
                     date: parseDate(row['Date']),
                     channel: row['Channel'],
-                    link: row['Link of the Article'] || row['Link of Article'],
+                    // Schema field is articleLink; Excel header stays "Link of the Article".
+                    articleLink: row['Link of the Article'] || row['Link of Article'],
                     articleTopic: row['Article Topic'],
                     amountPaid: row['Amount Paid'],
                     summary: row['Summary'],
